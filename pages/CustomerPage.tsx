@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { getCustomerByQrToken, updateCustomerPhoneNumber } from '../services/api';
+import { getCustomerByQrToken, updateCustomer } from '../services/api';
 import { Customer, Discount } from '../types';
-import { Spinner, FacebookIcon, GiftIcon, StarIcon, DownloadIcon, GiftWonModal, DiscountModal, PhoneNumberInputModal } from '../components/common';
+import { Spinner, FacebookIcon, GiftIcon, StarIcon, DownloadIcon, GiftWonModal, DiscountModal, CustomerSetupModal } from '../components/common';
 import { useLanguage } from '../context/LanguageContext';
 import supabase from '../services/supabaseClient';
 import { REWARD_THRESHOLD } from '../constants';
@@ -50,7 +49,7 @@ const CustomerPage: React.FC<CustomerPageProps> = ({ qrToken }) => {
   const [isPwa, setIsPwa] = useState(false);
   const [discounts, setDiscounts] = useState<Discount[]>([]);
   const [selectedDiscount, setSelectedDiscount] = useState<Discount | null>(null);
-  const [showPhoneNumberModal, setShowPhoneNumberModal] = useState(false);
+  const [isSetupModalOpen, setIsSetupModalOpen] = useState(false);
 
   useEffect(() => {
     setIsPwa(window.matchMedia('(display-mode: standalone)').matches);
@@ -104,8 +103,8 @@ const CustomerPage: React.FC<CustomerPageProps> = ({ qrToken }) => {
     try {
       const customerData = await getCustomerByQrToken(qrToken);
       if (customerData) {
-        if (!customerData.phone_number) {
-          setShowPhoneNumberModal(true);
+        if (customerData.name === "New Customer") {
+            setIsSetupModalOpen(true);
         }
         if (prevPointsRef.current !== null && customerData.points < prevPointsRef.current) {
           if (typeof confetti === 'function') {
@@ -133,13 +132,13 @@ const CustomerPage: React.FC<CustomerPageProps> = ({ qrToken }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handlePhoneNumberSave = async (phoneNumber: string) => {
+  const handleSetupSave = async (details: { name: string; phone: string }) => {
     if (customer) {
-      const updatedCustomer = await updateCustomerPhoneNumber(customer.id, phoneNumber);
+      const updatedCustomer = await updateCustomer(customer.id, { name: details.name, phone_number: details.phone });
       if (updatedCustomer) {
         setCustomer(updatedCustomer);
       }
-      setShowPhoneNumberModal(false);
+      setIsSetupModalOpen(false);
     }
   };
 
@@ -159,7 +158,7 @@ const CustomerPage: React.FC<CustomerPageProps> = ({ qrToken }) => {
     <div className="min-h-screen bg-gray-100 p-4 sm:p-6 lg:p-8">
         <GiftWonModal isOpen={showGiftWon} onClose={() => setShowGiftWon(false)} />
         <DiscountModal isOpen={!!selectedDiscount} onClose={() => setSelectedDiscount(null)} discount={selectedDiscount} />
-        <PhoneNumberInputModal isOpen={showPhoneNumberModal} onSave={handlePhoneNumberSave} initialPhoneNumber={customer.phone_number} />
+        <CustomerSetupModal isOpen={isSetupModalOpen} onSave={handleSetupSave} />
         
         <div className="max-w-md mx-auto">
             <div className="flex flex-col items-center justify-center mb-8">
@@ -170,9 +169,6 @@ const CustomerPage: React.FC<CustomerPageProps> = ({ qrToken }) => {
             {customer.phone_number && (
               <div className="flex items-center justify-center mb-4">
                 <span className="text-lg font-semibold text-gray-700">{customer.phone_number}</span>
-                <button className="ml-2 p-2 rounded-full hover:bg-gray-200" onClick={() => setShowPhoneNumberModal(true)} aria-label="Edit phone number">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L14.732 3.732z" /></svg>
-                </button>
               </div>
             )}
             {customer.qr_data_url && (

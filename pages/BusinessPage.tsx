@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { Customer, Business } from '../types';
 import { getCustomersByBusiness, updateCustomer, deleteCustomer, createCustomer } from '../services/api';
-import { Spinner, CustomerEditModal, ConfirmationModal, NewCustomerModal } from '../components/common';
+import { Spinner, CustomerEditModal, ConfirmationModal } from '../components/common';
 
 const StatCard: React.FC<{ title: string; value: string | number; icon: React.ReactNode }> = ({ title, value, icon }) => (
     <div className="bg-white p-6 rounded-lg shadow-md flex items-center gap-4">
@@ -51,24 +50,38 @@ const BusinessPage: React.FC = () => {
     const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
     const [deletingCustomer, setDeletingCustomer] = useState<Customer | null>(null);
     const [newCustomerQR, setNewCustomerQR] = useState<Customer | null>(null);
-    const [isNewCustomerModalOpen, setIsNewCustomerModalOpen] = useState(false);
 
     const fetchData = useCallback(async (businessId: string) => {
-        setLoading(true);
         const data = await getCustomersByBusiness(businessId);
         setCustomers(data);
-        setLoading(false);
-    }, []);
+        if (loading) setLoading(false);
+    }, [loading]);
 
     useEffect(() => {
+        let isMounted = true;
+        let intervalId: number | undefined;
+
         const storedBusiness = sessionStorage.getItem('business');
         if (storedBusiness) {
             const parsedBusiness = JSON.parse(storedBusiness);
-            setBusiness(parsedBusiness);
-            fetchData(parsedBusiness.id);
+            if (isMounted) {
+                setBusiness(parsedBusiness);
+                fetchData(parsedBusiness.id);
+            }
+            
+            intervalId = setInterval(() => {
+                fetchData(parsedBusiness.id);
+            }, 5000); // Poll every 5 seconds
+
         } else {
              window.location.href = '/business/login';
         }
+
+        return () => {
+            isMounted = false;
+            clearInterval(intervalId);
+        }
+
     }, [fetchData]);
 
     const handleUpdateCustomer = async (customer: Customer) => {
@@ -84,9 +97,9 @@ const BusinessPage: React.FC = () => {
         }
     };
 
-    const handleCreateCustomer = async (name: string) => {
+    const handleCreateAnonymousCustomer = async () => {
         if (!business) return;
-        const newCustomer = await createCustomer(name, business.id);
+        const newCustomer = await createCustomer(business.id);
         if(newCustomer) {
             setNewCustomerQR(newCustomer);
             fetchData(business.id);
@@ -122,11 +135,6 @@ const BusinessPage: React.FC = () => {
                 onConfirm={handleDeleteCustomer}
                 title={t('confirmDelete')}
                 message={t('confirmDeleteMessage')}
-            />
-             <NewCustomerModal
-                isOpen={isNewCustomerModalOpen}
-                onClose={() => setIsNewCustomerModalOpen(false)}
-                onCreate={handleCreateCustomer}
             />
             {newCustomerQR && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center" onClick={() => setNewCustomerQR(null)}>
@@ -213,7 +221,7 @@ const BusinessPage: React.FC = () => {
                             <QuickActionCard 
                                 title={t('addNewCustomer')} 
                                 description="Create a new QR code for a customer." 
-                                onClick={() => setIsNewCustomerModalOpen(true)}
+                                onClick={handleCreateAnonymousCustomer}
                                 icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>}
                             />
                              <QuickActionCard 

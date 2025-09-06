@@ -98,7 +98,7 @@ export const deleteCustomer = async (id: string): Promise<boolean> => {
     return true;
 };
 
-export const createCustomer = async (name: string, businessId: string): Promise<Customer | null> => {
+export const createCustomer = async (businessId: string): Promise<Customer | null> => {
     const { data: business, error: businessError } = await supabase
       .from('businesses')
       .select('*')
@@ -114,7 +114,7 @@ export const createCustomer = async (name: string, businessId: string): Promise<
     const qr_data_url = await generateQrCode(qr_token, business);
 
     const newCustomerData = {
-        name,
+        name: "New Customer",
         business_id: businessId,
         phone_number: null,
         points: 0,
@@ -241,9 +241,6 @@ export const regenerateAllCustomerQrsForBusiness = async (businessId: string): P
     }
 
     // 2. Get all customers for this business
-    // FIX: `getCustomersByBusiness` returns a processed array, not the raw Supabase response.
-    // The original code was trying to destructure the array, causing the error.
-    // Changed to call Supabase directly to get the `{ data, error }` object as intended.
     const { data: customers, error: customersError } = await supabase
         .from('customers')
         .select('*')
@@ -261,8 +258,10 @@ export const regenerateAllCustomerQrsForBusiness = async (businessId: string): P
     // 3. Generate new QR data URLs in parallel
     const updates = await Promise.all(customers.map(async (customer) => {
         const newQrDataUrl = await generateQrCode(customer.qr_token, business);
+        // FIX: Spread the existing customer object to include all required fields (like 'name')
+        // in the upsert payload, preventing a "not-null constraint" violation.
         return {
-            id: customer.id,
+            ...customer,
             qr_data_url: newQrDataUrl
         };
     }));

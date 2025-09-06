@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { Customer, Discount } from '../types';
@@ -86,38 +85,65 @@ export const DiscountModal: React.FC<{ isOpen: boolean; onClose: () => void; dis
     );
 };
 
-
-export const PhoneNumberInputModal: React.FC<{ isOpen: boolean; onSave: (phone: string) => void; initialPhoneNumber: string | null; }> = ({ isOpen, onSave, initialPhoneNumber }) => {
+export const CustomerSetupModal: React.FC<{
+    isOpen: boolean;
+    onSave: (details: { name: string; phone: string }) => void;
+}> = ({ isOpen, onSave }) => {
     const { t } = useLanguage();
-    const [phone, setPhone] = useState(initialPhoneNumber || '');
+    const [name, setName] = useState('');
+    const [phone, setPhone] = useState('');
 
     const handleSave = () => {
-        if (phone.trim()) {
-            onSave(phone.trim());
+        if (name.trim() && phone.trim()) {
+            onSave({ name: name.trim(), phone: phone.trim() });
         }
     };
     
-    // This modal shouldn't be closable by clicking outside
+    // This modal should not be closable by clicking outside
     const handleClose = () => {};
 
     return (
-      <Modal isOpen={isOpen} onClose={handleClose} title={t('enterPhoneNumber')}>
-        <p className="text-gray-600 mb-4">{t('enterPhoneNumberPrompt')}</p>
-        <input 
-          type="tel"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder={t('phoneNumber')}
-        />
+      <Modal isOpen={isOpen} onClose={handleClose} title={t('customerSetup')}>
+        <div className="space-y-4">
+            <p className="text-gray-600 mb-4">{t('customerSetupPrompt')}</p>
+            <div>
+                <label htmlFor="setup-name" className="block text-sm font-medium text-gray-700">{t('name')}</label>
+                <input 
+                    id="setup-name"
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="John Doe"
+                    required
+                />
+            </div>
+             <div>
+                <label htmlFor="setup-phone" className="block text-sm font-medium text-gray-700">{t('phoneNumber')}</label>
+                <input 
+                    id="setup-phone"
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="e.g. +30 69..."
+                    required
+                />
+            </div>
+        </div>
         <div className="mt-6 flex justify-end">
-          <button onClick={handleSave} className="bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 transition-colors">
+          <button 
+            onClick={handleSave} 
+            disabled={!name.trim() || !phone.trim()}
+            className="w-full bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-blue-400 disabled:cursor-not-allowed"
+          >
             {t('save')}
           </button>
         </div>
       </Modal>
     );
 };
+
 
 export const CustomerEditModal: React.FC<{
     isOpen: boolean;
@@ -183,45 +209,6 @@ export const ConfirmationModal: React.FC<{
                 </div>
             </div>
         </div>
-    );
-};
-
-export const NewCustomerModal: React.FC<{
-    isOpen: boolean;
-    onClose: () => void;
-    onCreate: (name: string) => void;
-}> = ({ isOpen, onClose, onCreate }) => {
-    const { t } = useLanguage();
-    const [name, setName] = useState('');
-
-    const handleCreate = () => {
-        if (name.trim()) {
-            onCreate(name.trim());
-            setName('');
-            onClose();
-        }
-    };
-
-    return (
-        <Modal isOpen={isOpen} onClose={onClose} title={t('addNewCustomer')}>
-            <div className="space-y-4">
-                <div>
-                    <label htmlFor="customer-name" className="block text-sm font-medium text-gray-700">{t('name')}</label>
-                    <input 
-                        id="customer-name"
-                        type="text" 
-                        value={name} 
-                        onChange={e => setName(e.target.value)} 
-                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" 
-                        placeholder="John Doe"
-                    />
-                </div>
-            </div>
-            <div className="mt-6 flex justify-end gap-4">
-                <button onClick={onClose} className="bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors">{t('cancel')}</button>
-                <button onClick={handleCreate} className="bg-green-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-700 transition-colors">{t('add')}</button>
-            </div>
-        </Modal>
     );
 };
 

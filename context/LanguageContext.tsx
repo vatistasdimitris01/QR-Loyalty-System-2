@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, ReactNode } from 'react';
 
 const translations = {
@@ -81,6 +80,9 @@ const translations = {
     saveSuccess: 'Settings saved and all customer QR codes have been updated!',
     saveErrorCustomers: 'Settings saved, but failed to update customer QR codes.',
     saveError: 'Failed to save settings.',
+    // Customer Setup Modal
+    customerSetup: 'Activate Your Card',
+    customerSetupPrompt: 'Welcome! Please enter your details to get started.',
   },
   el: {
     scanToLogin: 'Σάρωση για Είσοδο',
@@ -161,6 +163,9 @@ const translations = {
     saveSuccess: 'Οι ρυθμίσεις αποθηκεύτηκαν και όλοι οι κωδικοί QR των πελατών ενημερώθηκαν!',
     saveErrorCustomers: 'Οι ρυθμίσεις αποθηκεύτηκαν, αλλά απέτυχε η ενημέρωση των κωδικών QR των πελατών.',
     saveError: 'Αποτυχία αποθήκευσης των ρυθμίσεων.',
+    // Customer Setup Modal
+    customerSetup: 'Ενεργοποίηση Κάρτας',
+    customerSetupPrompt: 'Καλώς ήρθες! Παρακαλώ εισάγετε τα στοιχεία σας για να ξεκινήσετε.',
   },
 };
 
