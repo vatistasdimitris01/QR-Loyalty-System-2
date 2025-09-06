@@ -121,3 +121,10 @@ export interface BusinessAnalytics {
     points_awarded_7d: number;
     rewards_claimed_7d: number;
 }
+
+export interface DailyAnalyticsData {
+    log_date: string;
+    new_members_count: number;
+    points_awarded_sum: number;
+    rewards_claimed_count: number;
+}

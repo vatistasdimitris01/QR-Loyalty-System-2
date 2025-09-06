@@ -1,15 +1,13 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Business, BusinessQrDesign, QrStyle, Post, Discount } from '../types';
+import { Business, BusinessQrDesign, QrStyle } from '../types';
 import { useLanguage } from '../context/LanguageContext';
 import { generateQrCode } from '../services/qrGenerator';
 import { 
-    updateBusiness, getBusinessQrDesigns, createBusinessQrDesign, deleteBusinessQrDesign,
-    getPostsForBusiness, createPost, updatePost, deletePost,
-    getDiscountsForBusiness, createDiscount, deleteDiscount
+    updateBusiness, getBusinessQrDesigns, createBusinessQrDesign, deleteBusinessQrDesign
 } from '../services/api';
-import { Spinner, InputField, TextAreaField, SelectField, PencilIcon, TrashIcon, MarkdownEditor } from '../components/common';
+import { Spinner, InputField, TextAreaField, SelectField, TrashIcon } from '../components/common';
 
-type EditorTab = 'profile' | 'branding' | 'loyalty' | 'location' | 'posts' | 'discounts';
+type EditorTab = 'profile' | 'branding' | 'location';
 
 const BusinessEditorPage: React.FC = () => {
     const { t } = useLanguage();
@@ -77,20 +75,14 @@ const BusinessEditorPage: React.FC = () => {
                     <nav className="-mb-px flex space-x-6 overflow-x-auto">
                         <TabButton label={t('publicProfile')} isActive={activeTab === 'profile'} onClick={() => setActiveTab('profile')} />
                         <TabButton label={t('qrCustomization')} isActive={activeTab === 'branding'} onClick={() => setActiveTab('branding')} />
-                        <TabButton label={t('loyaltyProgram')} isActive={activeTab === 'loyalty'} onClick={() => setActiveTab('loyalty')} />
                         <TabButton label={t('location')} isActive={activeTab === 'location'} onClick={() => setActiveTab('location')} />
-                        <TabButton label={t('managePosts')} isActive={activeTab === 'posts'} onClick={() => setActiveTab('posts')} />
-                        <TabButton label={t('discounts')} isActive={activeTab === 'discounts'} onClick={() => setActiveTab('discounts')} />
                     </nav>
                 </div>
 
                 <div className="max-w-4xl mx-auto">
                     {activeTab === 'profile' && <ProfileSettings formState={formState} setFormState={setFormState} />}
                     {activeTab === 'branding' && <BrandingSettings formState={formState} setFormState={setFormState} business={business} />}
-                    {activeTab === 'loyalty' && <LoyaltySettings formState={formState} setFormState={setFormState} />}
                     {activeTab === 'location' && <LocationSettings formState={formState} setFormState={setFormState} />}
-                    {activeTab === 'posts' && <PostsManager business={business} />}
-                    {activeTab === 'discounts' && <DiscountsManager business={business} />}
                 </div>
             </main>
         </div>
@@ -172,28 +164,6 @@ const BrandingSettings: React.FC<{formState: Partial<Business>, setFormState: Re
     );
 };
 
-const LoyaltySettings: React.FC<{formState: Partial<Business>, setFormState: React.Dispatch<React.SetStateAction<Partial<Business>>>}> = ({ formState, setFormState }) => {
-    const { t } = useLanguage();
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        if (name === 'points_per_scan' || name === 'reward_threshold') {
-             setFormState(prev => ({ ...prev, [name]: parseInt(value, 10) || 0 }));
-        } else {
-            setFormState(prev => ({ ...prev, [name]: value }));
-        }
-    };
-
-    return (
-        <SettingsCard title={t('loyaltyProgram')} description={t('loyaltyProgramDesc')}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <InputField type="number" label={t('pointsPerScan')} name="points_per_scan" value={String(formState.points_per_scan || 1)} onChange={handleChange} />
-                <InputField type="number" label={t('rewardThreshold')} name="reward_threshold" value={String(formState.reward_threshold || 5)} onChange={handleChange} />
-            </div>
-            <InputField label={t('rewardMessage')} name="reward_message" value={formState.reward_message || ''} onChange={handleChange} placeholder={t('rewardMessagePlaceholder')} />
-        </SettingsCard>
-    );
-};
-
 const LocationSettings: React.FC<{formState: Partial<Business>, setFormState: React.Dispatch<React.SetStateAction<Partial<Business>>>}> = ({ formState, setFormState }) => {
     const { t } = useLanguage();
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => setFormState(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -254,140 +224,6 @@ const CustomerQrDesigns: React.FC<{business: Business}> = ({ business }) => {
             </div>
         </SettingsCard>
     );
-};
-
-const PostsManager: React.FC<{business: Business}> = ({ business }) => {
-    const { t } = useLanguage();
-    const [posts, setPosts] = useState<Post[]>([]);
-    const [editingPost, setEditingPost] = useState<Post | null>(null);
-    const emptyForm: Omit<Post, 'id' | 'business_id' | 'created_at'> = { title: '', content: '', image_url: '', post_type: 'standard', video_url: '', price_text: '', external_url: '' };
-    const [formState, setFormState] = useState(emptyForm);
-
-    const fetchPosts = useCallback(async () => {
-        const data = await getPostsForBusiness(business.id);
-        setPosts(data);
-    }, [business.id]);
-
-    useEffect(() => { fetchPosts(); }, [fetchPosts]);
-
-    useEffect(() => {
-        if (editingPost) {
-            setFormState(editingPost);
-        } else {
-            setFormState(emptyForm);
-        }
-    }, [editingPost]);
-
-    const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-        setFormState(prev => ({ ...prev, [e.target.name]: e.target.value }));
-    };
-    
-    const handleMarkdownChange = (name: string, value: string) => {
-        setFormState(prev => ({...prev, [name]: value}));
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        let result;
-        if (editingPost) {
-            result = await updatePost(editingPost.id, formState);
-        } else {
-            result = await createPost({ ...formState, business_id: business.id });
-        }
-        if (result) {
-            fetchPosts();
-            setEditingPost(null);
-        }
-    };
-    
-    const handleCancelEdit = () => {
-        setEditingPost(null);
-    };
-
-    const handleDelete = async (id: string) => {
-        if (window.confirm('Are you sure?')) {
-            const success = await deletePost(id);
-            if (success) fetchPosts();
-        }
-    };
-
-    return (
-        <SettingsCard title={t('managePosts')} description={t('managePostsDesc')}>
-            <form onSubmit={handleSubmit} className="border p-4 rounded-lg space-y-4 bg-gray-50">
-                <h3 className="font-semibold text-gray-800">{editingPost ? t('editPost') : t('newPost')}</h3>
-                <InputField label={t('title')} name="title" value={formState.title} onChange={handleFormChange} />
-                <SelectField label={t('postType')} name="post_type" value={formState.post_type} onChange={handleFormChange} options={[ {value: 'standard', label: t('standardPost')}, {value: 'discount', label: t('discountOffer')} ]} />
-                <MarkdownEditor label={t('content')} name="content" value={formState.content || ''} onChange={handleMarkdownChange} />
-                <InputField label={t('imageUrl')} name="image_url" value={formState.image_url || ''} onChange={handleFormChange} />
-                <InputField label={t('videoUrl')} name="video_url" value={formState.video_url || ''} onChange={handleFormChange} placeholder="https://youtube.com/..." />
-                <InputField label={t('priceOffer')} name="price_text" value={formState.price_text || ''} onChange={handleFormChange} placeholder="e.g., $19.99 or 50% OFF" />
-                <InputField label={t('externalLink')} name="external_url" value={formState.external_url || ''} onChange={handleFormChange} placeholder="https://yoursite.com/product" />
-                <div className="flex gap-4">
-                    {editingPost && <button type="button" onClick={handleCancelEdit} className="w-full bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300">{t('cancel')}</button>}
-                    <button type="submit" className="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700">{editingPost ? t('updatePost') : t('createPost')}</button>
-                </div>
-            </form>
-            <div className="space-y-2 mt-4">
-                {posts.length === 0 ? <p className="text-sm text-gray-500">{t('noPosts')}</p> : posts.map(p => (
-                    <div key={p.id} className="flex items-center gap-2 p-2 border rounded-lg bg-white">
-                        {p.image_url && <img src={p.image_url} alt="post preview" className="w-12 h-12 rounded object-cover" />}
-                        <p className="flex-grow font-semibold">{p.title}</p>
-                        <button onClick={() => setEditingPost(p)} className="text-blue-500 hover:text-blue-700 p-1"><PencilIcon /></button>
-                        <button onClick={() => handleDelete(p.id)} className="text-red-500 hover:text-red-700 p-1"><TrashIcon /></button>
-                    </div>
-                ))}
-            </div>
-        </SettingsCard>
-    )
-};
-
-const DiscountsManager: React.FC<{business: Business}> = ({ business }) => {
-    const { t } = useLanguage();
-    const [discounts, setDiscounts] = useState<Discount[]>([]);
-    const [newDiscount, setNewDiscount] = useState({ name: '', description: '', image_url: '' });
-
-    const fetchDiscounts = useCallback(async () => {
-        const data = await getDiscountsForBusiness(business.id);
-        setDiscounts(data);
-    }, [business.id]);
-
-    useEffect(() => { fetchDiscounts(); }, [fetchDiscounts]);
-
-    const handleCreate = async (e: React.FormEvent) => {
-        e.preventDefault();
-        const result = await createDiscount({ ...newDiscount, business_id: business.id });
-        if(result) {
-            fetchDiscounts();
-            setNewDiscount({ name: '', description: '', image_url: '' });
-        }
-    };
-    const handleDelete = async (id: string) => {
-        if(window.confirm('Are you sure?')) {
-            const success = await deleteDiscount(id);
-            if(success) fetchDiscounts();
-        }
-    };
-
-    return (
-        <SettingsCard title={t('manageDiscounts')} description={t('manageDiscountsDesc')}>
-            <form onSubmit={handleCreate} className="border p-4 rounded-lg space-y-4 bg-gray-50">
-                <h3 className="font-semibold text-gray-800">{t('newDiscount')}</h3>
-                <InputField label={t('discountName')} name="name" value={newDiscount.name} onChange={(e) => setNewDiscount({...newDiscount, name: e.target.value})} />
-                <TextAreaField label={t('description')} name="description" value={newDiscount.description} onChange={(e) => setNewDiscount({...newDiscount, description: e.target.value})} />
-                <InputField label={t('imageUrl')} name="image_url" value={newDiscount.image_url} onChange={(e) => setNewDiscount({...newDiscount, image_url: e.target.value})} />
-                <button type="submit" className="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700">{t('createDiscount')}</button>
-            </form>
-            <div className="space-y-2 mt-4">
-                {discounts.length === 0 ? <p className="text-sm text-gray-500">{t('noManageDiscounts')}</p> : discounts.map(d => (
-                    <div key={d.id} className="flex items-center gap-2 p-2 border rounded-lg bg-white">
-                         {d.image_url && <img src={d.image_url} alt="discount preview" className="w-12 h-12 rounded object-cover" />}
-                        <p className="flex-grow font-semibold">{d.name}</p>
-                        <button onClick={() => handleDelete(d.id)} className="text-red-500 hover:text-red-700 p-1"><TrashIcon /></button>
-                    </div>
-                ))}
-            </div>
-        </SettingsCard>
-    )
 };
 
 

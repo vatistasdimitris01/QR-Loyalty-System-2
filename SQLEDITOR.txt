@@ -1,4 +1,80 @@
 -- ================================================================
+-- DATABASE MIGRATION SCRIPT (v12) - Daily Analytics
+-- ================================================================
+-- This script adds a function to retrieve daily analytics data
+-- for the business dashboard over the last 7 days.
+-- ================================================================
+
+-- Step 1: Create a composite type to define the structure of the returned rows.
+DROP TYPE IF EXISTS public.daily_stat CASCADE;
+CREATE TYPE public.daily_stat AS (
+    log_date date,
+    new_members_count integer,
+    points_awarded_sum integer,
+    rewards_claimed_count integer
+);
+
+-- Step 2: Create or replace the function to get daily analytics.
+CREATE OR REPLACE FUNCTION get_daily_analytics_7d(p_business_id uuid)
+RETURNS SETOF public.daily_stat AS $$
+WITH date_series AS (
+    -- Generates a series of the last 7 dates, ending today.
+    SELECT generate_series(
+        CURRENT_DATE - INTERVAL '6 days',
+        CURRENT_DATE,
+        '1 day'
+    )::date AS log_date
+),
+daily_members AS (
+    -- Counts new members per day for the given business.
+    SELECT
+        created_at::date AS log_date,
+        COUNT(*)::integer AS new_members_count
+    FROM
+        public.memberships
+    WHERE
+        business_id = p_business_id
+        AND created_at >= CURRENT_DATE - INTERVAL '6 days'
+    GROUP BY
+        created_at::date
+),
+daily_scans AS (
+    -- Aggregates points and rewards from scan logs per day.
+    SELECT
+        created_at::date AS log_date,
+        SUM(points_awarded)::integer AS points_awarded_sum,
+        COUNT(CASE WHEN reward_claimed THEN 1 END)::integer AS rewards_claimed_count
+    FROM
+        public.scan_logs
+    WHERE
+        business_id = p_business_id
+        AND created_at >= CURRENT_DATE - INTERVAL '6 days'
+    GROUP BY
+        created_at::date
+)
+-- Final SELECT joins all data sources, filling in missing days with zeros.
+SELECT
+    d.log_date,
+    COALESCE(m.new_members_count, 0) AS new_members_count,
+    COALESCE(s.points_awarded_sum, 0) AS points_awarded_sum,
+    COALESCE(s.rewards_claimed_count, 0) AS rewards_claimed_count
+FROM
+    date_series d
+LEFT JOIN
+    daily_members m ON d.log_date = m.log_date
+LEFT JOIN
+    daily_scans s ON d.log_date = s.log_date
+ORDER BY
+    d.log_date;
+$$ LANGUAGE sql STABLE;
+
+-- ================================================================
+-- MIGRATION COMPLETE
+-- ================================================================
+
+-- APPENDING PREVIOUS MIGRATION FOR COMPLETENESS --
+
+-- ================================================================
 -- DATABASE MIGRATION SCRIPT (v11) - PFP Upload Fix & Product Removal
 -- ================================================================
 -- This script fixes profile picture uploads by setting up the
@@ -89,5 +165,5 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- ================================================================
--- MIGRATION COMPLETE
+-- PREVIOUS MIGRATION COMPLETE
 -- ================================================================

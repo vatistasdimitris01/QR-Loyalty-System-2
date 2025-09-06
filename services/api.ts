@@ -1,4 +1,4 @@
-import { Customer, ScanResult, Business, Membership, Discount, QrStyle, BusinessQrDesign, Post, BusinessAnalytics } from '../types';
+import { Customer, ScanResult, Business, Membership, Discount, QrStyle, BusinessQrDesign, Post, BusinessAnalytics, DailyAnalyticsData } from '../types';
 import supabase from './supabaseClient';
 import { generateQrCode } from './qrGenerator';
 
@@ -449,6 +449,15 @@ export const updateBusiness = async (id: string, updatedData: Partial<Business>)
 };
 
 // ====== BUSINESS CONTENT APIs ======
+
+export const getDailyAnalytics = async (businessId: string): Promise<DailyAnalyticsData[] | null> => {
+    const { data, error } = await supabase.rpc('get_daily_analytics_7d', { p_business_id: businessId });
+    if (error) {
+        console.error('Error fetching daily analytics:', error);
+        return null;
+    }
+    return data;
+};
 
 export const getBusinessAnalytics = async (businessId: string): Promise<BusinessAnalytics | null> => {
     const { data, error } = await supabase.rpc('get_business_analytics', { p_business_id: businessId }).single();
