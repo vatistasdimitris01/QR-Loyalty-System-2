@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { loginBusiness } from '../services/api';
@@ -66,6 +67,14 @@ const BusinessLoginPage: React.FC = () => {
                         </button>
                     </div>
                 </form>
+                <div className="text-center mt-6">
+                    <p className="text-sm text-gray-600">
+                        {t('dontHaveAccount')}{' '}
+                        <a href="/signup/business" className="font-medium text-blue-600 hover:underline">
+                            {t('signup')}
+                        </a>
+                    </p>
+                </div>
             </div>
              <a href="/" className="mt-6 text-blue-600 hover:text-blue-800 font-medium">&larr; {t('back')}</a>
         </div>

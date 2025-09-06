@@ -36,6 +36,9 @@ const App: React.FC = () => {
     if (path === '/signup/customer') {
         return <CustomerSignupPage />;
     }
+    if (path === '/signup/business') {
+        return <BusinessSignupPage />;
+    }
 
     return <LandingPage />;
   };
