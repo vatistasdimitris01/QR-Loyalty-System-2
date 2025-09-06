@@ -6,7 +6,6 @@ import BusinessLoginPage from './pages/BusinessLoginPage';
 import BusinessPage from './pages/BusinessPage';
 import BusinessScannerPage from './pages/BusinessScannerPage';
 import CustomerPage from './pages/CustomerPage';
-import DiscountsPage from './pages/DiscountsPage';
 import BusinessSignupPage from './pages/BusinessSignupPage';
 import CustomerSignupPage from './pages/CustomerSignupPage';
 import OneSignalSetup from './components/OneSignalSetup';
@@ -40,9 +39,6 @@ const App: React.FC = () => {
     }
     if (path === '/signup/customer') {
         return <CustomerSignupPage />;
-    }
-    if (path === '/discounts') {
-      return <DiscountsPage />;
     }
 
     return <LandingPage />;

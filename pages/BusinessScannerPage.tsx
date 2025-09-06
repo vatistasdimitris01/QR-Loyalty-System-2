@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { awardPoints } from '../services/api';
-import { ScanResult } from '../types';
+import { ScanResult, Business } from '../types';
 
 declare const Html5Qrcode: any;
 
@@ -10,8 +10,20 @@ const BusinessScannerPage: React.FC = () => {
     const { t } = useLanguage();
     const [scanResult, setScanResult] = useState<ScanResult | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [business, setBusiness] = useState<Business | null>(null);
 
     useEffect(() => {
+        const storedBusiness = sessionStorage.getItem('business');
+        if (storedBusiness) {
+            setBusiness(JSON.parse(storedBusiness));
+        } else {
+            window.location.href = '/business/login';
+        }
+    }, []);
+
+    useEffect(() => {
+        if (!business) return;
+
         const qrScanner = new Html5Qrcode("qr-reader");
 
         const startScanner = () => {
@@ -27,16 +39,20 @@ const BusinessScannerPage: React.FC = () => {
                     setError(null);
                     try {
                         let token = decodedText;
-                        try {
+                         try {
                             const url = new URL(decodedText);
                             if (url.pathname === '/customer' && url.searchParams.has('token')) {
                                 token = url.searchParams.get('token')!;
                             }
-                        } catch (e) {
-                            // Fallback for old raw tokens
+                        } catch (e) {}
+
+                        if (token.startsWith('cust_')) {
+                           const result = await awardPoints(token, business.id);
+                           setScanResult(result);
+                        } else {
+                            setError('Not a valid customer QR code.');
                         }
-                        const result = await awardPoints(token);
-                        setScanResult(result);
+
                     } catch (e) {
                         setError(t('errorUnexpected'));
                     } finally {
@@ -47,9 +63,7 @@ const BusinessScannerPage: React.FC = () => {
                         }, 3000);
                     }
                 },
-                (errorMessage: string) => {
-                    // console.log("QR Code no match.", errorMessage);
-                }
+                (errorMessage: string) => {}
             ).catch((err: any) => {
                 console.error("Unable to start scanning.", err);
                 setError("Could not start camera. Please grant permission and refresh.");
@@ -63,8 +77,7 @@ const BusinessScannerPage: React.FC = () => {
                 qrScanner.stop().catch((err: any) => console.error("Failed to stop scanner", err));
             }
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [t]);
+    }, [t, business]);
 
     const resultColor = scanResult?.success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
 

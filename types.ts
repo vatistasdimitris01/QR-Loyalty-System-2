@@ -1,33 +1,53 @@
 
 export interface Customer {
   id: string;
-  business_id: string;
   name: string;
   phone_number: string;
-  password?: string; // Password is required for creation, but shouldn't be sent to client
-  points: number;
+  password?: string;
   qr_token: string;
   qr_data_url: string;
   created_at: string;
-  points_updated_at: string;
 }
 
 export interface Business {
   id: string;
-  name: string;
+  name: string; // Internal/Login Name
   email: string;
   password?: string;
   qr_token: string;
   qr_data_url: string;
   created_at: string;
+  
+  // QR Customization
   qr_logo_url?: string | null;
   qr_color?: string | null;
   qr_eye_shape?: string | null;
   qr_dot_style?: string | null;
+
+  // Public Profile
+  public_name?: string | null;
+  logo_url?: string | null;
+  bio?: string | null;
+  website_url?: string | null;
+  facebook_url?: string | null;
+  instagram_url?: string | null;
+  public_phone_number?: string | null;
+}
+
+export interface Membership {
+  id: string;
+  customer_id: string;
+  business_id: string;
+  points: number;
+  created_at: string;
+  updated_at: string;
+  businesses: Business; // For joining data
+  customers: Customer; // For business dashboard
 }
 
 export interface Discount {
   id: string;
+  business_id?: string | null;
   name: string;
   description?: string;
   image_url?: string;
@@ -43,7 +63,8 @@ export interface ScanResult {
   success: boolean;
   message: string;
   customer?: Customer;
+  business?: Business;
   pointsAwarded?: number;
   newPointsTotal?: number;
-  rewardEarned?: boolean;
+  newMember?: boolean;
 }
