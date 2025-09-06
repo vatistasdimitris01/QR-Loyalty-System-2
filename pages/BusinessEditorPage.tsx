@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { Business, BusinessQrDesign, QrStyle, Post, Product, Discount } from '../types';
 import { useLanguage } from '../context/LanguageContext';
@@ -9,7 +8,7 @@ import {
     getProductsForBusiness, createProduct, deleteProduct,
     getDiscountsForBusiness, createDiscount, deleteDiscount
 } from '../services/api';
-import { Spinner } from '../components/common';
+import { Spinner, InputField, TextAreaField, SelectField, PencilIcon, TrashIcon } from '../components/common';
 
 type EditorTab = 'profile' | 'branding' | 'loyalty' | 'location' | 'posts' | 'shop' | 'discounts';
 
@@ -105,13 +104,25 @@ const BusinessEditorPage: React.FC = () => {
 
 const ProfileSettings: React.FC<{formState: Partial<Business>, setFormState: React.Dispatch<React.SetStateAction<Partial<Business>>>}> = ({ formState, setFormState }) => {
     const { t } = useLanguage();
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setFormState(prev => ({...prev, [e.target.name]: e.target.value }));
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => setFormState(prev => ({...prev, [e.target.name]: e.target.value }));
     
     return (
         <SettingsCard title={t('publicProfile')} description={t('publicProfileDesc')}>
             <InputField label={t('publicBusinessName')} name="public_name" value={formState.public_name || ''} onChange={handleChange} />
             <InputField label={t('logoUrl')} name="logo_url" value={formState.logo_url || ''} onChange={handleChange} placeholder="https://..." />
             <InputField label={t('coverPhotoUrl')} name="cover_photo_url" value={formState.cover_photo_url || ''} onChange={handleChange} placeholder="https://..." />
+            <SelectField
+                label={t('defaultProfileTab')}
+                name="default_profile_tab"
+                value={formState.default_profile_tab || 'posts'}
+                onChange={handleChange}
+                options={[
+                    { value: 'posts', label: t('posts') },
+                    { value: 'shop', label: t('shop') },
+                    { value: 'discounts', label: t('discounts') },
+                    { value: 'about', label: t('about') },
+                ]}
+            />
             <TextAreaField label={t('bio')} name="bio" value={formState.bio || ''} onChange={handleChange} />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <InputField label={t('website')} name="website_url" value={formState.website_url || ''} onChange={handleChange} placeholder="https://..." />
@@ -150,7 +161,7 @@ const BrandingSettings: React.FC<{formState: Partial<Business>, setFormState: Re
                         <InputField label={t('logoUrl')} name="qr_logo_url" value={formState.qr_logo_url || ''} onChange={handleChange} placeholder="https://..." />
                         <div>
                             <label className="block text-sm font-medium text-gray-700">{t('qrColor')}</label>
-                            <input type="color" name="qr_color" value={formState.qr_color} onChange={handleChange} className="mt-1 h-10 w-full p-1 border border-gray-300 rounded-md cursor-pointer" />
+                            <input type="color" name="qr_color" value={formState.qr_color || '#000000'} onChange={handleChange} className="mt-1 h-10 w-full p-1 border border-gray-300 rounded-md cursor-pointer" />
                         </div>
                         <SelectField label={t('eyeShape')} name="qr_eye_shape" value={formState.qr_eye_shape || 'square'} onChange={handleChange} options={[{value: 'square', label: 'Square'}, {value: 'rounded', label: 'Rounded'}]} />
                         <SelectField label={t('dotStyle')} name="qr_dot_style" value={formState.qr_dot_style || 'square'} onChange={handleChange} options={[
@@ -235,7 +246,7 @@ const CustomerQrDesigns: React.FC<{business: Business}> = ({ business }) => {
                 <InputField label={t('logoUrl')} name="qr_logo_url" value={newDesign.qr_logo_url || ''} onChange={handleNewDesignChange} placeholder="https://..." />
                 <div>
                     <label className="block text-sm font-medium text-gray-700">{t('qrColor')}</label>
-                    <input type="color" name="qr_color" value={newDesign.qr_color} onChange={handleNewDesignChange} className="mt-1 h-10 w-full p-1 border border-gray-300 rounded-md cursor-pointer" />
+                    <input type="color" name="qr_color" value={newDesign.qr_color || '#000000'} onChange={handleNewDesignChange} className="mt-1 h-10 w-full p-1 border border-gray-300 rounded-md cursor-pointer" />
                 </div>
                 <SelectField label={t('eyeShape')} name="qr_eye_shape" value={newDesign.qr_eye_shape || 'square'} onChange={handleNewDesignChange} options={[{value: 'square', label: 'Square'}, {value: 'rounded', label: 'Rounded'}]} />
                 <SelectField label={t('dotStyle')} name="qr_dot_style" value={newDesign.qr_dot_style || 'square'} onChange={handleNewDesignChange} options={[{ value: 'square', label: 'Square' }, { value: 'dots', label: 'Dots' }, { value: 'rounded', label: 'Rounded' }]} />
@@ -437,9 +448,6 @@ const DiscountsManager: React.FC<{business: Business}> = ({ business }) => {
 
 
 // --- UI & Helper Components ---
-const TrashIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clipRule="evenodd" /></svg>
-const PencilIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fillRule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clipRule="evenodd" /></svg>
-
 const QrDesignItem: React.FC<{ design: BusinessQrDesign, onDelete: (id: string) => void }> = ({ design, onDelete }) => {
     const [preview, setPreview] = useState('');
     useEffect(() => {
@@ -472,27 +480,6 @@ const TabButton: React.FC<{label: string, isActive: boolean, onClick: () => void
     <button onClick={onClick} className={`py-3 px-2 whitespace-nowrap border-b-2 font-medium text-sm transition-colors ${isActive ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>
         {label}
     </button>
-);
-
-const InputField: React.FC<{label: string, name: string, value: string, onChange: any, placeholder?: string, type?: string}> = ({label, name, value, onChange, placeholder, type = 'text'}) => (
-    <div>
-        <label htmlFor={name} className="block text-sm font-medium text-gray-700">{label}</label>
-        <input id={name} name={name} type={type} value={value} onChange={onChange} placeholder={placeholder} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
-    </div>
-);
-const TextAreaField: React.FC<{label: string, name: string, value: string, onChange: any}> = ({label, name, value, onChange}) => (
-    <div>
-        <label htmlFor={name} className="block text-sm font-medium text-gray-700">{label}</label>
-        <textarea id={name} name={name} value={value} onChange={onChange} rows={3} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"></textarea>
-    </div>
-);
-const SelectField: React.FC<{label: string, name: string, value: string, onChange: any, options: {value: string, label: string}[]}> = ({label, name, value, onChange, options}) => (
-    <div>
-        <label htmlFor={name} className="block text-sm font-medium text-gray-700">{label}</label>
-        <select id={name} name={name} value={value} onChange={onChange} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
-            {options.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-        </select>
-    </div>
 );
 
 export default BusinessEditorPage;

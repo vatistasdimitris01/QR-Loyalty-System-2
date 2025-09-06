@@ -1,4 +1,3 @@
-
 export type QrStyle = {
   qr_logo_url?: string | null;
   qr_color?: string | null;
@@ -42,6 +41,7 @@ export interface Business {
   facebook_url?: string | null;
   instagram_url?: string | null;
   public_phone_number?: string | null;
+  default_profile_tab?: 'posts' | 'shop' | 'discounts' | 'about' | null;
 
   // Loyalty Program
   points_per_scan?: number;

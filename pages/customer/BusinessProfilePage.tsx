@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Business, Discount, Post, Product } from '../../types';
 import { useLanguage } from '../../context/LanguageContext';
@@ -15,7 +14,7 @@ type ProfileTab = 'posts' | 'shop' | 'discounts' | 'about';
 
 const BusinessProfilePage: React.FC<BusinessProfilePageProps> = ({ business, customerId, onBack, onLeaveSuccess }) => {
     const { t } = useLanguage();
-    const [activeTab, setActiveTab] = useState<ProfileTab>('posts');
+    const [activeTab, setActiveTab] = useState<ProfileTab>(business.default_profile_tab || 'posts');
     const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
     
     // Responsive Tabs

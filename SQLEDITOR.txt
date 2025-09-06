@@ -1,9 +1,7 @@
 -- ================================================================
--- DATABASE MIGRATION SCRIPT (v9) - Rich Profiles & Advanced Search
+-- DATABASE MIGRATION SCRIPT (v10) - Profile & UX Enhancements
 -- ================================================================
--- This script adds a profile picture field for customers, enhances
--- the posts table for richer content, and adds a powerful search
--- function for businesses to find their members.
+-- This script adds a default profile tab preference for businesses.
 -- ================================================================
 
 -- Step 1: Add profile picture URL to the `customers` table.
@@ -17,7 +15,12 @@ ADD COLUMN IF NOT EXISTS video_url text,
 ADD COLUMN IF NOT EXISTS price_text text, -- Flexible for things like "$19.99" or "50% OFF"
 ADD COLUMN IF NOT EXISTS external_url text;
 
--- Step 3: Create a function for advanced member search.
+-- Step 3: Add a default tab preference for businesses
+ALTER TABLE public.businesses
+ADD COLUMN IF NOT EXISTS default_profile_tab TEXT CHECK (default_profile_tab IN ('posts', 'shop', 'discounts', 'about'));
+
+
+-- Step 4: Create a function for advanced member search.
 CREATE OR REPLACE FUNCTION search_memberships_for_business(business_id_param uuid, search_term_param text)
 RETURNS SETOF memberships AS $$
 BEGIN

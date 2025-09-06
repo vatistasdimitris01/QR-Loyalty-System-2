@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect, useCallback, useDeferredValue } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { Membership, Business, Customer, BusinessAnalytics } from '../types';
 import { searchMembershipsForBusiness, provisionCustomerForBusiness, removeMembership, getBusinessAnalytics } from '../services/api';
-import { Spinner, CreateCustomerModal, UserAddIcon, CustomerQRModal, BusinessScannerModal, CameraIcon, QRScannerModal } from '../components/common';
+import { Spinner, CreateCustomerModal, UserAddIcon, CustomerQRModal, BusinessScannerModal, CameraIcon, QRScannerModal, CreatePostModal, CreateProductModal } from '../components/common';
 
 const StatCard: React.FC<{ title: string; value: string | number; icon: React.ReactNode }> = ({ title, value, icon }) => (
     <div className="bg-white p-4 rounded-lg shadow-md flex items-center gap-4">
@@ -48,7 +47,8 @@ const BusinessPage: React.FC = () => {
     const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
     const [isScannerModalOpen, setIsScannerModalOpen] = useState(false);
     const [isSearchScannerOpen, setIsSearchScannerOpen] = useState(false);
-
+    const [isCreatePostModalOpen, setIsCreatePostModalOpen] = useState(false);
+    const [isCreateProductModalOpen, setIsCreateProductModalOpen] = useState(false);
 
     const fetchAnalytics = useCallback(async (businessId: string) => {
         const analyticsData = await getBusinessAnalytics(businessId);
@@ -144,6 +144,8 @@ const BusinessPage: React.FC = () => {
             <CustomerQRModal isOpen={isQrModalOpen} onClose={() => setIsQrModalOpen(false)} customer={selectedCustomer} />
             <BusinessScannerModal isOpen={isScannerModalOpen} onClose={() => setIsScannerModalOpen(false)} businessId={business.id} onScanSuccess={handleScanSuccess} />
             <QRScannerModal isOpen={isSearchScannerOpen} onClose={() => setIsSearchScannerOpen(false)} onScan={handleSearchScan} />
+            <CreatePostModal isOpen={isCreatePostModalOpen} onClose={() => setIsCreatePostModalOpen(false)} businessId={business.id} onSuccess={() => alert('Post created!')} />
+            <CreateProductModal isOpen={isCreateProductModalOpen} onClose={() => setIsCreateProductModalOpen(false)} businessId={business.id} onSuccess={() => alert('Product created!')} />
             
             <div className="min-h-screen bg-gray-50 p-4 md:p-8">
                 <header className="flex justify-between items-center mb-8">
@@ -236,22 +238,28 @@ const BusinessPage: React.FC = () => {
                             <h2 className="text-xl font-bold text-gray-800 mb-4">Quick Actions</h2>
                             <div className="space-y-3">
                                 <QuickActionCard 
-                                    title={t('createNewCustomer')}
-                                    description={t('createNewCustomerDesc')}
-                                    onClick={handleCreateCustomer}
-                                    icon={<UserAddIcon className="h-6 w-6" />}
+                                    title={t('createNewPost')}
+                                    description={t('createNewPostDesc')}
+                                    onClick={() => setIsCreatePostModalOpen(true)}
+                                    icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>}
                                 />
-                                 <QuickActionCard 
+                                <QuickActionCard 
+                                    title={t('addNewProduct')}
+                                    description={t('addNewProductDesc')}
+                                    onClick={() => setIsCreateProductModalOpen(true)}
+                                    icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>}
+                                />
+                                <QuickActionCard 
                                     title={t('scanCustomerQR')} 
                                     description="Award points or join new customers." 
                                     onClick={() => setIsScannerModalOpen(true)}
                                     icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" /></svg>}
                                 />
-                                 <QuickActionCard 
+                                <QuickActionCard 
                                     title={t('manageContent')}
                                     description={t('manageContentDesc')}
                                     href="/business/editor"
-                                    icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>}
+                                    icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" /></svg>}
                                 />
                             </div>
                         </div>

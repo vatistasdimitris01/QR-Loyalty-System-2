@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { loginBusiness } from '../services/api';
@@ -34,7 +33,7 @@ const BusinessLoginPage: React.FC = () => {
         <div className="min-h-screen bg-gray-100 flex flex-col justify-center items-center p-4">
             <div className="w-full max-w-sm bg-white rounded-lg shadow-md p-8">
                 <div className="text-center mb-6">
-                    <img src="https://i.postimg.cc/ZKVbR9tP/305767183-771222654127324-7320768528390147926-n.jpg" alt="Business Logo" className="w-20 h-20 rounded-full mx-auto mb-4" />
+                    <img src="https://i.postimg.cc/bJwnZhs9/Chat-GPT-Image-Aug-31-2025-06-45-18-AM.png" alt="QRoyal Logo" className="w-24 h-24 mx-auto mb-4" />
                     <h1 className="text-2xl font-bold text-gray-800">{t('businessAreaLogin')}</h1>
                 </div>
                 <form onSubmit={handleLogin} className="space-y-6">

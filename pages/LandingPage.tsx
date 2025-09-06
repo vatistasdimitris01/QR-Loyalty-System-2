@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -28,8 +27,8 @@ const LandingPage: React.FC = () => {
             <header className="bg-white/80 backdrop-blur-sm sticky top-0 z-50 shadow-sm">
                 <nav className="container mx-auto px-6 py-3 flex justify-between items-center">
                     <div className="flex items-center gap-2">
-                         <img src="https://i.postimg.cc/ZKVbR9tP/305767183-771222654127324-7320768528390147926-n.jpg" alt="Logo" className="w-10 h-10 rounded-full" />
-                         <span className="font-bold text-xl text-gray-800">Xart QR</span>
+                         <img src="https://i.postimg.cc/bJwnZhs9/Chat-GPT-Image-Aug-31-2025-06-45-18-AM.png" alt="QRoyal Logo" className="w-10 h-10" />
+                         <span className="font-bold text-xl text-gray-800">QRoyal</span>
                     </div>
                     <div className="flex items-center gap-4">
                         <button onClick={() => setLanguage(language === 'en' ? 'el' : 'en')} className="text-sm font-semibold text-gray-600 hover:text-blue-600">
@@ -86,7 +85,7 @@ const LandingPage: React.FC = () => {
 
             <footer className="bg-gray-800 text-white py-12 px-6">
                 <div className="container mx-auto text-center">
-                    <p>&copy; {new Date().getFullYear()} Xart QR. All rights reserved.</p>
+                    <p>&copy; {new Date().getFullYear()} QRoyal. All rights reserved.</p>
                 </div>
             </footer>
         </div>

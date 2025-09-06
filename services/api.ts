@@ -1,4 +1,3 @@
-
 import { Customer, ScanResult, Business, Membership, Discount, QrStyle, BusinessQrDesign, Post, Product, BusinessAnalytics } from '../types';
 import supabase from './supabaseClient';
 import { generateQrCode } from './qrGenerator';
@@ -13,6 +12,36 @@ export const getCustomerByQrToken = async (qrToken: string): Promise<Customer | 
   }
   return data;
 };
+
+export const uploadProfilePicture = async (customerId: string, file: File): Promise<string | null> => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${customerId}-${Date.now()}.${fileExt}`;
+    const filePath = `${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+        .from('profile-pictures')
+        .upload(filePath, file, {
+            cacheControl: '3600',
+            upsert: true,
+        });
+
+    if (uploadError) {
+        console.error('Error uploading profile picture:', uploadError);
+        return null;
+    }
+
+    const { data } = supabase.storage
+        .from('profile-pictures')
+        .getPublicUrl(filePath);
+
+    if (!data.publicUrl) {
+        console.error('Error getting public URL for profile picture');
+        return null;
+    }
+    
+    return data.publicUrl;
+};
+
 
 export const updateCustomer = async (id: string, updatedData: Partial<Pick<Customer, 'name' | 'phone_number' | 'qr_style_preferences' | 'profile_picture_url'>>): Promise<Customer | null> => {
     // If QR style is being updated, regenerate the QR code data URL

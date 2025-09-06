@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, ReactNode } from 'react';
 
 const translations = {
@@ -73,6 +72,11 @@ const translations = {
     rewardsClaimed7d: 'Rewards Claimed (7d)',
     manageContent: 'Manage Content & Profile',
     manageContentDesc: 'Edit posts, products, and profile details.',
+    // Quick Actions
+    createNewPost: 'Create New Post',
+    createNewPostDesc: 'Share an update with your customers.',
+    addNewProduct: 'Add New Product',
+    addNewProductDesc: 'Add an item to your shop tab.',
     // Scanner Page
     scanQRCode: 'Scan QR Code',
     pointScanner: 'Point Scanner',
@@ -100,6 +104,8 @@ const translations = {
     businessSettings: 'Business Settings',
     publicProfile: 'Public Profile',
     publicProfileDesc: 'This information is visible to customers.',
+    defaultProfileTab: 'Default Profile Tab',
+    defaultProfileTabDesc: 'Choose which tab customers see first when they visit your profile.',
     qrCustomization: 'Business QR Customization',
     qrCustomizationDesc: 'Customize your own QR for quick business login.',
     logoUrl: 'Logo Image URL',
@@ -181,6 +187,8 @@ const translations = {
     yourUniversalQr: 'Your Universal QR Code',
     updateProfile: 'Update Profile',
     profilePictureUrl: 'Profile Picture URL',
+    profilePicture: 'Profile Picture',
+    uploadImage: 'Upload Image',
     updateSuccess: 'Profile updated successfully!',
     joinSuccess: 'Successfully joined business!',
     printQr: 'Print QR',
@@ -283,6 +291,10 @@ const translations = {
     rewardsClaimed7d: 'Ανταμοιβές (7η)',
     manageContent: 'Διαχείριση Περιεχομένου & Προφίλ',
     manageContentDesc: 'Επεξεργασία αναρτήσεων, προϊόντων και προφίλ.',
+    createNewPost: 'Δημιουργία Νέας Ανάρτησης',
+    createNewPostDesc: 'Μοιραστείτε μια ενημέρωση με τους πελάτες σας.',
+    addNewProduct: 'Προσθήκη Νέου Προϊόντος',
+    addNewProductDesc: 'Προσθέστε ένα προϊόν στο κατάστημά σας.',
     scanQRCode: 'Σάρωση Κωδικού QR',
     pointScanner: 'Σαρωτής Πόντων',
     scanResult: 'Αποτέλεσμα Σάρωσης',
@@ -306,6 +318,8 @@ const translations = {
     businessSettings: 'Ρυθμίσεις Επιχείρησης',
     publicProfile: 'Δημόσιο Προφίλ',
     publicProfileDesc: 'Αυτές οι πληροφορίες είναι ορατές στους πελάτες.',
+    defaultProfileTab: 'Προεπιλεγμένη Καρτέλα Προφίλ',
+    defaultProfileTabDesc: 'Επιλέξτε ποια καρτέλα βλέπουν πρώτα οι πελάτες.',
     qrCustomization: 'Προσαρμογή QR Επιχείρησης',
     qrCustomizationDesc: 'Προσαρμόστε τον δικό σας κωδικό QR για γρήγορη είσοδο.',
     logoUrl: 'URL Εικόνας Λογοτύπου',
@@ -384,6 +398,8 @@ const translations = {
     yourUniversalQr: 'Ο Παγκόσμιος QR σας',
     updateProfile: 'Ενημέρωση Προφίλ',
     profilePictureUrl: 'URL Εικόνας Προφίλ',
+    profilePicture: 'Εικόνα Προφίλ',
+    uploadImage: 'Ανέβασμα Εικόνας',
     updateSuccess: 'Το προφίλ ενημερώθηκε επιτυχώς!',
     joinSuccess: 'Επιτυχής συμμετοχή στην επιχείρηση!',
     printQr: 'Εκτύπωση QR',
@@ -440,7 +456,6 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
   return (
     <LanguageContext.Provider value={{ language, setLanguage, t }}>
       {children}
-    {/* FIX: Corrected typo in closing tag from Language-context to LanguageContext */}
     </LanguageContext.Provider>
   );
 };

@@ -1,7 +1,6 @@
-
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Customer } from '../../types';
-import { updateCustomer, deleteCustomerAccount } from '../../services/api';
+import { updateCustomer, deleteCustomerAccount, uploadProfilePicture } from '../../services/api';
 import { useLanguage } from '../../context/LanguageContext';
 import { Spinner, DeleteAccountModal } from '../../components/common';
 
@@ -14,19 +13,48 @@ const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ customer, onU
     const { t } = useLanguage();
     const [name, setName] = useState(customer.name);
     const [phone, setPhone] = useState(customer.phone_number);
-    const [pfpUrl, setPfpUrl] = useState(customer.profile_picture_url || '');
+    const [pfpFile, setPfpFile] = useState<File | null>(null);
+    const [pfpPreview, setPfpPreview] = useState<string | null>(customer.profile_picture_url || null);
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState('');
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setPfpFile(file);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setPfpPreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
     
     const handleUpdate = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
         setMessage('');
-        const updated = await updateCustomer(customer.id, { name, phone_number: phone, profile_picture_url: pfpUrl });
+
+        let finalPfpUrl = customer.profile_picture_url;
+
+        if (pfpFile) {
+            const uploadedUrl = await uploadProfilePicture(customer.id, pfpFile);
+            if (uploadedUrl) {
+                finalPfpUrl = uploadedUrl;
+            } else {
+                setMessage('Failed to upload image.');
+                setLoading(false);
+                return;
+            }
+        }
+
+        const updated = await updateCustomer(customer.id, { name, phone_number: phone, profile_picture_url: finalPfpUrl || undefined });
         setLoading(false);
         if (updated) {
             onUpdate(updated);
+            setPfpFile(null); // Reset file input state
             setMessage(t('updateSuccess'));
             setTimeout(() => setMessage(''), 3000);
         }
@@ -64,6 +92,24 @@ const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ customer, onU
                     <h2 className="text-lg font-semibold mb-4">{t('updateProfile')}</h2>
                     <form onSubmit={handleUpdate} className="space-y-4">
                         <div>
+                            <label className="block text-sm font-medium text-gray-700">{t('profilePicture')}</label>
+                            <div className="mt-2 flex items-center gap-4">
+                                <img
+                                    src={pfpPreview || 'https://i.postimg.cc/8zRZt9pM/user.png'}
+                                    alt="Profile preview"
+                                    className="h-16 w-16 rounded-full object-cover bg-gray-200"
+                                />
+                                <input type="file" accept="image/*" onChange={handleFileChange} ref={fileInputRef} className="hidden" />
+                                <button
+                                    type="button"
+                                    onClick={() => fileInputRef.current?.click()}
+                                    className="bg-white py-2 px-3 border border-gray-300 rounded-md shadow-sm text-sm leading-4 font-medium text-gray-700 hover:bg-gray-50"
+                                >
+                                    {t('uploadImage')}
+                                </button>
+                            </div>
+                        </div>
+                        <div>
                             <label htmlFor="profile-name" className="block text-sm font-medium text-gray-700">{t('name')}</label>
                             <input
                                 id="profile-name"
@@ -80,17 +126,6 @@ const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ customer, onU
                                 type="tel"
                                 value={phone}
                                 onChange={(e) => setPhone(e.target.value)}
-                                className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                        </div>
-                         <div>
-                            <label htmlFor="profile-pfp" className="block text-sm font-medium text-gray-700">{t('profilePictureUrl')}</label>
-                            <input
-                                id="profile-pfp"
-                                type="url"
-                                value={pfpUrl}
-                                onChange={(e) => setPfpUrl(e.target.value)}
-                                placeholder="https://..."
                                 className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
                         </div>

@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '../context/LanguageContext';
-import { Customer, ScanResult } from '../types';
-import { awardPoints } from '../services/api';
+import { Customer, ScanResult, Post, Product } from '../types';
+import { awardPoints, createPost, createProduct } from '../services/api';
 
 declare const Html5Qrcode: any;
 declare const confetti: any;
@@ -52,6 +51,30 @@ export const PhoneIcon: React.FC<{ className?: string }> = ({ className }) => (
 export const CameraIcon: React.FC<{ className?: string }> = ({ className }) => (
     <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
 );
+export const TrashIcon: React.FC = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clipRule="evenodd" /></svg>
+export const PencilIcon: React.FC = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fillRule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clipRule="evenodd" /></svg>
+
+// --- UI & Helper Components ---
+export const InputField: React.FC<{label: string, name: string, value: string, onChange: any, placeholder?: string, type?: string}> = ({label, name, value, onChange, placeholder, type = 'text'}) => (
+    <div>
+        <label htmlFor={name} className="block text-sm font-medium text-gray-700">{label}</label>
+        <input id={name} name={name} type={type} value={value} onChange={onChange} placeholder={placeholder} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
+    </div>
+);
+export const TextAreaField: React.FC<{label: string, name: string, value: string, onChange: any}> = ({label, name, value, onChange}) => (
+    <div>
+        <label htmlFor={name} className="block text-sm font-medium text-gray-700">{label}</label>
+        <textarea id={name} name={name} value={value} onChange={onChange} rows={3} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"></textarea>
+    </div>
+);
+export const SelectField: React.FC<{label: string, name: string, value: string, onChange: any, options: {value: string, label: string}[]}> = ({label, name, value, onChange, options}) => (
+    <div>
+        <label htmlFor={name} className="block text-sm font-medium text-gray-700">{label}</label>
+        <select id={name} name={name} value={value} onChange={onChange} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+            {options.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+        </select>
+    </div>
+);
 
 
 // --- Modals ---
@@ -72,7 +95,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, title }) => {
           <h3 className="text-xl font-semibold">{title}</h3>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-800 text-2xl">&times;</button>
         </div>
-        <div className="p-6">
+        <div className="p-6 max-h-[80vh] overflow-y-auto">
           {children}
         </div>
       </div>
@@ -260,7 +283,6 @@ export const RewardModal: React.FC<{
     );
 };
 
-// FIX: Add missing QRScannerModal component used in LandingPage.tsx
 export const QRScannerModal: React.FC<{
     isOpen: boolean;
     onClose: () => void;
@@ -273,7 +295,6 @@ export const QRScannerModal: React.FC<{
 
     useEffect(() => {
         if (isOpen) {
-            // Delay scanner initialization to ensure modal is rendered
             const timerId = setTimeout(() => {
                 const scanner = new Html5Qrcode(scannerId);
                 qrScannerRef.current = scanner;
@@ -284,9 +305,7 @@ export const QRScannerModal: React.FC<{
                     (decodedText: string) => {
                         onScan(decodedText);
                     },
-                    (errorMessage: string) => {
-                        // This callback is called when no QR is found. Ignore.
-                    }
+                    (errorMessage: string) => {}
                 ).catch((err: any) => {
                     console.error("Unable to start scanning.", err);
                     setError("Could not start camera. Please grant permission.");
@@ -328,7 +347,6 @@ export const BusinessScannerModal: React.FC<{
 
     useEffect(() => {
         if (isOpen) {
-            // Delay scanner initialization to ensure modal is rendered
             setTimeout(() => {
                 qrScannerRef.current = new Html5Qrcode(scannerId);
                 
@@ -354,7 +372,7 @@ export const BusinessScannerModal: React.FC<{
                                    const result = await awardPoints(token, businessId);
                                    setScanResult(result);
                                    if (result.success) {
-                                       onScanSuccess(); // Notify parent to refresh data
+                                       onScanSuccess(); 
                                        if (result.rewardWon) {
                                            setRewardMessage(result.rewardMessage || t('giftWonMessage'));
                                            setIsRewardModalOpen(true);
@@ -441,7 +459,6 @@ export const DeleteAccountModal: React.FC<{
         setIsDeleting(false);
     };
 
-    // Reset input when modal opens/closes
     useEffect(() => {
         if (!isOpen) {
             setInputValue('');
@@ -474,6 +491,111 @@ export const DeleteAccountModal: React.FC<{
                     </button>
                 </div>
             </div>
+        </Modal>
+    );
+};
+
+// --- QUICK ACTION MODALS ---
+
+export const CreatePostModal: React.FC<{
+    isOpen: boolean;
+    onClose: () => void;
+    businessId: string;
+    onSuccess: () => void;
+}> = ({ isOpen, onClose, businessId, onSuccess }) => {
+    const { t } = useLanguage();
+    const emptyForm: Omit<Post, 'id' | 'business_id' | 'created_at'> = { title: '', content: '', image_url: '', post_type: 'standard', video_url: '', price_text: '', external_url: '' };
+    const [formState, setFormState] = useState(emptyForm);
+    const [isSaving, setIsSaving] = useState(false);
+
+    const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+        setFormState(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsSaving(true);
+        const result = await createPost({ ...formState, business_id: businessId });
+        setIsSaving(false);
+        if (result) {
+            onSuccess();
+            onClose();
+            setFormState(emptyForm);
+        } else {
+            alert('Failed to create post.');
+        }
+    };
+    
+    return (
+        <Modal isOpen={isOpen} onClose={onClose} title={t('newPost')}>
+             <form onSubmit={handleSubmit} className="space-y-4">
+                <InputField label={t('title')} name="title" value={formState.title} onChange={handleFormChange} />
+                <SelectField label={t('postType')} name="post_type" value={formState.post_type} onChange={handleFormChange} options={[ {value: 'standard', label: t('standardPost')}, {value: 'discount', label: t('discountOffer')} ]} />
+                <TextAreaField label={t('content')} name="content" value={formState.content || ''} onChange={handleFormChange} />
+                <InputField label={t('imageUrl')} name="image_url" value={formState.image_url || ''} onChange={handleFormChange} />
+                <InputField label={t('videoUrl')} name="video_url" value={formState.video_url || ''} onChange={handleFormChange} placeholder="https://youtube.com/..." />
+                <InputField label={t('priceOffer')} name="price_text" value={formState.price_text || ''} onChange={handleFormChange} placeholder="e.g., $19.99 or 50% OFF" />
+                <InputField label={t('externalLink')} name="external_url" value={formState.external_url || ''} onChange={handleFormChange} placeholder="https://yoursite.com/product" />
+                <div className="flex justify-end gap-4 pt-4">
+                    <button type="button" onClick={onClose} className="bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300">{t('cancel')}</button>
+                    <button type="submit" disabled={isSaving} className="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 disabled:bg-blue-400 flex items-center">
+                        {isSaving && <Spinner className="h-4 w-4 mr-2" />}
+                        {t('createPost')}
+                    </button>
+                </div>
+            </form>
+        </Modal>
+    );
+};
+
+export const CreateProductModal: React.FC<{
+    isOpen: boolean;
+    onClose: () => void;
+    businessId: string;
+    onSuccess: () => void;
+}> = ({ isOpen, onClose, businessId, onSuccess }) => {
+    const { t } = useLanguage();
+    const [formState, setFormState] = useState({ name: '', description: '', price: '', image_url: '', product_url: '' });
+    const [isSaving, setIsSaving] = useState(false);
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        setFormState(prev => ({...prev, [e.target.name]: e.target.value}));
+    };
+    
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsSaving(true);
+        const result = await createProduct({ 
+            ...formState, 
+            business_id: businessId,
+            price: parseFloat(formState.price) || 0
+        });
+        setIsSaving(false);
+        if(result) {
+            onSuccess();
+            onClose();
+            setFormState({ name: '', description: '', price: '', image_url: '', product_url: '' });
+        } else {
+            alert('Failed to create product.');
+        }
+    };
+
+    return (
+        <Modal isOpen={isOpen} onClose={onClose} title={t('newProduct')}>
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <InputField label={t('productName')} name="name" value={formState.name} onChange={handleChange} />
+                <TextAreaField label={t('description')} name="description" value={formState.description} onChange={handleChange} />
+                <InputField label={t('price')} name="price" type="number" value={formState.price} onChange={handleChange} />
+                <InputField label={t('imageUrl')} name="image_url" value={formState.image_url} onChange={handleChange} />
+                <InputField label={t('productUrl')} name="product_url" value={formState.product_url} onChange={handleChange} />
+                <div className="flex justify-end gap-4 pt-4">
+                    <button type="button" onClick={onClose} className="bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300">{t('cancel')}</button>
+                    <button type="submit" disabled={isSaving} className="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 disabled:bg-blue-400 flex items-center">
+                        {isSaving && <Spinner className="h-4 w-4 mr-2" />}
+                        {t('createProduct')}
+                    </button>
+                </div>
+            </form>
         </Modal>
     );
 };
