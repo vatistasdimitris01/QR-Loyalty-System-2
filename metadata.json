@@ -1,0 +1,7 @@
+{
+  "name": "xart qr system",
+  "description": "A web-based digital loyalty card system for businesses to reward their customers using QR codes. Features distinct interfaces for customers and business owners.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
