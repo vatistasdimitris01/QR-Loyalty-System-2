@@ -66,9 +66,25 @@ const LandingPage: React.FC = () => {
 
     useEffect(() => {
         const searchParams = new URLSearchParams(window.location.search);
+        
         const token = searchParams.get('token');
         if (token && token.startsWith('biz_')) {
             handleLoginWithToken(token);
+        }
+
+        if (searchParams.get('action') === 'open_chat') {
+            const checkTidio = setInterval(() => {
+                if (window.tidioChatApi) {
+                    window.tidioChatApi.open();
+                    clearInterval(checkTidio);
+                    
+                    // Clean up URL
+                    const newSearchParams = new URLSearchParams(window.location.search);
+                    newSearchParams.delete('action');
+                    const newUrl = window.location.pathname + (newSearchParams.toString() ? `?${newSearchParams.toString()}` : '');
+                    window.history.replaceState({}, '', newUrl);
+                }
+            }, 100);
         }
     }, []);
 

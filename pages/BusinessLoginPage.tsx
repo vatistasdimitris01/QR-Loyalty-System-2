@@ -70,7 +70,7 @@ const BusinessLoginPage: React.FC = () => {
                 <div className="text-center mt-6">
                     <p className="text-sm text-gray-600">
                         {t('dontHaveAccount')}{' '}
-                        <a href="/signup/business" className="font-medium text-blue-600 hover:underline">
+                        <a href="/?action=open_chat" className="font-medium text-blue-600 hover:underline">
                             {t('signup')}
                         </a>
                     </p>
