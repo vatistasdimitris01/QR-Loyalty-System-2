@@ -206,7 +206,7 @@ const LandingPage: React.FC = () => {
                         <div className="relative h-96 flex justify-center items-center">
                             <div className="absolute w-64 h-[512px] bg-gray-800 rounded-[48px] border-[14px] border-black shadow-2xl"></div>
                             <div className="absolute w-[232px] h-[484px] bg-white rounded-[34px] overflow-hidden flex flex-col items-center justify-center p-4 space-y-4">
-                               <img src="https://i.postimg.cc/8zRZt9pM/user.png" alt="Profile" className="w-24 h-24 rounded-full border-4 border-gray-100" />
+                               <img src="https://i.postimg.cc/KjFxM2bz/Chat-GPT-Image-Apr-27-2025-05-14-20-PM.png" alt="Profile" className="w-24 h-24 rounded-full border-4 border-gray-100 object-cover" />
                                <h2 className="text-2xl font-bold">John Doe</h2>
                                <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=qroyal_customer_preview" alt="QR Code" className="w-36 h-36" />
                                <p className="text-sm text-gray-500">Your Universal QR Card</p>
