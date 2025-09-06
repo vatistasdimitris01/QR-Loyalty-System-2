@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { Membership, Business, Customer } from '../types';
 import { getMembershipsForBusiness, provisionCustomerForBusiness } from '../services/api';
-import { Spinner, CreateCustomerModal, UserAddIcon } from '../components/common';
+import { Spinner, CreateCustomerModal, UserAddIcon, CustomerQRModal } from '../components/common';
 
 const StatCard: React.FC<{ title: string; value: string | number; icon: React.ReactNode }> = ({ title, value, icon }) => (
     <div className="bg-white p-6 rounded-lg shadow-md flex items-center gap-4">
@@ -40,6 +40,9 @@ const BusinessPage: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [newCustomerQr, setNewCustomerQr] = useState('');
+    const [isQrModalOpen, setIsQrModalOpen] = useState(false);
+    const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+
 
     const fetchData = useCallback(async (businessId: string) => {
         const data = await getMembershipsForBusiness(businessId);
@@ -84,6 +87,11 @@ const BusinessPage: React.FC = () => {
         }
     };
 
+    const handleViewQr = (customer: Customer) => {
+        setSelectedCustomer(customer);
+        setIsQrModalOpen(true);
+    };
+
     const stats = useMemo(() => {
         const totalCustomers = memberships.length;
         return { totalCustomers };
@@ -97,6 +105,11 @@ const BusinessPage: React.FC = () => {
                 isOpen={isCreateModalOpen}
                 onClose={() => setIsCreateModalOpen(false)}
                 qrDataUrl={newCustomerQr}
+            />
+            <CustomerQRModal
+                isOpen={isQrModalOpen}
+                onClose={() => setIsQrModalOpen(false)}
+                customer={selectedCustomer}
             />
             <div className="min-h-screen bg-gray-50 p-4 md:p-8">
                 <header className="flex justify-between items-center mb-8">
@@ -137,6 +150,7 @@ const BusinessPage: React.FC = () => {
                                         <th className="p-3 font-semibold text-gray-600">{t('name')}</th>
                                         <th className="p-3 font-semibold text-gray-600">{t('phoneNumber')}</th>
                                         <th className="p-3 font-semibold text-gray-600">{t('points')}</th>
+                                        <th className="p-3 font-semibold text-gray-600">QR Code</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -145,10 +159,18 @@ const BusinessPage: React.FC = () => {
                                             <td className="p-3">{membership.customers.name}</td>
                                             <td className="p-3">{membership.customers.phone_number || 'N/A'}</td>
                                             <td className="p-3 font-bold">{membership.points}</td>
+                                            <td className="p-3">
+                                                <button
+                                                    onClick={() => handleViewQr(membership.customers)}
+                                                    className="bg-gray-200 text-gray-700 font-semibold py-1 px-3 rounded-lg text-sm hover:bg-gray-300"
+                                                >
+                                                    View
+                                                </button>
+                                            </td>
                                         </tr>
                                     )) : (
                                         <tr>
-                                            <td colSpan={3} className="text-center p-6 text-gray-500">No customers have joined yet.</td>
+                                            <td colSpan={4} className="text-center p-6 text-gray-500">No customers have joined yet.</td>
                                         </tr>
                                     )}
                                 </tbody>

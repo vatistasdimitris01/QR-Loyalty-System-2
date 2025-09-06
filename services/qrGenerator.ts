@@ -30,7 +30,7 @@ export const generateQrCode = async (token: string, options: QROptions = {}, joi
         width: 300,
         height: 300,
         data: urlData,
-        image: options.qr_logo_url || '',
+        image: options.qr_logo_url || undefined,
         dotsOptions: {
             color: options.qr_color || '#000000',
             type: (options.qr_dot_style as any) || 'square' 

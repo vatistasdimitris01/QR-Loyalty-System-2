@@ -99,6 +99,7 @@ const translations = {
     updateProfile: 'Update Profile',
     updateSuccess: 'Profile updated successfully!',
     joinSuccess: 'Successfully joined business!',
+    printQr: 'Print QR',
     
   },
   el: {
@@ -199,6 +200,7 @@ const translations = {
     updateProfile: 'Ενημέρωση Προφίλ',
     updateSuccess: 'Το προφίλ ενημερώθηκε επιτυχώς!',
     joinSuccess: 'Επιτυχής συμμετοχή στην επιχείρηση!',
+    printQr: 'Εκτύπωση QR',
   },
 };
 

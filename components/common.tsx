@@ -192,3 +192,62 @@ export const CustomerSetupModal: React.FC<{
       </Modal>
     );
 };
+
+export const CustomerQRModal: React.FC<{
+    isOpen: boolean;
+    onClose: () => void;
+    customer: Customer | null;
+}> = ({ isOpen, onClose, customer }) => {
+    const { t } = useLanguage();
+
+    const handlePrint = () => {
+        if (!customer) return;
+
+        const printWindow = window.open('', '_blank', 'height=600,width=800');
+        if (printWindow) {
+            printWindow.document.write(`
+                <html>
+                    <head>
+                        <title>Print QR for ${customer.name}</title>
+                        <style>
+                            body { font-family: sans-serif; text-align: center; padding: 40px; }
+                            img { max-width: 80%; border-radius: 8px; }
+                            h2 { margin-bottom: 5px; }
+                            p { margin-top: 0; color: #555; }
+                        </style>
+                    </head>
+                    <body>
+                        <h2>${customer.name}</h2>
+                        <p>${customer.phone_number || ''}</p>
+                        <img src="${customer.qr_data_url}" alt="Customer QR Code" />
+                        <script>
+                            window.onload = function() {
+                                window.print();
+                                window.close();
+                            };
+                        </script>
+                    </body>
+                </html>
+            `);
+            printWindow.document.close();
+        }
+    };
+
+    if (!customer) return null;
+
+    return (
+        <Modal isOpen={isOpen} onClose={onClose} title={`QR Code for ${customer.name}`}>
+            <div className="text-center">
+                <img src={customer.qr_data_url} alt={`QR Code for ${customer.name}`} className="w-64 h-64 mx-auto rounded-lg border" />
+                <p className="mt-2 text-gray-600">{customer.phone_number}</p>
+                <button
+                    onClick={handlePrint}
+                    className="mt-6 w-full bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v6a2 2 0 002 2h12a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z" clipRule="evenodd" /></svg>
+                    {t('printQr')}
+                </button>
+            </div>
+        </Modal>
+    );
+};
