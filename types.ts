@@ -1,4 +1,11 @@
 
+export type QrStyle = {
+  qr_logo_url?: string | null;
+  qr_color?: string | null;
+  qr_eye_shape?: string | null;
+  qr_dot_style?: string | null;
+}
+
 export interface Customer {
   id: string;
   name: string;
@@ -7,6 +14,7 @@ export interface Customer {
   qr_token: string;
   qr_data_url: string;
   created_at: string;
+  qr_style_preferences?: QrStyle | null;
 }
 
 export interface Business {
@@ -32,6 +40,11 @@ export interface Business {
   facebook_url?: string | null;
   instagram_url?: string | null;
   public_phone_number?: string | null;
+
+  // Loyalty Program
+  points_per_scan?: number;
+  reward_threshold?: number;
+  reward_message?: string | null;
 }
 
 export interface Membership {
@@ -67,4 +80,12 @@ export interface ScanResult {
   pointsAwarded?: number;
   newPointsTotal?: number;
   newMember?: boolean;
+  rewardWon?: boolean;
+  rewardMessage?: string;
+}
+
+export interface BusinessQrDesign extends QrStyle {
+  id: string;
+  business_id: string;
+  created_at: string;
 }

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Customer, Membership, Business } from '../../types';
 import { useLanguage } from '../../context/LanguageContext';
-import { Spinner, StarIcon } from '../../components/common';
+import { StarIcon } from '../../components/common';
 
 interface CustomerHomePageProps {
     customer: Customer;
@@ -15,9 +15,21 @@ const CustomerHomePage: React.FC<CustomerHomePageProps> = ({ customer, membershi
     return (
         <div className="p-4">
             <header className="text-center mb-6">
-                 <h1 className="text-3xl font-bold text-gray-800">{t('welcome')}, {customer.name}</h1>
+                 <h1 className="text-3xl font-bold text-gray-800">{t('welcome')}, {customer.name.split(' ')[0]}!</h1>
             </header>
             
+            {/* Customer QR Code Card */}
+            <div className="bg-white p-4 rounded-lg shadow-md mb-8 flex flex-col items-center">
+                 <h2 className="text-lg font-semibold text-gray-800 mb-2">{t('yourUniversalQr')}</h2>
+                 {customer.qr_data_url ? (
+                    <img src={customer.qr_data_url} alt="Your Universal QR Code" className="w-48 h-48 rounded-lg border" />
+                 ) : (
+                    <div className="w-48 h-48 bg-gray-200 rounded-lg animate-pulse" />
+                 )}
+                 <p className="text-sm text-gray-500 mt-3 text-center max-w-xs">{t('scanThisToLogin')}</p>
+            </div>
+
+
             <h2 className="text-xl font-bold text-gray-800 mb-4">{t('myMemberships')}</h2>
 
             {memberships.length === 0 ? (

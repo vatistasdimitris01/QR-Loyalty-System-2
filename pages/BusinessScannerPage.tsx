@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { awardPoints } from '../services/api';
 import { ScanResult, Business } from '../types';
+import { RewardModal } from '../components/common';
 
 declare const Html5Qrcode: any;
 
@@ -11,6 +12,8 @@ const BusinessScannerPage: React.FC = () => {
     const [scanResult, setScanResult] = useState<ScanResult | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [business, setBusiness] = useState<Business | null>(null);
+    const [isRewardModalOpen, setIsRewardModalOpen] = useState(false);
+    const [rewardMessage, setRewardMessage] = useState('');
 
     useEffect(() => {
         const storedBusiness = sessionStorage.getItem('business');
@@ -49,6 +52,10 @@ const BusinessScannerPage: React.FC = () => {
                         if (token.startsWith('cust_')) {
                            const result = await awardPoints(token, business.id);
                            setScanResult(result);
+                           if (result.success && result.rewardWon) {
+                               setRewardMessage(result.rewardMessage || t('giftWonMessage'));
+                               setIsRewardModalOpen(true);
+                           }
                         } else {
                             setError('Not a valid customer QR code.');
                         }
@@ -82,30 +89,37 @@ const BusinessScannerPage: React.FC = () => {
     const resultColor = scanResult?.success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
 
     return (
-        <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center p-4">
-            <header className="w-full max-w-lg flex items-center mb-4">
-                <a href="/business" className="text-blue-400 hover:text-blue-300">&larr; {t('back')}</a>
-                <h1 className="text-2xl font-bold flex-grow text-center">{t('pointScanner')}</h1>
-            </header>
-            
-            <div id="qr-reader" className="w-full max-w-lg rounded-lg overflow-hidden border-4 border-gray-600"></div>
+        <>
+            <RewardModal 
+                isOpen={isRewardModalOpen}
+                onClose={() => setIsRewardModalOpen(false)}
+                rewardMessage={rewardMessage}
+            />
+            <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center p-4">
+                <header className="w-full max-w-lg flex items-center mb-4">
+                    <a href="/business" className="text-blue-400 hover:text-blue-300">&larr; {t('back')}</a>
+                    <h1 className="text-2xl font-bold flex-grow text-center">{t('pointScanner')}</h1>
+                </header>
+                
+                <div id="qr-reader" className="w-full max-w-lg rounded-lg overflow-hidden border-4 border-gray-600"></div>
 
-            <div className="mt-6 w-full max-w-lg">
-                <h2 className="text-xl font-semibold mb-2">{t('scanResult')}</h2>
-                <div className={`p-4 rounded-lg text-center font-medium ${!scanResult && !error ? 'bg-gray-700' : ''} ${scanResult ? resultColor : ''} ${error ? 'bg-red-100 text-red-800' : ''}`}>
-                    {scanResult ? (
-                        <div>
-                            <p>{scanResult.message}</p>
-                            {scanResult.customer && <p>Total Points: {scanResult.newPointsTotal}</p>}
-                        </div>
-                    ) : error ? (
-                        <p>{error}</p>
-                    ) : (
-                        <p>Scanning...</p>
-                    )}
+                <div className="mt-6 w-full max-w-lg">
+                    <h2 className="text-xl font-semibold mb-2">{t('scanResult')}</h2>
+                    <div className={`p-4 rounded-lg text-center font-medium ${!scanResult && !error ? 'bg-gray-700' : ''} ${scanResult ? resultColor : ''} ${error ? 'bg-red-100 text-red-800' : ''}`}>
+                        {scanResult ? (
+                            <div>
+                                <p>{scanResult.message}</p>
+                                {scanResult.customer && <p>Total Points: {scanResult.newPointsTotal}</p>}
+                            </div>
+                        ) : error ? (
+                            <p>{error}</p>
+                        ) : (
+                            <p>Scanning...</p>
+                        )}
+                    </div>
                 </div>
             </div>
-        </div>
+        </>
     );
 };
 

@@ -3,6 +3,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { Customer, Discount } from '../types';
 
 declare const Html5Qrcode: any;
+declare const confetti: any;
 
 
 export const Spinner: React.FC<{ className?: string }> = ({ className = 'h-8 w-8 text-black' }) => (
@@ -255,6 +256,39 @@ export const CustomerQRModal: React.FC<{
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v6a2 2 0 002 2h12a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z" clipRule="evenodd" /></svg>
                     {t('printQr')}
+                </button>
+            </div>
+        </Modal>
+    );
+};
+
+export const RewardModal: React.FC<{
+    isOpen: boolean;
+    onClose: () => void;
+    rewardMessage: string;
+}> = ({ isOpen, onClose, rewardMessage }) => {
+    const { t } = useLanguage();
+
+    useEffect(() => {
+        if (isOpen) {
+            confetti({
+                particleCount: 150,
+                spread: 90,
+                origin: { y: 0.6 }
+            });
+        }
+    }, [isOpen]);
+
+    return (
+        <Modal isOpen={isOpen} onClose={onClose} title={t('giftWon')}>
+            <div className="text-center">
+                <GiftIcon className="h-20 w-20 text-yellow-500 mx-auto mb-4" />
+                <p className="text-lg text-gray-700">{rewardMessage}</p>
+                 <button
+                    onClick={onClose}
+                    className="mt-6 w-full bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                    {t('close')}
                 </button>
             </div>
         </Modal>

@@ -1,65 +1,56 @@
 -- ================================================================
--- DATABASE MIGRATION SCRIPT (v3) - Multi-Business Platform
+-- DATABASE MIGRATION SCRIPT (v4) - Customizable Loyalty & QR
 -- ================================================================
 -- This script UPDATES your existing tables without deleting data.
 -- It is safe to run on a database with existing customers and businesses.
 -- ================================================================
 
--- Step 1: Create the new 'memberships' table for the many-to-many relationship.
-CREATE TABLE IF NOT EXISTS public.memberships (
+-- Step 1: Add customizable loyalty program columns to `businesses` table.
+ALTER TABLE public.businesses
+ADD COLUMN IF NOT EXISTS points_per_scan integer NOT NULL DEFAULT 1,
+ADD COLUMN IF NOT EXISTS reward_threshold integer NOT NULL DEFAULT 5,
+ADD COLUMN IF NOT EXISTS reward_message text;
+
+-- Step 2: Add QR style preference column to `customers` table.
+ALTER TABLE public.customers
+ADD COLUMN IF NOT EXISTS qr_style_preferences jsonb;
+
+-- Step 3: Create the new 'business_qr_designs' table.
+CREATE TABLE IF NOT EXISTS public.business_qr_designs (
     id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
-    customer_id uuid NOT NULL,
     business_id uuid NOT NULL,
-    points integer NOT NULL DEFAULT 0,
+    qr_logo_url text,
+    qr_color text,
+    qr_eye_shape text,
+    qr_dot_style text,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL,
-    CONSTRAINT memberships_customer_id_fkey FOREIGN KEY (customer_id) REFERENCES public.customers(id) ON DELETE CASCADE,
-    CONSTRAINT memberships_business_id_fkey FOREIGN KEY (business_id) REFERENCES public.businesses(id) ON DELETE CASCADE,
-    CONSTRAINT unique_membership UNIQUE (customer_id, business_id)
+    CONSTRAINT business_qr_designs_business_id_fkey FOREIGN KEY (business_id) REFERENCES public.businesses(id) ON DELETE CASCADE
 );
 
--- Step 2: Add Public Profile columns to the `businesses` table.
-ALTER TABLE public.businesses
-ADD COLUMN IF NOT EXISTS public_name text,
-ADD COLUMN IF NOT EXISTS logo_url text,
-ADD COLUMN IF NOT EXISTS bio text,
-ADD COLUMN IF NOT EXISTS website_url text,
-ADD COLUMN IF NOT EXISTS facebook_url text,
-ADD COLUMN IF NOT EXISTS instagram_url text,
-ADD COLUMN IF NOT EXISTS public_phone_number text;
+-- Step 4: Setup Row Level Security (RLS) for the new 'business_qr_designs' table.
+ALTER TABLE public.business_qr_designs ENABLE ROW LEVEL SECURITY;
 
--- Step 3: Remove obsolete columns from the `customers` table.
-ALTER TABLE public.customers
-DROP COLUMN IF EXISTS points,
-DROP COLUMN IF EXISTS points_updated_at,
-DROP COLUMN IF EXISTS business_id; -- This also drops the foreign key constraint if it exists.
-
--- Step 4: Setup Row Level Security (RLS) for the new 'memberships' table.
-ALTER TABLE public.memberships ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "Public can view memberships." ON public.memberships;
-CREATE POLICY "Public can view memberships." ON public.memberships
+DROP POLICY IF EXISTS "Public can view designs." ON public.business_qr_designs;
+CREATE POLICY "Public can view designs." ON public.business_qr_designs
 FOR SELECT USING (true);
 
-DROP POLICY IF EXISTS "Users can create their own memberships." ON public.memberships;
-CREATE POLICY "Users can create their own memberships." ON public.memberships
-FOR INSERT WITH CHECK (true); -- Simplified for this app, can be tightened later
-
-DROP POLICY IF EXISTS "Users can update their own memberships." ON public.memberships;
-CREATE POLICY "Users can update their own memberships." ON public.memberships
-FOR UPDATE USING (true); -- Simplified for this app
+DROP POLICY IF EXISTS "Businesses can manage their own designs." ON public.business_qr_designs;
+CREATE POLICY "Businesses can manage their own designs." ON public.business_qr_designs
+FOR ALL USING (
+    (SELECT id FROM public.businesses WHERE id = business_id) IS NOT NULL -- A simple check, can be enhanced with auth.uid()
+);
 
 -- Step 5: Grant permissions to the anon role for the new table.
-GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.memberships TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.business_qr_designs TO anon;
 
--- Step 6: Update RLS for businesses to be publicly searchable.
-DROP POLICY IF EXISTS "Public can view businesses." ON public.businesses;
-CREATE POLICY "Public can view businesses." ON public.businesses
-FOR SELECT USING (true);
+-- Step 6: Update existing business reward messages with a default value
+UPDATE public.businesses
+SET reward_message = 'Congratulations! You have earned a free gift!'
+WHERE reward_message IS NULL;
 
 -- ================================================================
 -- MIGRATION COMPLETE
 -- ================================================================
--- All necessary database changes for the multi-business platform
+-- All necessary database changes for the customizable features
 -- have been applied.
 -- ================================================================

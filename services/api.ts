@@ -1,4 +1,4 @@
-import { Customer, ScanResult, Business, Membership, Discount } from '../types';
+import { Customer, ScanResult, Business, Membership, Discount, QrStyle, BusinessQrDesign } from '../types';
 import supabase from './supabaseClient';
 import { generateQrCode } from './qrGenerator';
 
@@ -13,7 +13,16 @@ export const getCustomerByQrToken = async (qrToken: string): Promise<Customer | 
   return data;
 };
 
-export const updateCustomer = async (id: string, updatedData: Partial<Pick<Customer, 'name' | 'phone_number'>>): Promise<Customer | null> => {
+export const updateCustomer = async (id: string, updatedData: Partial<Pick<Customer, 'name' | 'phone_number' | 'qr_style_preferences'>>): Promise<Customer | null> => {
+    // If QR style is being updated, regenerate the QR code data URL
+    if ('qr_style_preferences' in updatedData && updatedData.qr_style_preferences) {
+        const { data: currentCustomer } = await supabase.from('customers').select('qr_token').eq('id', id).single();
+        if (currentCustomer) {
+            const newQrDataUrl = await generateQrCode(currentCustomer.qr_token, updatedData.qr_style_preferences);
+            (updatedData as any).qr_data_url = newQrDataUrl;
+        }
+    }
+
     const { data, error } = await supabase
         .from('customers')
         .update(updatedData)
@@ -30,13 +39,14 @@ export const updateCustomer = async (id: string, updatedData: Partial<Pick<Custo
 
 export const createCustomer = async (customerData: Pick<Customer, 'name' | 'phone_number'>): Promise<Customer | null> => {
     const qr_token = `cust_${Math.random().toString(36).substr(2, 9)}`;
-    // Universal customer QR has no business-specific styling
-    const qr_data_url = await generateQrCode(qr_token, {});
+    const defaultStyle = { qr_color: '#000000', qr_dot_style: 'square', qr_eye_shape: 'square' };
+    const qr_data_url = await generateQrCode(qr_token, defaultStyle);
 
     const newCustomerData = {
         ...customerData,
         qr_token,
         qr_data_url,
+        qr_style_preferences: defaultStyle
     };
 
     const { data, error } = await supabase
@@ -185,11 +195,15 @@ export const awardPoints = async (customerQrToken: string, businessId: string): 
       return { success: false, message: 'Customer QR not found.' };
     }
 
-    // 2. Find the business (to return its name)
+    // 2. Find the business and its loyalty settings
     const { data: business, error: businessError } = await supabase.from('businesses').select('*').eq('id', businessId).single();
     if (businessError || !business) {
         return { success: false, message: 'Business not found.' };
     }
+    const pointsPerScan = business.points_per_scan || 1;
+    const rewardThreshold = business.reward_threshold || 5;
+    const rewardMessage = business.reward_message || 'You won a reward!';
+
 
     // 3. Find existing membership
     const { data: membership, error: membershipError } = await supabase
@@ -201,42 +215,48 @@ export const awardPoints = async (customerQrToken: string, businessId: string): 
 
     if (membershipError) throw membershipError;
 
-    // 4. If membership exists, update points. If not, create it (join-on-first-scan).
-    if (membership) {
-      const newPoints = membership.points + 1;
-      const { data: updatedMembership, error: updateError } = await supabase
-        .from('memberships')
-        .update({ points: newPoints, updated_at: new Date().toISOString() })
-        .eq('id', membership.id)
-        .select()
-        .single();
-      
-      if (updateError) throw updateError;
-      return { 
-          success: true, 
-          message: `+1 point for ${customer.name}!`,
-          customer,
-          business,
-          newPointsTotal: newPoints,
-          newMember: false
-      };
-    } else {
-      const { data: newMembership, error: insertError } = await supabase
-        .from('memberships')
-        .insert({ customer_id: customer.id, business_id: businessId, points: 1, updated_at: new Date().toISOString() })
-        .select()
-        .single();
+    let newPointsTotal: number;
+    let newMember = false;
 
-      if (insertError) throw insertError;
-      return { 
-          success: true, 
-          message: `${customer.name} just joined and earned 1 point!`,
-          customer,
-          business,
-          newPointsTotal: 1,
-          newMember: true
-      };
+    // 4. If membership exists, update points. If not, create it.
+    if (membership) {
+        newPointsTotal = membership.points + pointsPerScan;
+    } else {
+        newPointsTotal = pointsPerScan;
+        newMember = true;
     }
+
+    // 5. Check for reward
+    const rewardWon = newPointsTotal >= rewardThreshold;
+    const finalPoints = rewardWon ? 0 : newPointsTotal; // Reset points on win
+    const pointsAwarded = newMember ? newPointsTotal : pointsPerScan;
+
+    // 6. Upsert membership
+     const { error: upsertError } = await supabase
+        .from('memberships')
+        .upsert({ 
+            id: membership?.id, // Supabase uses id for upsert matching
+            customer_id: customer.id, 
+            business_id: businessId, 
+            points: finalPoints,
+            updated_at: new Date().toISOString()
+        });
+    if (upsertError) throw upsertError;
+    
+    let message = `+${pointsAwarded} point${pointsAwarded > 1 ? 's' : ''} for ${customer.name}!`;
+    if (newMember) message = `${customer.name} just joined and earned ${pointsAwarded} point${pointsAwarded > 1 ? 's' : ''}!`;
+
+    return { 
+        success: true, 
+        message: message,
+        customer,
+        business,
+        newPointsTotal: finalPoints,
+        newMember,
+        rewardWon,
+        rewardMessage
+    };
+
   } catch (error) {
     console.error('Error in awardPoints:', error);
     return { success: false, message: 'An unexpected error occurred.' };
@@ -319,6 +339,7 @@ export const signupBusiness = async (businessData: Omit<Business, 'id' | 'create
             password: businessData.password,
             qr_token,
             qr_data_url,
+            reward_message: 'Congratulations! You won a reward!',
             ...defaultSettings
         })
         .select();
@@ -356,4 +377,45 @@ export const updateBusiness = async (id: string, updatedData: Partial<Business>)
     }
     const { password: _, ...businessData } = data;
     return businessData as Business;
+};
+
+// ====== BUSINESS QR DESIGN APIs ======
+
+export const getBusinessQrDesigns = async (businessId: string): Promise<BusinessQrDesign[]> => {
+    const { data, error } = await supabase
+        .from('business_qr_designs')
+        .select('*')
+        .eq('business_id', businessId)
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error(`Error fetching QR designs for business ${businessId}:`, error);
+        return [];
+    }
+    return data || [];
+};
+
+export const createBusinessQrDesign = async (designData: Omit<BusinessQrDesign, 'id' | 'created_at'>): Promise<BusinessQrDesign | null> => {
+    const { data, error } = await supabase
+        .from('business_qr_designs')
+        .insert(designData)
+        .select()
+        .single();
+    if (error) {
+        console.error('Error creating QR design:', error);
+        return null;
+    }
+    return data;
+};
+
+export const deleteBusinessQrDesign = async (designId: string): Promise<{ success: boolean }> => {
+    const { error } = await supabase
+        .from('business_qr_designs')
+        .delete()
+        .eq('id', designId);
+    if (error) {
+        console.error('Error deleting QR design:', error);
+        return { success: false };
+    }
+    return { success: true };
 };
