@@ -14,10 +14,18 @@ const blobToBase64 = (blob: Blob): Promise<string> => {
 };
 
 export const generateQrCode = async (token: string, options: QROptions = {}): Promise<string> => {
+    let urlData = token;
+    if (token.startsWith('cust_')) {
+        urlData = `${window.location.origin}/customer?token=${token}`;
+    } else if (token.startsWith('biz_')) {
+        // Point to the landing page with a token param it can read
+        urlData = `${window.location.origin}/?token=${token}`;
+    }
+
     const qrCode = new QRCodeStyling({
         width: 300,
         height: 300,
-        data: token,
+        data: urlData,
         image: options.qr_logo_url || '',
         dotsOptions: {
             color: options.qr_color || '#000000',
@@ -36,7 +44,8 @@ export const generateQrCode = async (token: string, options: QROptions = {}): Pr
     try {
         const blob = await qrCode.getRawData('png');
         if (blob) {
-            return await blobToBase64(blob);
+            // FIX: Cast the result to Blob, as getRawData can also return a Buffer type in Node.js environments.
+            return await blobToBase64(blob as Blob);
         }
         return '';
     } catch (error) {
@@ -45,7 +54,8 @@ export const generateQrCode = async (token: string, options: QROptions = {}): Pr
         const fallbackQr = new QRCodeStyling({ width: 300, height: 300, data: token });
         const fallbackBlob = await fallbackQr.getRawData('png');
         if (fallbackBlob) {
-            return await blobToBase64(fallbackBlob);
+            // FIX: Cast the result to Blob, as getRawData can also return a Buffer type in Node.js environments.
+            return await blobToBase64(fallbackBlob as Blob);
         }
         return '';
     }

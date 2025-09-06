@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { QRScannerModal } from '../components/common';
 import { loginBusinessWithQrToken } from '../services/api';
@@ -9,14 +9,22 @@ const LandingPage: React.FC = () => {
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [scanError, setScanError] = useState('');
 
-  const handleScan = async (scannedToken: string) => {
+  const handleScan = async (scannedText: string) => {
     setIsScannerOpen(false);
     setScanError('');
 
-    if (scannedToken.startsWith('cust_')) {
-      window.location.href = `/customer?token=${scannedToken}`;
-    } else if (scannedToken.startsWith('biz_')) {
-      const result = await loginBusinessWithQrToken(scannedToken);
+    let token = scannedText;
+    try {
+        const url = new URL(scannedText);
+        token = url.searchParams.get('token') || '';
+    } catch (e) {
+        // Not a valid URL, assume it's a raw token (for backward compatibility)
+    }
+
+    if (token.startsWith('cust_')) {
+      window.location.href = `/customer?token=${token}`;
+    } else if (token.startsWith('biz_')) {
+      const result = await loginBusinessWithQrToken(token);
       if (result.success && result.business) {
         sessionStorage.setItem('isBusinessLoggedIn', 'true');
         sessionStorage.setItem('business', JSON.stringify(result.business));
@@ -28,6 +36,16 @@ const LandingPage: React.FC = () => {
       setScanError('This is not a valid loyalty QR code.');
     }
   };
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const tokenFromUrl = searchParams.get('token');
+    if (tokenFromUrl) {
+      // Automatically handle the token from the URL
+      handleScan(tokenFromUrl);
+    }
+  }, []);
+
 
   return (
     <>

@@ -26,7 +26,16 @@ const BusinessScannerPage: React.FC = () => {
                     setScanResult(null);
                     setError(null);
                     try {
-                        const result = await awardPoints(decodedText);
+                        let token = decodedText;
+                        try {
+                            const url = new URL(decodedText);
+                            if (url.pathname === '/customer' && url.searchParams.has('token')) {
+                                token = url.searchParams.get('token')!;
+                            }
+                        } catch (e) {
+                            // Fallback for old raw tokens
+                        }
+                        const result = await awardPoints(token);
                         setScanResult(result);
                     } catch (e) {
                         setError(t('errorUnexpected'));

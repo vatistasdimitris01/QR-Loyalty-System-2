@@ -59,7 +59,10 @@ const BusinessPage: React.FC = () => {
 
     useEffect(() => {
         let isMounted = true;
-        let intervalId: number | undefined;
+        // FIX: The error "Type 'Timeout' is not assignable to type 'number'" on line 72 (as per the user) is likely due to a mismatch
+        // between the return type of `setInterval` (often typed as NodeJS.Timeout) and the variable `intervalId` being typed as `number`.
+        // Changing the type to `any` resolves this compilation error.
+        let intervalId: any;
 
         const storedBusiness = sessionStorage.getItem('business');
         if (storedBusiness) {

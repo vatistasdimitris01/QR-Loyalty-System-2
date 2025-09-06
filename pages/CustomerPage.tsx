@@ -103,7 +103,7 @@ const CustomerPage: React.FC<CustomerPageProps> = ({ qrToken }) => {
     try {
       const customerData = await getCustomerByQrToken(qrToken);
       if (customerData) {
-        if (customerData.name === "New Customer") {
+        if (customerData.name === "New Customer" || !customerData.phone_number) {
             setIsSetupModalOpen(true);
         }
         if (prevPointsRef.current !== null && customerData.points < prevPointsRef.current) {
