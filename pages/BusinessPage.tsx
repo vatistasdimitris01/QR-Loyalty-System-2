@@ -133,19 +133,25 @@ const AnalyticsDashboard: React.FC<{business: Business, onBusinessUpdate: (b: Bu
             <BusinessScannerModal isOpen={isScannerModalOpen} onClose={() => setIsScannerModalOpen(false)} businessId={business.id} onScanSuccess={fetchData} />
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 space-y-6">
-                    <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm">
-                        <h3 className="font-bold text-lg text-gray-800 mb-1">New Members & Rewards</h3>
-                        <p className="text-sm text-gray-500 mb-4">Activity over the last 7 days.</p>
-                        {dailyData.length > 0 ? <AnalyticsChart data={dailyData} dataKey="new_members_count" dataKey2="rewards_claimed_count" label1="New Members" label2="Rewards Claimed" color1="#3b82f6" color2="#f59e0b" /> : <div className="h-48 flex justify-center items-center"><Spinner /></div>}
-                    </div>
-                     <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm">
-                        <h3 className="font-bold text-lg text-gray-800 mb-1">Points Activity</h3>
-                        <p className="text-sm text-gray-500 mb-4">Total points awarded in the last 7 days.</p>
-                        {dailyData.length > 0 ? <AnalyticsChart data={dailyData} dataKey="points_awarded_sum" label1="Points Awarded" color1="#10b981" /> : <div className="h-48 flex justify-center items-center"><Spinner /></div>}
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <AnalyticsAreaChartCard 
+                            title="New Members"
+                            total={analytics?.new_members_7d}
+                            data={dailyData}
+                            dataKey="new_members_count"
+                            color="#3b82f6"
+                        />
+                        <AnalyticsAreaChartCard 
+                            title="Points Awarded"
+                            total={analytics?.points_awarded_7d}
+                            data={dailyData}
+                            dataKey="points_awarded_sum"
+                            color="#10b981"
+                        />
                     </div>
                 </div>
                 <div className="space-y-6">
-                    <StatCard title={t('totalCustomers')} value={analytics?.total_customers ?? '...'} icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.653-.122-1.28-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.653.122-1.28.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>} />
+                    <StatCard title={t('totalCustomers')} value={analytics?.total_customers ?? '...'} />
                     <LoyaltySettingsEditor business={business} onUpdate={onBusinessUpdate} />
                     <QuickActionCard title={t('scanCustomerQR')} description="Award points to a customer." onClick={() => setIsScannerModalOpen(true)} icon={<CameraIcon className="h-6 w-6"/>} />
                     <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm text-center">
@@ -390,13 +396,10 @@ const TabButton: React.FC<{label: string, isActive: boolean, onClick: () => void
     </button>
 );
 
-const StatCard: React.FC<{ title: string; value: string | number; icon: React.ReactNode }> = ({ title, value, icon }) => (
-    <div className="bg-white p-4 rounded-xl shadow-sm flex items-center gap-4">
-        <div className="bg-blue-100 text-blue-600 p-3 rounded-full">{icon}</div>
-        <div>
-            <p className="text-3xl font-bold text-gray-800">{value}</p>
-            <p className="text-sm text-gray-500">{title}</p>
-        </div>
+const StatCard: React.FC<{ title: string; value: string | number; }> = ({ title, value }) => (
+    <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm text-center">
+        <p className="text-4xl font-bold text-gray-800">{value}</p>
+        <p className="text-sm text-gray-500 mt-1">{title}</p>
     </div>
 );
 
@@ -406,84 +409,79 @@ const QuickActionCard: React.FC<{ title: string; description: string; href?: str
     return <div onClick={onClick}>{content}</div>;
 };
 
-const AnalyticsChart: React.FC<{ data: DailyAnalyticsData[], dataKey: keyof DailyAnalyticsData, dataKey2?: keyof DailyAnalyticsData, label1: string, label2?: string, color1: string, color2?: string }> = ({ data, dataKey, dataKey2, label1, label2, color1, color2 }) => {
-    const svgRef = useRef<SVGSVGElement>(null);
-    const [tooltip, setTooltip] = useState<{ x: number; y: number; data: DailyAnalyticsData; dataKey: string; dataKey2?: string } | null>(null);
-    const width = 300;
-    const height = 150;
-    const padding = { top: 10, bottom: 20, left: 10, right: 10 };
+const getSvgPath = (points: {x: number, y: number}[], tension: number): string => {
+    if (points.length < 2) return "";
+    let d = "M " + points[0].x + " " + points[0].y;
+    for (let i = 0; i < points.length - 1; i++) {
+        const p0 = i > 0 ? points[i - 1] : points[0];
+        const p1 = points[i];
+        const p2 = points[i + 1];
+        const p3 = i < points.length - 2 ? points[i + 2] : p2;
 
-    const maxVal1 = Math.max(...data.map(d => d[dataKey] as number), 1);
-    const maxVal2 = dataKey2 ? Math.max(...data.map(d => d[dataKey2] as number), 1) : 0;
-    const maxVal = Math.max(maxVal1, maxVal2);
+        const cp1x = p1.x + (p2.x - p0.x) / 6 * tension;
+        const cp1y = p1.y + (p2.y - p0.y) / 6 * tension;
+        const cp2x = p2.x - (p3.x - p1.x) / 6 * tension;
+        const cp2y = p2.y - (p3.y - p1.y) / 6 * tension;
+        d += " C " + cp1x + " " + cp1y + " " + cp2x + " " + cp2y + " " + p2.x + " " + p2.y;
+    }
+    return d;
+}
 
-    const getCoords = (val: number, index: number) => {
-        const x = padding.left + (index / (data.length - 1)) * (width - padding.left - padding.right);
-        const y = height - padding.bottom - (val / maxVal) * (height - padding.top - padding.bottom);
-        return { x, y };
-    };
+const AnalyticsAreaChartCard: React.FC<{ 
+    title: string, 
+    total: number | undefined,
+    data: DailyAnalyticsData[], 
+    dataKey: keyof Omit<DailyAnalyticsData, 'log_date'>,
+    color: string
+}> = ({ title, total, data, dataKey, color }) => {
+    const width = 100;
+    const height = 50;
 
-    const handleMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
-        const svg = svgRef.current;
-        if (!svg) return;
-        const rect = svg.getBoundingClientRect();
-        const mouseX = e.clientX - rect.left;
-        
-        const index = Math.round(((mouseX - padding.left) / (width - padding.left - padding.right)) * (data.length - 1));
-        if (index >= 0 && index < data.length) {
-            const pointData = data[index];
-            const y1 = getCoords(pointData[dataKey] as number, index).y;
-            const y2 = dataKey2 ? getCoords(pointData[dataKey2] as number, index).y : 0;
-            
-            setTooltip({
-                x: getCoords(0, index).x,
-                y: Math.min(y1, y2 > 0 ? y2 : Infinity),
-                data: pointData,
-                dataKey,
-                dataKey2
-            });
-        }
-    };
+    const values = data.map(d => d[dataKey] as number);
+    const firstHalfSum = values.slice(0, 3).reduce((a, b) => a + b, 0);
+    const secondHalfSum = values.slice(3, 7).reduce((a, b) => a + b, 0);
 
-    const linePath1 = data.map((d, i) => {
-        const { x, y } = getCoords(d[dataKey] as number, i);
-        return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
-    }).join(' ');
+    let percentageChange = 0;
+    if (firstHalfSum > 0) {
+        percentageChange = ((secondHalfSum - firstHalfSum) / firstHalfSum) * 100;
+    } else if (secondHalfSum > 0) {
+        percentageChange = 100;
+    }
 
-    const linePath2 = dataKey2 ? data.map((d, i) => {
-        const { x, y } = getCoords(d[dataKey2] as number, i);
-        return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
-    }).join(' ') : '';
+    const maxVal = Math.max(...values, 1);
+    const points = values.map((val, i) => ({
+        x: (i / (values.length - 1)) * width,
+        y: height - (val / maxVal) * height
+    }));
     
-    const xLabels = data.map(d => new Date(d.log_date).toLocaleDateString(navigator.language, { weekday: 'short' }));
+    const linePath = getSvgPath(points, 1);
+    const areaPath = `${linePath} L ${width} ${height} L 0 ${height} Z`;
+    const gradientId = `gradient-${dataKey}`;
 
     return (
-        <div className="relative">
-            <svg ref={svgRef} viewBox={`0 0 ${width} ${height}`} className="w-full h-auto" onMouseMove={handleMouseMove} onMouseLeave={() => setTooltip(null)}>
-                <line x1={padding.left} y1={height - padding.bottom} x2={width - padding.right} y2={height - padding.bottom} stroke="#e5e7eb" strokeWidth="1" />
-                <path d={linePath1} fill="none" stroke={color1} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                {dataKey2 && <path d={linePath2} fill="none" stroke={color2} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />}
-                
-                {xLabels.map((label, i) => (
-                    <text key={i} x={getCoords(0, i).x} y={height - 5} textAnchor="middle" fontSize="10" fill="#9ca3af">{label}</text>
-                ))}
-                
-                {tooltip && (
-                    <line x1={tooltip.x} y1={padding.top} x2={tooltip.x} y2={height - padding.bottom} stroke="#cbd5e1" strokeWidth="1" strokeDasharray="3,3" />
+        <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm">
+            <h3 className="text-sm font-medium text-gray-500">{title}</h3>
+            <div className="flex items-baseline gap-2 mt-1">
+                <p className="text-3xl font-bold text-gray-800">{total ?? '...'}</p>
+                {total !== undefined && (
+                     <p className={`text-sm font-semibold ${percentageChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {percentageChange >= 0 ? '+' : ''}{percentageChange.toFixed(1)}%
+                    </p>
                 )}
-            </svg>
-            
-            {tooltip && (
-                <div className="absolute p-2 text-xs bg-gray-800 text-white rounded-md shadow-lg pointer-events-none" style={{ left: `${(tooltip.x / width * 100)}%`, top: `0px`, transform: 'translateX(-50%) translateY(-110%)' }}>
-                    <p className="font-bold mb-1">{new Date(tooltip.data.log_date).toLocaleDateString(navigator.language, { weekday: 'long', month: 'short', day: 'numeric' })}</p>
-                    <div className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{backgroundColor: color1}}></span>{label1}: <strong>{tooltip.data[dataKey] as number}</strong></div>
-                    {tooltip.dataKey2 && <div className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{backgroundColor: color2}}></span>{label2}: <strong>{tooltip.data[tooltip.dataKey2] as number}</strong></div>}
-                </div>
-            )}
-            
-            <div className="flex justify-center gap-4 mt-2 text-xs text-gray-600">
-                <div className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full" style={{backgroundColor: color1}}></span>{label1}</div>
-                {label2 && <div className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full" style={{backgroundColor: color2}}></span>{label2}</div>}
+            </div>
+            <div className="mt-4 h-16">
+                {points.length > 1 ? (
+                    <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-full" preserveAspectRatio="none">
+                        <defs>
+                            <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stopColor={color} stopOpacity="0.2"/>
+                                <stop offset="100%" stopColor={color} stopOpacity="0"/>
+                            </linearGradient>
+                        </defs>
+                        <path d={areaPath} fill={`url(#${gradientId})`} />
+                        <path d={linePath} fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                ) : <div className="w-full h-full flex items-center justify-center text-sm text-gray-400">Not enough data</div>}
             </div>
         </div>
     );

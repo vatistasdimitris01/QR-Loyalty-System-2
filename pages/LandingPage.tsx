@@ -252,7 +252,7 @@ const LandingPage: React.FC = () => {
                         <div className="p-8 bg-white/50 rounded-2xl shadow-lg">
                             <div className="aspect-video bg-gray-800 rounded-lg shadow-inner-lg p-2">
                                 <div className="w-full h-full bg-white rounded flex items-center justify-center">
-                                    <img src="https://i.postimg.cc/mD3w205T/macbook-mockup.png" alt="Business Dashboard Mockup" className="w-full h-full object-contain"/>
+                                    <img src="https://i.postimg.cc/x8TjZ24Z/Generated-Image-September-06-2025-10-34-PM.jpg" alt="Business Dashboard Mockup" className="w-full h-full object-cover rounded"/>
                                 </div>
                             </div>
                         </div>
