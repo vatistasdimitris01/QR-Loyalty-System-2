@@ -16,6 +16,8 @@ const BusinessPage: React.FC = () => {
     const [business, setBusiness] = useState<Business | null>(null);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<DashboardTab>('analytics');
+    const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+    const profileMenuRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const storedBusiness = sessionStorage.getItem('business');
@@ -25,6 +27,19 @@ const BusinessPage: React.FC = () => {
              window.location.href = '/business/login';
         }
         setLoading(false);
+    }, []);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
+                setIsProfileMenuOpen(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
     }, []);
 
     const handleLogout = () => {
@@ -58,7 +73,21 @@ const BusinessPage: React.FC = () => {
                         <h1 className="text-xl md:text-2xl font-bold text-gray-900">{business.public_name || t('businessDashboard')}</h1>
                         <p className="text-sm text-gray-500">{t('welcome')}, {business.name}!</p>
                     </div>
-                    <button onClick={handleLogout} className="bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors">{t('logout')}</button>
+                    <div className="relative" ref={profileMenuRef}>
+                        <button onClick={() => setIsProfileMenuOpen(prev => !prev)} className="w-10 h-10 rounded-full overflow-hidden border-2 border-gray-300 hover:border-blue-500 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                            <img 
+                                src={business.logo_url || 'https://i.postimg.cc/8zRZt9pM/user.png'} 
+                                alt="Business Logo" 
+                                className="w-full h-full object-cover" 
+                            />
+                        </button>
+                        {isProfileMenuOpen && (
+                            <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-30 border border-gray-200">
+                                <a href="/business/editor" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">{t('businessSettings')}</a>
+                                <button onClick={handleLogout} className="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">{t('logout')}</button>
+                            </div>
+                        )}
+                    </div>
                 </div>
                  <div className="px-4 border-t border-gray-200">
                     <nav className="flex space-x-4 overflow-x-auto max-w-7xl mx-auto">
@@ -124,7 +153,6 @@ const AnalyticsDashboard: React.FC<{business: Business, onBusinessUpdate: (b: Bu
                         <img src={business.qr_data_url} alt="Business Login QR Code" className="w-40 h-40 mx-auto rounded-lg" />
                         <p className="text-xs text-gray-500 mt-2">Scan this to log in quickly from any device.</p>
                     </div>
-                    <QuickActionCard title={t('manageContent')} description={t('manageContentDesc')} href="/business/editor" icon={<PencilIcon />} />
                 </div>
             </div>
         </>
