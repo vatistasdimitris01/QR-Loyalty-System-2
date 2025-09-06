@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { QRScannerModal } from '../components/common';
@@ -14,15 +13,21 @@ const LandingPage: React.FC = () => {
     setScanError('');
 
     let token = scannedText;
+    let joinBusinessId: string | null = null;
     try {
         const url = new URL(scannedText);
         token = url.searchParams.get('token') || '';
+        joinBusinessId = url.searchParams.get('join');
     } catch (e) {
         // Not a valid URL, assume it's a raw token (for backward compatibility)
     }
 
     if (token.startsWith('cust_')) {
-      window.location.href = `/customer?token=${token}`;
+      let customerUrl = `/customer?token=${token}`;
+      if (joinBusinessId) {
+          customerUrl += `&join=${joinBusinessId}`;
+      }
+      window.location.href = customerUrl;
     } else if (token.startsWith('biz_')) {
       const result = await loginBusinessWithQrToken(token);
       if (result.success && result.business) {
@@ -42,7 +47,8 @@ const LandingPage: React.FC = () => {
     const tokenFromUrl = searchParams.get('token');
     if (tokenFromUrl) {
       // Automatically handle the token from the URL
-      handleScan(tokenFromUrl);
+      // This is primarily for business login now
+      handleScan(window.location.href);
     }
   }, []);
 
@@ -60,12 +66,20 @@ const LandingPage: React.FC = () => {
           <h1 className="text-4xl font-bold text-gray-800 mb-2">QR Loyalty Rewards</h1>
           <p className="text-lg text-gray-600 mb-8">Your digital punch card solution.</p>
           
-          <button 
-            onClick={() => setIsScannerOpen(true)}
-            className="bg-blue-600 text-white font-bold py-4 px-8 rounded-full text-lg shadow-md hover:bg-blue-700 transition-transform transform hover:scale-105"
-          >
-            {t('scanToLogin')}
-          </button>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <button 
+              onClick={() => setIsScannerOpen(true)}
+              className="bg-blue-600 text-white font-bold py-3 px-8 rounded-full text-lg shadow-md hover:bg-blue-700 transition-transform transform hover:scale-105"
+            >
+              {t('customerSignin')}
+            </button>
+             <a 
+              href="/signup/customer"
+              className="bg-white text-blue-600 border-2 border-blue-600 font-bold py-3 px-8 rounded-full text-lg shadow-md hover:bg-blue-50 transition-transform transform hover:scale-105"
+            >
+              {t('customerSignup')}
+            </a>
+          </div>
           
           {scanError && <p className="text-red-500 mt-4">{scanError}</p>}
 

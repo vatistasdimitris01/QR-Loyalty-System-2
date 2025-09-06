@@ -13,10 +13,14 @@ const blobToBase64 = (blob: Blob): Promise<string> => {
     });
 };
 
-export const generateQrCode = async (token: string, options: QROptions = {}): Promise<string> => {
+export const generateQrCode = async (token: string, options: QROptions = {}, joinBusinessId?: string): Promise<string> => {
     let urlData = token;
     if (token.startsWith('cust_')) {
-        urlData = `${window.location.origin}/customer?token=${token}`;
+        let baseUrl = `${window.location.origin}/customer?token=${token}`;
+        if (joinBusinessId) {
+            baseUrl += `&join=${joinBusinessId}`;
+        }
+        urlData = baseUrl;
     } else if (token.startsWith('biz_')) {
         // Point to the landing page with a token param it can read
         urlData = `${window.location.origin}/?token=${token}`;

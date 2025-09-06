@@ -2,6 +2,7 @@ import React, { createContext, useState, useContext, ReactNode } from 'react';
 
 const translations = {
   en: {
+    customerSignin: 'Customer Signin',
     scanToLogin: 'Scan to Login',
     businessLogin: 'Business Login',
     welcome: 'Welcome',
@@ -34,6 +35,10 @@ const translations = {
     delete: 'Delete',
     scanCustomerQR: 'Scan Customer QR',
     logout: 'Logout',
+    createNewCustomer: 'Create New Customer',
+    createNewCustomerDesc: 'Generate a QR for a new user.',
+    newCustomerQrModalTitle: 'New Customer QR Code',
+    newCustomerQrModalDesc: 'Have the customer scan this code with their phone camera.',
     // Scanner Page
     scanQRCode: 'Scan QR Code',
     pointScanner: 'Point Scanner',
@@ -93,9 +98,11 @@ const translations = {
     yourUniversalQr: 'Your Universal QR Code',
     updateProfile: 'Update Profile',
     updateSuccess: 'Profile updated successfully!',
+    joinSuccess: 'Successfully joined business!',
     
   },
   el: {
+    customerSignin: 'Είσοδος Πελάτη',
     scanToLogin: 'Σάρωση για Είσοδο',
     businessLogin: 'Είσοδος Επιχείρησης',
     welcome: 'Καλώς ήρθες',
@@ -128,6 +135,10 @@ const translations = {
     delete: 'Διαγραφή',
     scanCustomerQR: 'Σάρωση QR Πελάτη',
     logout: 'Αποσύνδεση',
+    createNewCustomer: 'Δημιουργία Νέου Πελάτη',
+    createNewCustomerDesc: 'Δημιουργία QR για νέο χρήστη.',
+    newCustomerQrModalTitle: 'Κωδικός QR Νέου Πελάτη',
+    newCustomerQrModalDesc: 'Δώστε στον πελάτη να σκανάρει αυτόν τον κωδικό με την κάμερα του.',
     // Scanner Page
     scanQRCode: 'Σάρωση Κωδικού QR',
     pointScanner: 'Σαρωτής Πόντων',
@@ -187,6 +198,7 @@ const translations = {
     yourUniversalQr: 'Ο Παγκόσμιος QR σας',
     updateProfile: 'Ενημέρωση Προφίλ',
     updateSuccess: 'Το προφίλ ενημερώθηκε επιτυχώς!',
+    joinSuccess: 'Επιτυχής συμμετοχή στην επιχείρηση!',
   },
 };
 

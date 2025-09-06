@@ -34,6 +34,9 @@ export const SearchIcon: React.FC<{ className?: string }> = ({ className }) => (
 export const UserIcon: React.FC<{ className?: string }> = ({ className }) => (
   <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
 );
+export const UserAddIcon: React.FC<{ className?: string }> = ({ className }) => (
+    <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
+);
 
 
 // --- Modals ---
@@ -62,7 +65,6 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, title }) => {
   );
 };
 
-// FIX: Add QRScannerModal component. This component was imported in `LandingPage.tsx` but was not exported from this module.
 export const QRScannerModal: React.FC<{
     isOpen: boolean;
     onClose: () => void;
@@ -106,6 +108,28 @@ export const QRScannerModal: React.FC<{
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={t('scanQRCode')}>
             <div id={scannerId} className="w-full" />
+        </Modal>
+    );
+};
+
+export const CreateCustomerModal: React.FC<{
+    isOpen: boolean;
+    onClose: () => void;
+    qrDataUrl: string;
+}> = ({ isOpen, onClose, qrDataUrl }) => {
+    const { t } = useLanguage();
+    return (
+        <Modal isOpen={isOpen} onClose={onClose} title={t('newCustomerQrModalTitle')}>
+            <div className="text-center">
+                <p className="text-gray-600 mb-4">{t('newCustomerQrModalDesc')}</p>
+                {qrDataUrl ? (
+                    <img src={qrDataUrl} alt="New Customer QR Code" className="w-64 h-64 mx-auto rounded-lg" />
+                ) : (
+                    <div className="flex justify-center items-center h-64">
+                        <Spinner />
+                    </div>
+                )}
+            </div>
         </Modal>
     );
 };

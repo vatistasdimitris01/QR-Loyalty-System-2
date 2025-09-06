@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { getCustomerByQrToken, updateCustomer } from '../services/api';
+import { getCustomerByQrToken, updateCustomer, joinBusiness } from '../services/api';
 import { Customer } from '../types';
 import { Spinner, CustomerSetupModal, HomeIcon, SearchIcon, UserIcon } from '../components/common';
 import { useLanguage } from '../context/LanguageContext';
@@ -22,13 +22,14 @@ const CustomerPage: React.FC<CustomerPageProps> = ({ qrToken }) => {
   const [error, setError] = useState<string | null>(null);
   const [isSetupModalOpen, setIsSetupModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<ActiveTab>('home');
+  const [joinMessage, setJoinMessage] = useState('');
 
   const fetchCustomer = useCallback(async () => {
     try {
       const customerData = await getCustomerByQrToken(qrToken);
       if (customerData) {
         setCustomer(customerData);
-        if (!customerData.name || !customerData.phone_number) {
+        if (!customerData.phone_number || customerData.name === 'New Customer') {
             setIsSetupModalOpen(true);
         }
       } else {
@@ -44,6 +45,28 @@ const CustomerPage: React.FC<CustomerPageProps> = ({ qrToken }) => {
   useEffect(() => {
     fetchCustomer();
   }, [fetchCustomer]);
+
+  useEffect(() => {
+    const handleAutoJoin = async () => {
+        if (!customer) return;
+
+        const searchParams = new URLSearchParams(window.location.search);
+        const businessIdToJoin = searchParams.get('join');
+
+        if (businessIdToJoin) {
+            const result = await joinBusiness(customer.id, businessIdToJoin);
+            if (result) {
+                setJoinMessage(`${t('joinSuccess')} ${result.business.public_name}!`);
+                setTimeout(() => setJoinMessage(''), 5000); // Hide message after 5s
+            }
+            // Remove join param from URL to prevent re-joining on refresh
+            const newUrl = `${window.location.pathname}?token=${qrToken}`;
+            window.history.replaceState({}, document.title, newUrl);
+        }
+    };
+
+    handleAutoJoin();
+  }, [customer, qrToken, t]);
 
   const handleSetupSave = async (details: { name: string; phone: string }) => {
     if (customer) {
@@ -84,6 +107,12 @@ const CustomerPage: React.FC<CustomerPageProps> = ({ qrToken }) => {
     <div className="min-h-screen bg-gray-100 font-sans">
         <CustomerSetupModal isOpen={isSetupModalOpen} onSave={handleSetupSave} />
         
+        {joinMessage && (
+            <div className="fixed top-4 left-1/2 -translate-x-1/2 bg-green-500 text-white font-bold py-2 px-4 rounded-lg shadow-lg z-50">
+                {joinMessage}
+            </div>
+        )}
+
         <main className="pb-24">
             {renderContent()}
         </main>

@@ -79,7 +79,7 @@ export const searchBusinesses = async (searchTerm: string): Promise<Business[]> 
     return data || [];
 }
 
-export const joinBusiness = async(customerId: string, businessId: string): Promise<Membership | null> => {
+export const joinBusiness = async(customerId: string, businessId: string): Promise<{membership: Membership, business: Business} | null> => {
     // Check if membership already exists
     const { data: existing, error: checkError } = await supabase
         .from('memberships')
@@ -94,6 +94,18 @@ export const joinBusiness = async(customerId: string, businessId: string): Promi
         return null; // Don't create a duplicate
     }
     
+    // Fetch business details to return for a nice message
+    const { data: business, error: businessError } = await supabase
+        .from('businesses')
+        .select('public_name')
+        .eq('id', businessId)
+        .single();
+
+    if (businessError || !business) {
+        console.error('Could not find business to join');
+        return null;
+    }
+
     const { data, error } = await supabase
         .from('memberships')
         .insert({ customer_id: customerId, business_id: businessId, points: 0 })
@@ -104,11 +116,37 @@ export const joinBusiness = async(customerId: string, businessId: string): Promi
         console.error('Error joining business:', error);
         return null;
     }
-    return data;
+    return { membership: data, business };
 }
 
 
 // ====== BUSINESS-FACING APIs ======
+
+export const provisionCustomerForBusiness = async (businessId: string): Promise<Customer | null> => {
+    const qr_token = `cust_${Math.random().toString(36).substr(2, 9)}`;
+    
+    // Generate a QR with an embedded 'join' parameter for this business
+    const qr_data_url = await generateQrCode(qr_token, {}, businessId);
+
+    const newCustomerData = {
+        name: 'New Customer', // Placeholder name
+        phone_number: '', // Empty phone, to be filled by customer
+        qr_token,
+        qr_data_url,
+    };
+
+    const { data, error } = await supabase
+        .from('customers')
+        .insert(newCustomerData)
+        .select()
+        .single();
+
+    if (error) {
+        console.error('Error provisioning customer:', error);
+        return null;
+    }
+    return data;
+};
 
 export const awardPoints = async (customerQrToken: string, businessId: string): Promise<ScanResult> => {
   try {
