@@ -1,7 +1,12 @@
-
 import React, { useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { loginBusiness } from '../services/api';
+
+declare global {
+  interface Window {
+    tidioChatApi: any;
+  }
+}
 
 const BusinessLoginPage: React.FC = () => {
     const { t } = useLanguage();
@@ -29,6 +34,14 @@ const BusinessLoginPage: React.FC = () => {
             setError(t('invalidCredentials'));
         }
     };
+
+    const handleOpenChat = (e: React.MouseEvent) => {
+        e.preventDefault();
+        if (window.tidioChatApi) {
+            window.tidioChatApi.open();
+        }
+    };
+
 
     return (
         <div className="min-h-screen bg-gray-100 flex flex-col justify-center items-center p-4">
@@ -67,13 +80,19 @@ const BusinessLoginPage: React.FC = () => {
                         </button>
                     </div>
                 </form>
-                <div className="text-center mt-6">
-                    <p className="text-sm text-gray-600">
-                        {t('dontHaveAccount')}{' '}
-                        <a href="/?action=open_chat" className="font-medium text-blue-600 hover:underline">
-                            {t('signup')}
-                        </a>
+                <div className="mt-8 text-center border-t pt-6">
+                    <h2 className="font-semibold text-gray-700 text-lg">Create a Business Account</h2>
+                    <p className="text-sm text-gray-600 mt-2">
+                        To get started with QRoyal, please contact us via live chat or email to set up your account.
                     </p>
+                    <div className="flex flex-col sm:flex-row gap-3 mt-4">
+                        <button onClick={handleOpenChat} className="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors text-sm">
+                            Chat With Us
+                        </button>
+                        <a href="mailto:support@qroyal.com" className="w-full block text-center bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors text-sm">
+                            Email Us
+                        </a>
+                    </div>
                 </div>
             </div>
              <a href="/" className="mt-6 text-blue-600 hover:text-blue-800 font-medium">&larr; {t('back')}</a>

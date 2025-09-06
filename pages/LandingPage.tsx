@@ -168,7 +168,7 @@ const LandingPage: React.FC = () => {
                                 <a href="/signup/customer" className="bg-blue-600 text-white font-bold py-3 px-8 rounded-full text-lg shadow-md hover:bg-blue-700 transition-transform transform hover:scale-105">
                                     {t('landingCtaCustomer')}
                                 </a>
-                                <a href="/?action=open_chat" className="bg-white text-blue-600 border-2 border-blue-200 font-bold py-3 px-8 rounded-full text-lg shadow-sm hover:bg-blue-50 transition-transform transform hover:scale-105">
+                                <a href="/business/login" className="bg-white text-blue-600 border-2 border-blue-200 font-bold py-3 px-8 rounded-full text-lg shadow-sm hover:bg-blue-50 transition-transform transform hover:scale-105">
                                     {t('landingForBusinesses')}
                                 </a>
                             </div>
