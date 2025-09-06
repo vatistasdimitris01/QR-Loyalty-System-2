@@ -35,7 +35,7 @@ const LogoBakery: React.FC<{className?: string}> = ({className}) => (<svg classN
 
 const LandingPage: React.FC = () => {
     const { t, language, setLanguage } = useLanguage();
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isScannerOpen, setIsScannerOpen] = useState(false);
     const [loginStatus, setLoginStatus] = useState<{ loading: boolean; error: string }>({ loading: false, error: '' });
 
@@ -109,8 +109,8 @@ const LandingPage: React.FC = () => {
     const navLinks = (
         <>
             <a href="/business/login" className="text-gray-600 hover:text-blue-600 font-medium transition-colors">{t('businessLogin')}</a>
-            <button onClick={() => setIsScannerOpen(true)} className="text-gray-600 hover:text-blue-600 font-medium transition-colors">{t('scanToLogin')}</button>
-            <button onClick={() => setLanguage(language === 'en' ? 'el' : 'en')} className="text-gray-600 hover:text-blue-600 font-medium transition-colors">
+            <button onClick={() => setIsScannerOpen(true)} className="text-gray-600 hover:text-blue-600 font-medium transition-colors text-left">{t('scanToLogin')}</button>
+            <button onClick={() => setLanguage(language === 'en' ? 'el' : 'en')} className="text-gray-600 hover:text-blue-600 font-medium transition-colors text-left">
                 {language === 'en' ? 'Ελληνικά' : 'English'}
             </button>
         </>
@@ -133,29 +133,59 @@ const LandingPage: React.FC = () => {
             )}
             <QRScannerModal isOpen={isScannerOpen} onClose={() => setIsScannerOpen(false)} onScan={handleScan} />
 
+            {/* Sidebar Overlay */}
+            <div 
+                className={`fixed inset-0 bg-black bg-opacity-50 z-[55] transition-opacity duration-300 md:hidden ${isSidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+                onClick={() => setIsSidebarOpen(false)}
+                aria-hidden="true"
+            ></div>
+
+            {/* Sidebar Menu */}
+            <aside 
+                className={`fixed top-0 left-0 h-full w-72 bg-white shadow-xl z-[60] transform transition-transform duration-300 ease-in-out md:hidden ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
+                role="dialog"
+                aria-modal="true"
+            >
+                <div className="p-6">
+                    <div className="flex justify-between items-center mb-8">
+                        <a href="/" className="flex items-center gap-2">
+                            <img src="https://i.postimg.cc/bJwnZhs9/Chat-GPT-Image-Aug-31-2025-06-45-18-AM.png" alt="QRoyal Logo" className="w-8 h-8" />
+                            <span className="font-bold text-xl text-gray-800">QRoyal</span>
+                        </a>
+                        <button onClick={() => setIsSidebarOpen(false)} aria-label="Close menu">
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+                    </div>
+                    <nav className="flex flex-col items-start gap-6 text-lg">
+                        {navLinks}
+                        <a href="/?action=open_chat" className="w-full text-center bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors mt-4">{t('landingCtaBusiness')}</a>
+                    </nav>
+                </div>
+            </aside>
+
             <header className="bg-white/80 backdrop-blur-sm sticky top-0 z-50 shadow-sm">
                 <nav className="container mx-auto px-6 py-4 flex justify-between items-center">
-                    <a href="/" className="flex items-center gap-2">
-                        <img src="https://i.postimg.cc/bJwnZhs9/Chat-GPT-Image-Aug-31-2025-06-45-18-AM.png" alt="QRoyal Logo" className="w-10 h-10" />
-                        <span className="font-bold text-2xl text-gray-800">QRoyal</span>
-                    </a>
+                    {/* Left side: Hamburger (mobile) + Logo */}
+                    <div className="flex items-center gap-4">
+                        <div className="md:hidden">
+                             <button onClick={() => setIsSidebarOpen(true)} aria-label="Open menu">
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                            </button>
+                        </div>
+                        <a href="/" className="flex items-center gap-2">
+                            <img src="https://i.postimg.cc/bJwnZhs9/Chat-GPT-Image-Aug-31-2025-06-45-18-AM.png" alt="QRoyal Logo" className="w-10 h-10" />
+                            <span className="font-bold text-2xl text-gray-800">QRoyal</span>
+                        </a>
+                    </div>
+                    
+                    {/* Right side: Desktop nav */}
                     <div className="hidden md:flex items-center gap-8">
                         {navLinks}
                         <a href="/?action=open_chat" className="bg-blue-600 text-white font-semibold py-2 px-5 rounded-lg hover:bg-blue-700 transition-all shadow-sm hover:shadow-md">
                             {t('landingCtaBusiness')}
                         </a>
                     </div>
-                    <div className="md:hidden">
-                        <button onClick={() => setIsMenuOpen(!isMenuOpen)} aria-label="Open menu">
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
-                        </button>
-                    </div>
                 </nav>
-                {isMenuOpen && (
-                    <div className="md:hidden bg-white shadow-lg"><div className="flex flex-col items-center gap-4 py-4">{navLinks}
-                        <a href="/?action=open_chat" className="w-11/12 text-center bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">{t('landingCtaBusiness')}</a>
-                    </div></div>
-                )}
             </header>
 
             <main>
