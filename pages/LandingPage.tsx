@@ -9,25 +9,22 @@ declare global {
   }
 }
 
-// --- New Icon Components ---
+// --- New Feature Icon Components ---
 
-const WhyIcon1: React.FC = () => ( // No App Needed
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8"><path strokeLinecap="round" strokeLinejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" /><path strokeLinecap="round" strokeLinejoin="round" d="M15.91 11.672a.375.375 0 010 .656l-3.603 2.253a.375.375 0 01-.569-.328V9.747a.375.375 0 01.57-.327l3.603 2.253z" /></svg>
-);
-const WhyIcon2: React.FC = () => ( // Instant Setup
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8"><path strokeLinecap="round" strokeLinejoin="round" d="M15.59 14.37a6 6 0 01-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 006.16-12.12A14.98 14.98 0 009.63 2.25c-5.508 0-10.099 3.218-12.37 7.625A14.98 14.98 0 009.63 21.75c3.51 0 6.73-1.173 9.25-3.162m-13.5-7.625c0-3.866 3.582-7 8-7s8 3.134 8 7-3.582 7-8 7-8-3.134-8-7z" /></svg>
-);
-const WhyIcon3: React.FC = () => ( // All-in-one
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 7.125A2.25 2.25 0 014.5 4.875h15a2.25 2.25 0 012.25 2.25v9.75a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25v-9.75z" /><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M5.25 12v3.75m13.5-3.75v3.75M9 12v3.75M12 12v3.75m3-3.75v3.75M3 12a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 12m-18 0v3.75a2.25 2.25 0 002.25 2.25h13.5A2.25 2.25 0 0021 15.75V12m-1.5-6.375c.621 0 1.125-.504 1.125-1.125S20.121 3.375 19.5 3.375s-1.125.504-1.125 1.125.504 1.125 1.125 1.125zM4.5 5.625c.621 0 1.125-.504 1.125-1.125S5.121 3.375 4.5 3.375s-1.125.504-1.125 1.125.504 1.125 1.125 1.125z" /></svg>
-);
-const WhyIcon4: React.FC = () => ( // Powerful Analytics
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8"><path strokeLinecap="round" strokeLinejoin="round" d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z" /></svg>
-);
+const CustomerFeatureIcon1: React.FC = () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 5.25v13.5m-7.5-13.5v13.5" /><path strokeLinecap="round" strokeLinejoin="round" d="M12 2.25v19.5" /><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 9h16.5" /><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 15h16.5" /></svg>;
+const CustomerFeatureIcon2: React.FC = () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8"><path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" /></svg>;
+const CustomerFeatureIcon3: React.FC = () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8"><path strokeLinecap="round" strokeLinejoin="round" d="M9.53 16.122a3 3 0 00-5.78 1.128 2.25 2.25 0 01-2.47 2.118v-.09A12.75 12.75 0 0112 3.055a12.75 12.75 0 019.8 16.173v.09a2.25 2.25 0 01-2.47-2.118 3 3 0 00-5.78-1.128L12 16.122zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5z" /></svg>;
+const CustomerFeatureIcon4: React.FC = () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8"><path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c.502 0 1.002-.02 1.49-.06M12 3c.502 0 1.002.02 1.49.06M12 3a9.004 9.004 0 00-8.716 6.747M12 3c-1.285 0-2.51.188-3.684.534M19.684 18.534c.249-.244.477-.504.686-.774M4.316 18.534a9.012 9.012 0 00.686-.774M12 18c.502 0 1.002-.02 1.49-.06" /><path strokeLinecap="round" strokeLinejoin="round" d="M12 9a3 3 0 100 6 3 3 0 000-6z" /></svg>;
+const BusinessFeatureIcon1: React.FC = () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 1.5m-2-1.5V6.75" /></svg>;
+const BusinessFeatureIcon2: React.FC = () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8"><path strokeLinecap="round" strokeLinejoin="round" d="M10.34 15.84c-.688-.06-1.386-.09-2.09-.09H7.5a4.5 4.5 0 01-4.5-4.5V7.5a4.5 4.5 0 014.5-4.5h7.084c.361 0 .71.054 1.047.152l3.435 1.018a.5.5 0 01.448.49l.263 2.632c.036.363.053.73.053 1.102 0 .74-.027 1.472-.08 2.188l-.248 2.477a.5.5 0 01-.45.49l-3.434 1.018C11.71 15.786 11.02 15.84 10.34 15.84z" /></svg>;
+const BusinessFeatureIcon3: React.FC = () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8"><path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.438.995a6.473 6.473 0 010 1.082c0 .382.145.755.438.995l1.003.827c.48.398.665.98.26 1.431l-1.296 2.247a1.125 1.125 0 01-1.37.49l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.063-.374-.313-.686-.645-.87a6.52 6.52 0 01-.22-.127c-.324-.196-.72-.257-1.075-.124l-1.217.456a1.125 1.125 0 01-1.37-.49l-1.296-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.437-.995a6.473 6.473 0 010-1.082c0-.382-.145-.755-.437-.995l-1.004-.827a1.125 1.125 0 01-.26-1.431l1.296-2.247a1.125 1.125 0 011.37-.49l1.217.456c.355.133.75.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>;
+const BusinessFeatureIcon4: React.FC = () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8"><path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m-7.5-2.962c.57-1.023.57-2.309 0-3.332m-1.215 7.078a9.09 9.09 0 01-3.741-.479 3 3 0 014.682-2.72M12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5z" /></svg>;
+
 const QuoteIcon: React.FC = () => (
     <svg className="w-10 h-10 text-blue-100" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 18 14"><path d="M6 0H2a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h4v1a3 3 0 0 1-3 3H2a1 1 0 1 0 0 2h1a5.006 5.006 0 0 0 5-5V2a2 2 0 0 0-2-2Zm10 0h-4a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h4v1a3 3 0 0 1-3 3h-1a1 1 0 1 0 0 2h1a5.006 5.006 0 0 0 5-5V2a2 2 0 0 0-2-2Z"/></svg>
 );
 
-// --- New Logo Placeholder Components ---
+// --- Logo Placeholder Components ---
 const LogoCafe: React.FC<{className?: string}> = ({className}) => (<svg className={className} viewBox="0 0 24 24" fill="currentColor"><path d="M1 21.008h14v-2H1v2zm18-12h-2v-2a3 3 0 0 0-3-3H6a3 3 0 0 0-3 3v8a3 3 0 0 0 3 3h6v2a3 3 0 0 0 3 3h2a3 3 0 0 0 3-3v-8a3 3 0 0 0-3-3zM5 6.008h8v2H5v-2zm8 8H5v-2h8v2z"></path></svg>);
 const LogoBooks: React.FC<{className?: string}> = ({className}) => (<svg className={className} viewBox="0 0 24 24" fill="currentColor"><path d="M21 5.008c-1.841-1.232-4.14-2-6.5-2s-4.659.768-6.5 2H4v16h18V5.008h-1zM6 19.008V7.328c1.695-.712 3.822-1.32 5.5-1.32s3.805.608 5.5 1.32v11.68c-1.695.712-3.822 1.32-5.5 1.32s-3.805-.608-5.5-1.32z"></path><path d="M12.5 17.008h3v-2h-3v-2h-2v6h2v-2zm-3-4h-2v-2h2v-2h-4v6h4v-2z"></path></svg>);
 const LogoBoutique: React.FC<{className?: string}> = ({className}) => (<svg className={className} viewBox="0 0 24 24" fill="currentColor"><path d="M12 1.008c-3.513 0-4.834.305-6.41 2.373C3.993 5.488 4.693 8.308 6 10.008c1.332 1.733 2.05 4.341 2 6.5l.5 4.5h7l.5-4.5c-.05-2.159.668-4.767 2-6.5 1.307-1.7 2.007-4.52 1.41-6.627C20.834 1.313 19.513 1.008 16 1.008H12z"></path></svg>);
@@ -165,7 +162,6 @@ const LandingPage: React.FC = () => {
 
             <header className="bg-white/80 backdrop-blur-sm sticky top-0 z-50 shadow-sm">
                 <nav className="container mx-auto px-6 py-4 flex justify-between items-center">
-                    {/* Left side: Hamburger (mobile) + Logo */}
                     <div className="flex items-center gap-4">
                         <div className="md:hidden">
                              <button onClick={() => setIsSidebarOpen(true)} aria-label="Open menu">
@@ -178,7 +174,6 @@ const LandingPage: React.FC = () => {
                         </a>
                     </div>
                     
-                    {/* Right side: Desktop nav */}
                     <div className="hidden md:flex items-center gap-8">
                         {navLinks}
                         <a href="/?action=open_chat" className="bg-blue-600 text-white font-semibold py-2 px-5 rounded-lg hover:bg-blue-700 transition-all shadow-sm hover:shadow-md">
@@ -227,31 +222,43 @@ const LandingPage: React.FC = () => {
                     </div>
                 </section>
 
-                <section className="py-20 md:py-28 px-6">
+                {/* CUSTOMER FEATURES SECTION */}
+                <section className="py-20 md:py-28 px-6 bg-white">
                     <div className="container mx-auto text-center">
-                        <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">Why QRoyal is Different</h2>
-                        <p className="text-lg text-gray-500 mb-16 max-w-3xl mx-auto">We skip the complexity. No apps to download, no complicated hardware. Just a simple, powerful web-based tool that works for everyone.</p>
+                        <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">{t('customerFeaturesTitle')}</h2>
+                        <p className="text-lg text-gray-500 mb-16 max-w-3xl mx-auto">{t('customerFeaturesSubtitle')}</p>
                         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 text-left">
-                            <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm"><div className="flex items-center justify-center bg-blue-100 text-blue-600 w-12 h-12 rounded-lg mb-4"><WhyIcon1 /></div><h3 className="text-xl font-bold mb-2">No App Needed</h3><p className="text-gray-600">Customers join instantly with a QR scan using their phone's camera. The highest adoption rate comes from the lowest friction.</p></div>
-                            <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm"><div className="flex items-center justify-center bg-blue-100 text-blue-600 w-12 h-12 rounded-lg mb-4"><WhyIcon3 /></div><h3 className="text-xl font-bold mb-2">All-in-One Platform</h3><p className="text-gray-600">Combine your loyalty program, customer list (CRM), and marketing announcements into one simple dashboard.</p></div>
-                            <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm"><div className="flex items-center justify-center bg-blue-100 text-blue-600 w-12 h-12 rounded-lg mb-4"><WhyIcon2 /></div><h3 className="text-xl font-bold mb-2">Instant Setup</h3><p className="text-gray-600">Launch your complete digital loyalty program in under 5 minutes. Customize your rules, your profile, and start rewarding.</p></div>
-                            <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm"><div className="flex items-center justify-center bg-blue-100 text-blue-600 w-12 h-12 rounded-lg mb-4"><WhyIcon4 /></div><h3 className="text-xl font-bold mb-2">Powerful Analytics</h3><p className="text-gray-600">See your growth in real-time. Track new members, points awarded, and rewards claimed to understand your customer base.</p></div>
+                            <div className="bg-gray-50 p-6 rounded-xl border border-gray-100"><div className="flex items-center justify-center bg-blue-100 text-blue-600 w-12 h-12 rounded-lg mb-4"><CustomerFeatureIcon1 /></div><h3 className="text-xl font-bold mb-2">{t('customerFeature1Title')}</h3><p className="text-gray-600">{t('customerFeature1Desc')}</p></div>
+                            <div className="bg-gray-50 p-6 rounded-xl border border-gray-100"><div className="flex items-center justify-center bg-blue-100 text-blue-600 w-12 h-12 rounded-lg mb-4"><CustomerFeatureIcon2 /></div><h3 className="text-xl font-bold mb-2">{t('customerFeature2Title')}</h3><p className="text-gray-600">{t('customerFeature2Desc')}</p></div>
+                            <div className="bg-gray-50 p-6 rounded-xl border border-gray-100"><div className="flex items-center justify-center bg-blue-100 text-blue-600 w-12 h-12 rounded-lg mb-4"><CustomerFeatureIcon3 /></div><h3 className="text-xl font-bold mb-2">{t('customerFeature3Title')}</h3><p className="text-gray-600">{t('customerFeature3Desc')}</p></div>
+                            <div className="bg-gray-50 p-6 rounded-xl border border-gray-100"><div className="flex items-center justify-center bg-blue-100 text-blue-600 w-12 h-12 rounded-lg mb-4"><CustomerFeatureIcon4 /></div><h3 className="text-xl font-bold mb-2">{t('customerFeature4Title')}</h3><p className="text-gray-600">{t('customerFeature4Desc')}</p></div>
                         </div>
                     </div>
                 </section>
 
+                {/* BUSINESS FEATURES SECTION */}
                 <section className="py-20 md:py-28 px-6 bg-blue-50">
-                    <div className="container mx-auto text-center">
-                        <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-16">{t('howItWorks')}</h2>
-                        <div className="relative grid md:grid-cols-3 gap-12">
-                            <div className="absolute top-1/2 left-0 w-full h-0.5 bg-blue-200 hidden md:block" style={{ transform: 'translateY(-50%)' }}></div>
-                            <div className="relative text-center"><div className="bg-blue-600 text-white w-16 h-16 rounded-full flex items-center justify-center font-bold text-2xl mb-4 border-4 border-white shadow-md z-10 mx-auto">1</div><h3 className="text-xl font-semibold mb-2">{t('howStep1')}</h3><p className="text-gray-500">{t('howStep1Desc')}</p></div>
-                            <div className="relative text-center"><div className="bg-blue-600 text-white w-16 h-16 rounded-full flex items-center justify-center font-bold text-2xl mb-4 border-4 border-white shadow-md z-10 mx-auto">2</div><h3 className="text-xl font-semibold mb-2">{t('howStep2')}</h3><p className="text-gray-500">{t('howStep2Desc')}</p></div>
-                            <div className="relative text-center"><div className="bg-blue-600 text-white w-16 h-16 rounded-full flex items-center justify-center font-bold text-2xl mb-4 border-4 border-white shadow-md z-10 mx-auto">3</div><h3 className="text-xl font-semibold mb-2">{t('howStep3')}</h3><p className="text-gray-500">{t('howStep3Desc')}</p></div>
+                     <div className="container mx-auto grid lg:grid-cols-2 gap-12 items-center">
+                        <div className="text-center lg:text-left">
+                            <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">{t('businessFeaturesTitle')}</h2>
+                            <p className="text-lg text-gray-500 mb-12 max-w-xl mx-auto lg:mx-0">{t('businessFeaturesSubtitle')}</p>
+                            <div className="grid sm:grid-cols-2 gap-8 text-left">
+                                <div className="space-y-1"><div className="flex items-center justify-center bg-blue-200 text-blue-700 w-10 h-10 rounded-lg mb-3"><BusinessFeatureIcon1 /></div><h3 className="text-lg font-bold">{t('businessFeature1Title')}</h3><p className="text-gray-600 text-sm">{t('businessFeature1Desc')}</p></div>
+                                <div className="space-y-1"><div className="flex items-center justify-center bg-blue-200 text-blue-700 w-10 h-10 rounded-lg mb-3"><BusinessFeatureIcon2 /></div><h3 className="text-lg font-bold">{t('businessFeature2Title')}</h3><p className="text-gray-600 text-sm">{t('businessFeature2Desc')}</p></div>
+                                <div className="space-y-1"><div className="flex items-center justify-center bg-blue-200 text-blue-700 w-10 h-10 rounded-lg mb-3"><BusinessFeatureIcon3 /></div><h3 className="text-lg font-bold">{t('businessFeature3Title')}</h3><p className="text-gray-600 text-sm">{t('businessFeature3Desc')}</p></div>
+                                <div className="space-y-1"><div className="flex items-center justify-center bg-blue-200 text-blue-700 w-10 h-10 rounded-lg mb-3"><BusinessFeatureIcon4 /></div><h3 className="text-lg font-bold">{t('businessFeature4Title')}</h3><p className="text-gray-600 text-sm">{t('businessFeature4Desc')}</p></div>
+                            </div>
                         </div>
-                    </div>
+                        <div className="p-8 bg-white/50 rounded-2xl shadow-lg">
+                            <div className="aspect-video bg-gray-800 rounded-lg shadow-inner-lg p-2">
+                                <div className="w-full h-full bg-white rounded flex items-center justify-center">
+                                    <img src="https://i.postimg.cc/mD3w205T/macbook-mockup.png" alt="Business Dashboard Mockup" className="w-full h-full object-contain"/>
+                                </div>
+                            </div>
+                        </div>
+                     </div>
                 </section>
-
+                
                 <section className="py-20 md:py-28 px-6 bg-gray-50">
                     <div className="container mx-auto text-center">
                          <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-12">Loved by Businesses Like Yours</h2>
