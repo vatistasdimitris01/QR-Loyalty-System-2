@@ -41,7 +41,8 @@ const CustomerHomePage: React.FC<CustomerHomePageProps> = ({ customer, membershi
                     {memberships.map(membership => (
                         <div 
                             key={membership.id} 
-                            onClick={() => onViewBusiness(membership.businesses)}
+                            // FIX: Cast partial business object to a full Business, as the API returns all fields.
+                            onClick={() => onViewBusiness(membership.businesses as Business)}
                             className="bg-white p-4 rounded-lg shadow-sm flex items-center justify-between cursor-pointer hover:bg-gray-50 active:scale-95 transition-all"
                             role="button"
                             tabIndex={0}

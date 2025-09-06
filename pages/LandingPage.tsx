@@ -125,7 +125,7 @@ const LandingPage: React.FC = () => {
                     </div>
                     <div className="hidden md:flex items-center gap-6">
                         {navLinks}
-                        <a href="/signup/business" className="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
+                        <a href="mailto:contact@qroyal.com" className="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
                             {t('landingCtaBusiness')}
                         </a>
                     </div>
@@ -139,7 +139,7 @@ const LandingPage: React.FC = () => {
                     <div className="md:hidden bg-white shadow-lg">
                         <div className="flex flex-col items-center gap-4 py-4">
                             {navLinks}
-                            <a href="/signup/business" className="w-11/12 text-center bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
+                            <a href="mailto:contact@qroyal.com" className="w-11/12 text-center bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
                                 {t('landingCtaBusiness')}
                             </a>
                         </div>
@@ -155,7 +155,7 @@ const LandingPage: React.FC = () => {
                         <a href="/signup/customer" className="bg-blue-600 text-white font-bold py-3 px-8 rounded-full text-lg shadow-md hover:bg-blue-700 transition-transform transform hover:scale-105">
                             {t('landingCtaCustomer')}
                         </a>
-                        <a href="/signup/business" className="bg-white text-blue-600 border-2 border-blue-600 font-bold py-3 px-8 rounded-full text-lg shadow-md hover:bg-blue-50 transition-transform transform hover:scale-105">
+                        <a href="mailto:contact@qroyal.com" className="bg-white text-blue-600 border-2 border-blue-600 font-bold py-3 px-8 rounded-full text-lg shadow-md hover:bg-blue-50 transition-transform transform hover:scale-105">
                             {t('landingForBusinesses')}
                         </a>
                     </div>
@@ -204,8 +204,8 @@ const LandingPage: React.FC = () => {
                     <img src="https://i.postimg.cc/bJwnZhs9/Chat-GPT-Image-Aug-31-2025-06-45-18-AM.png" alt="QRoyal Logo" className="w-12 h-12 mx-auto mb-4" />
                     <h3 className="text-2xl font-bold mb-2">Ready to Build Your Loyalty?</h3>
                     <p className="text-gray-400 mb-8">Join hundreds of businesses growing with QRoyal.</p>
-                    <a href="/signup/business" className="bg-blue-600 text-white font-bold py-3 px-8 rounded-full text-lg shadow-md hover:bg-blue-700 transition-transform transform hover:scale-105">
-                        Get Started for Free
+                    <a href="mailto:contact@qroyal.com" className="bg-blue-600 text-white font-bold py-3 px-8 rounded-full text-lg shadow-md hover:bg-blue-700 transition-transform transform hover:scale-105">
+                        {t('landingCtaBusiness')}
                     </a>
                     <p className="mt-10 text-gray-500 text-sm">&copy; {new Date().getFullYear()} QRoyal. All rights reserved.</p>
                 </div>

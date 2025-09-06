@@ -559,6 +559,45 @@ export const getAllBusinesses = async (): Promise<Business[]> => {
   return data || [];
 };
 
+export const createBusinessByAdmin = async (businessData: Pick<Business, 'name' | 'email' | 'password'>): Promise<{ success: boolean; business?: Business; message?: string }> => {
+    // Check for existing email
+    const { data: existing, error: checkError } = await supabase.from('businesses').select('id').eq('email', businessData.email).single();
+    if (checkError && checkError.code !== 'PGRST116') { // PGRST116: no rows found
+        console.error('Error checking for existing business:', checkError);
+        return { success: false, message: 'Error checking for existing business.' };
+    }
+    if (existing) {
+        return { success: false, message: 'A business with this email already exists.' };
+    }
+
+    const qr_token = `biz_${Math.random().toString(36).substr(2, 9)}`;
+    const defaultSettings = { qr_color: '#000000', qr_dot_style: 'square', qr_eye_shape: 'square' };
+    const qr_data_url = await generateQrCode(qr_token, defaultSettings);
+
+    const { data, error } = await supabase
+        .from('businesses')
+        .insert({
+            name: businessData.name,
+            public_name: businessData.name, // Default public_name to name
+            email: businessData.email,
+            password: businessData.password,
+            qr_token,
+            qr_data_url,
+            reward_message: 'Congratulations! You won a reward!',
+            ...defaultSettings
+        })
+        .select()
+        .single();
+    
+    if (error || !data) {
+        console.error('Error creating business from admin:', error);
+        return { success: false, message: 'Failed to create business.' };
+    }
+    
+    const { password: _, ...newBusiness } = data;
+    return { success: true, business: newBusiness as Business };
+};
+
 export const getAllCustomers = async (): Promise<Customer[]> => {
   const { data, error } = await supabase.from('customers').select('*').order('created_at', { ascending: false });
   if (error) {
@@ -585,3 +624,36 @@ export const getAllMemberships = async (): Promise<Membership[]> => {
   }
   return (data as Membership[]) || [];
 };
+
+export const deleteBusiness = async (businessId: string): Promise<{ success: boolean }> => {
+    const { error } = await supabase.from('businesses').delete().eq('id', businessId);
+    if (error) {
+        console.error('Error deleting business:', error);
+        return { success: false };
+    }
+    return { success: true };
+};
+
+export const deleteMembershipById = async (membershipId: string): Promise<{ success: boolean }> => {
+    const { error } = await supabase.from('memberships').delete().eq('id', membershipId);
+     if (error) {
+        console.error('Error deleting membership:', error);
+        return { success: false };
+    }
+    return { success: true };
+}
+
+export const updateMembership = async (membershipId: string, updates: Partial<Membership>): Promise<Membership | null> => {
+    const { data, error } = await supabase
+        .from('memberships')
+        .update(updates)
+        .eq('id', membershipId)
+        .select()
+        .single();
+
+    if (error) {
+        console.error('Error updating membership:', error);
+        return null;
+    }
+    return data;
+}

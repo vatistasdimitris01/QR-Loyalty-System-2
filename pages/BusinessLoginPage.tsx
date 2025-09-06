@@ -66,9 +66,6 @@ const BusinessLoginPage: React.FC = () => {
                         </button>
                     </div>
                 </form>
-                <div className="text-center mt-4">
-                    <a href="/signup/business" className="text-sm text-blue-600 hover:underline">{t('dontHaveAccount')} {t('signup')}</a>
-                </div>
             </div>
              <a href="/" className="mt-6 text-blue-600 hover:text-blue-800 font-medium">&larr; {t('back')}</a>
         </div>

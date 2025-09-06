@@ -65,8 +65,8 @@ export interface Membership {
   points: number;
   created_at: string;
   updated_at: string;
-  businesses: Business; // For joining data
-  customers: Customer; // For business dashboard
+  businesses: Partial<Business>; // For joining data
+  customers: Partial<Customer>; // For business dashboard
 }
 
 export interface Discount {

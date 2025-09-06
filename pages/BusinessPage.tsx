@@ -236,8 +236,10 @@ const CustomersList: React.FC<{business: Business}> = ({ business }) => {
                             <div className="flex items-center justify-between w-full sm:w-auto">
                                 <p className="font-bold text-lg text-blue-600 sm:mx-4">{membership.points} <span className="text-sm font-medium text-gray-500">{t('points')}</span></p>
                                 <div className="flex items-center gap-2">
-                                    <button onClick={() => handleViewQr(membership.customers)} className="bg-gray-200 text-gray-700 font-semibold py-1 px-3 rounded-md text-sm hover:bg-gray-300">View</button>
-                                    <button onClick={() => handleRemoveCustomer(membership.customers.id)} className="bg-red-100 text-red-700 font-semibold py-1 px-3 rounded-md text-sm hover:bg-red-200">{t('remove')}</button>
+                                    {/* FIX: Cast partial customer to full Customer type, as the API returns all fields. */}
+                                    <button onClick={() => handleViewQr(membership.customers as Customer)} className="bg-gray-200 text-gray-700 font-semibold py-1 px-3 rounded-md text-sm hover:bg-gray-300">View</button>
+                                    {/* FIX: Ensure customer ID exists before attempting to remove a customer, as it's optional on the partial type. */}
+                                    <button onClick={() => membership.customers.id && handleRemoveCustomer(membership.customers.id)} className="bg-red-100 text-red-700 font-semibold py-1 px-3 rounded-md text-sm hover:bg-red-200">{t('remove')}</button>
                                 </div>
                             </div>
                         </div>

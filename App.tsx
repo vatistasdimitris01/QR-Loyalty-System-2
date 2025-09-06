@@ -33,9 +33,6 @@ const App: React.FC = () => {
     if (path === '/business/login') {
       return <BusinessLoginPage />;
     }
-    if (path === '/signup/business') {
-        return <BusinessSignupPage />;
-    }
     if (path === '/signup/customer') {
         return <CustomerSignupPage />;
     }
