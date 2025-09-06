@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, useDeferredValue, useRef } from 'react';
 import { useLanguage } from '../context/LanguageContext';
-// FIX: Import BusinessAnalytics type.
 import { Membership, Business, Customer, Post, Discount, DailyAnalyticsData, BusinessAnalytics } from '../types';
 import { 
     searchMembershipsForBusiness, removeMembership, getBusinessAnalytics, getDailyAnalytics,
@@ -39,7 +38,7 @@ const BusinessPage: React.FC = () => {
         sessionStorage.setItem('business', JSON.stringify(updatedBusiness));
     }
 
-    if (loading || !business) return <div className="flex justify-center items-center h-screen"><Spinner /></div>;
+    if (loading || !business) return <div className="flex justify-center items-center h-screen bg-gray-100"><Spinner /></div>;
 
     const renderContent = () => {
         switch (activeTab) {
@@ -52,17 +51,17 @@ const BusinessPage: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            <header className="sticky top-0 z-20 bg-white/80 backdrop-blur-sm shadow-sm">
-                <div className="p-4 flex justify-between items-center">
+        <div className="min-h-screen bg-gray-100 font-sans">
+            <header className="sticky top-0 z-20 bg-white border-b border-gray-200">
+                <div className="p-4 flex justify-between items-center max-w-7xl mx-auto">
                     <div>
-                        <h1 className="text-xl md:text-2xl font-bold text-gray-800">{business.public_name || t('businessDashboard')}</h1>
-                        <p className="text-sm text-gray-600">Welcome back, {business.name}!</p>
+                        <h1 className="text-xl md:text-2xl font-bold text-gray-900">{business.public_name || t('businessDashboard')}</h1>
+                        <p className="text-sm text-gray-500">{t('welcome')}, {business.name}!</p>
                     </div>
-                    <button onClick={handleLogout} className="bg-red-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-red-600">{t('logout')}</button>
+                    <button onClick={handleLogout} className="bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors">{t('logout')}</button>
                 </div>
-                 <div className="px-4 border-b border-gray-200">
-                    <nav className="-mb-px flex space-x-6 overflow-x-auto">
+                 <div className="px-4 border-t border-gray-200">
+                    <nav className="flex space-x-4 overflow-x-auto max-w-7xl mx-auto">
                         <TabButton label={t('analytics')} isActive={activeTab === 'analytics'} onClick={() => setActiveTab('analytics')} />
                         <TabButton label={t('customerList')} isActive={activeTab === 'customers'} onClick={() => setActiveTab('customers')} />
                         <TabButton label={t('posts')} isActive={activeTab === 'posts'} onClick={() => setActiveTab('posts')} />
@@ -71,7 +70,7 @@ const BusinessPage: React.FC = () => {
                 </div>
             </header>
             
-            <main className="p-4 md:p-6">
+            <main className="p-4 md:p-6 max-w-7xl mx-auto">
                 {renderContent()}
             </main>
         </div>
@@ -105,26 +104,26 @@ const AnalyticsDashboard: React.FC<{business: Business, onBusinessUpdate: (b: Bu
             <BusinessScannerModal isOpen={isScannerModalOpen} onClose={() => setIsScannerModalOpen(false)} businessId={business.id} onScanSuccess={fetchData} />
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 space-y-6">
-                    <div className="bg-white p-4 rounded-lg shadow-md">
-                        <h3 className="font-bold text-lg mb-1">New Members</h3>
-                        <p className="text-sm text-gray-500 mb-4">New customers who joined in the last 7 days.</p>
-                        {dailyData.length > 0 ? <AnalyticsChart data={dailyData} dataKey="new_members_count" dataKey2="rewards_claimed_count" label1="New Members" label2="Rewards Claimed" color1="#3b82f6" color2="#f59e0b" /> : <Spinner />}
+                    <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm">
+                        <h3 className="font-bold text-lg text-gray-800 mb-1">New Members & Rewards</h3>
+                        <p className="text-sm text-gray-500 mb-4">Activity over the last 7 days.</p>
+                        {dailyData.length > 0 ? <AnalyticsChart data={dailyData} dataKey="new_members_count" dataKey2="rewards_claimed_count" label1="New Members" label2="Rewards Claimed" color1="#3b82f6" color2="#f59e0b" /> : <div className="h-48 flex justify-center items-center"><Spinner /></div>}
                     </div>
-                     <div className="bg-white p-4 rounded-lg shadow-md">
-                        <h3 className="font-bold text-lg mb-1">Points Activity</h3>
-                        <p className="text-sm text-gray-500 mb-4">Total points awarded to customers in the last 7 days.</p>
-                        {dailyData.length > 0 ? <AnalyticsChart data={dailyData} dataKey="points_awarded_sum" label1="Points Awarded" color1="#10b981" /> : <Spinner />}
+                     <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm">
+                        <h3 className="font-bold text-lg text-gray-800 mb-1">Points Activity</h3>
+                        <p className="text-sm text-gray-500 mb-4">Total points awarded in the last 7 days.</p>
+                        {dailyData.length > 0 ? <AnalyticsChart data={dailyData} dataKey="points_awarded_sum" label1="Points Awarded" color1="#10b981" /> : <div className="h-48 flex justify-center items-center"><Spinner /></div>}
                     </div>
                 </div>
                 <div className="space-y-6">
                     <StatCard title={t('totalCustomers')} value={analytics?.total_customers ?? '...'} icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.653-.122-1.28-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.653.122-1.28.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>} />
                     <LoyaltySettingsEditor business={business} onUpdate={onBusinessUpdate} />
-                    <div className="bg-white p-4 rounded-lg shadow-md text-center">
+                    <QuickActionCard title={t('scanCustomerQR')} description="Award points to a customer." onClick={() => setIsScannerModalOpen(true)} icon={<CameraIcon className="h-6 w-6"/>} />
+                    <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm text-center">
                         <h3 className="font-bold text-lg mb-2">Business Login QR</h3>
                         <img src={business.qr_data_url} alt="Business Login QR Code" className="w-40 h-40 mx-auto rounded-lg" />
                         <p className="text-xs text-gray-500 mt-2">Scan this to log in quickly from any device.</p>
                     </div>
-                    <QuickActionCard title={t('scanCustomerQR')} description="Award points to a customer." onClick={() => setIsScannerModalOpen(true)} icon={<CameraIcon className="h-6 w-6"/>} />
                     <QuickActionCard title={t('manageContent')} description={t('manageContentDesc')} href="/business/editor" icon={<PencilIcon />} />
                 </div>
             </div>
@@ -186,42 +185,37 @@ const CustomersList: React.FC<{business: Business}> = ({ business }) => {
         <>
             <CustomerQRModal isOpen={isQrModalOpen} onClose={() => setIsQrModalOpen(false)} customer={selectedCustomer} />
             <QRScannerModal isOpen={isSearchScannerOpen} onClose={() => setIsSearchScannerOpen(false)} onScan={handleSearchScan} />
-            <div className="bg-white p-4 rounded-lg shadow-md">
+            <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm">
                 <div className="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
                     <h2 className="text-xl font-bold text-gray-800">{t('customerList')}</h2>
                     <div className="relative w-full md:w-1/2">
-                        <input type="text" placeholder={t('searchByName')} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full p-2 pl-4 pr-10 border border-gray-300 rounded-lg" />
+                        <input type="text" placeholder={t('searchByName')} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full p-2 pl-4 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
                         <button onClick={() => setIsSearchScannerOpen(true)} className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-blue-600"><CameraIcon className="h-6 w-6" /></button>
                     </div>
                 </div>
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left">
-                        <thead><tr className="bg-gray-100"><th className="p-3 font-semibold text-gray-600">{t('name')}</th><th className="p-3 font-semibold text-gray-600">{t('points')}</th><th className="p-3 font-semibold text-gray-600 text-center">{t('actions')}</th></tr></thead>
-                        <tbody>
-                            {loadingMemberships ? (
-                                <tr><td colSpan={3} className="text-center p-6"><Spinner /></td></tr>
-                            ) : memberships.length > 0 ? memberships.map(membership => (
-                                <tr key={membership.id} className="border-b hover:bg-gray-50">
-                                    <td className="p-3">
-                                        <div className="flex items-center gap-3">
-                                            <img src={membership.customers.profile_picture_url || 'https://i.postimg.cc/8zRZt9pM/user.png'} alt={membership.customers.name} className="w-10 h-10 rounded-full object-cover bg-gray-200" />
-                                            <div>
-                                                <p className="font-semibold">{membership.customers.name}</p>
-                                                <p className="text-xs text-gray-500">{membership.customers.phone_number || 'No phone'}</p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="p-3 font-bold text-lg">{membership.points}</td>
-                                    <td className="p-3 text-center">
-                                        <button onClick={() => handleViewQr(membership.customers)} className="bg-gray-200 text-gray-700 font-semibold py-1 px-3 rounded-lg text-sm hover:bg-gray-300 mr-2">View</button>
-                                        <button onClick={() => handleRemoveCustomer(membership.customers.id)} className="bg-red-100 text-red-700 font-semibold py-1 px-3 rounded-lg text-sm hover:bg-red-200">{t('remove')}</button>
-                                    </td>
-                                </tr>
-                            )) : (
-                                <tr><td colSpan={3} className="text-center p-6 text-gray-500">No customers found.</td></tr>
-                            )}
-                        </tbody>
-                    </table>
+                <div className="space-y-3">
+                     {loadingMemberships ? (
+                        <div className="text-center p-6"><Spinner /></div>
+                    ) : memberships.length > 0 ? memberships.map(membership => (
+                        <div key={membership.id} className="bg-gray-50 p-3 rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                            <div className="flex items-center gap-3">
+                                <img src={membership.customers.profile_picture_url || 'https://i.postimg.cc/8zRZt9pM/user.png'} alt={membership.customers.name} className="w-12 h-12 rounded-full object-cover bg-gray-200" />
+                                <div>
+                                    <p className="font-semibold text-gray-800">{membership.customers.name}</p>
+                                    <p className="text-sm text-gray-500">{membership.customers.phone_number || 'No phone'}</p>
+                                </div>
+                            </div>
+                            <div className="flex items-center justify-between w-full sm:w-auto">
+                                <p className="font-bold text-lg text-blue-600 sm:mx-4">{membership.points} <span className="text-sm font-medium text-gray-500">{t('points')}</span></p>
+                                <div className="flex items-center gap-2">
+                                    <button onClick={() => handleViewQr(membership.customers)} className="bg-gray-200 text-gray-700 font-semibold py-1 px-3 rounded-md text-sm hover:bg-gray-300">View</button>
+                                    <button onClick={() => handleRemoveCustomer(membership.customers.id)} className="bg-red-100 text-red-700 font-semibold py-1 px-3 rounded-md text-sm hover:bg-red-200">{t('remove')}</button>
+                                </div>
+                            </div>
+                        </div>
+                    )) : (
+                        <div className="text-center p-6 text-gray-500">No customers found.</div>
+                    )}
                 </div>
             </div>
         </>
@@ -276,7 +270,7 @@ const PostsManager: React.FC<{business: Business}> = ({ business }) => {
 
     return (
         <SettingsCard title={t('managePosts')} description={t('managePostsDesc')}>
-            <form onSubmit={handleSubmit} className="border p-4 rounded-lg space-y-4 bg-gray-50">
+            <form onSubmit={handleSubmit} className="border border-gray-200 p-4 rounded-lg space-y-4 bg-gray-50">
                 <h3 className="font-semibold text-gray-800">{editingPost ? t('editPost') : t('newPost')}</h3>
                 <InputField label={t('title')} name="title" value={formState.title} onChange={handleFormChange} />
                 <SelectField label={t('postType')} name="post_type" value={formState.post_type} onChange={handleFormChange} options={[ {value: 'standard', label: t('standardPost')}, {value: 'discount', label: t('discountOffer')} ]} />
@@ -290,13 +284,16 @@ const PostsManager: React.FC<{business: Business}> = ({ business }) => {
                     <button type="submit" className="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700">{editingPost ? t('updatePost') : t('createPost')}</button>
                 </div>
             </form>
-            <div className="space-y-2 mt-4">
-                {posts.length === 0 ? <p className="text-sm text-gray-500">{t('noPosts')}</p> : posts.map(p => (
-                    <div key={p.id} className="flex items-center gap-2 p-2 border rounded-lg bg-white">
-                        {p.image_url && <img src={p.image_url} alt="post preview" className="w-12 h-12 rounded object-cover" />}
-                        <p className="flex-grow font-semibold">{p.title}</p>
-                        <button onClick={() => setEditingPost(p)} className="text-blue-500 hover:text-blue-700 p-1"><PencilIcon /></button>
-                        <button onClick={() => handleDelete(p.id)} className="text-red-500 hover:text-red-700 p-1"><TrashIcon /></button>
+            <div className="space-y-3 mt-6">
+                <h3 className="font-semibold text-gray-800">Your Posts</h3>
+                {posts.length === 0 ? <p className="text-sm text-gray-500 py-4 text-center">{t('noPosts')}</p> : posts.map(p => (
+                    <div key={p.id} className="flex items-center gap-4 p-3 border rounded-lg bg-white">
+                        {p.image_url ? <img src={p.image_url} alt="post preview" className="w-14 h-14 rounded object-cover bg-gray-200" /> : <div className="w-14 h-14 rounded bg-gray-200 flex-shrink-0" />}
+                        <p className="flex-grow font-semibold text-gray-800 truncate">{p.title}</p>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                            <button onClick={() => setEditingPost(p)} className="text-blue-600 hover:text-blue-800 p-2 rounded-md hover:bg-gray-100"><PencilIcon /></button>
+                            <button onClick={() => handleDelete(p.id)} className="text-red-500 hover:text-red-700 p-2 rounded-md hover:bg-gray-100"><TrashIcon /></button>
+                        </div>
                     </div>
                 ))}
             </div>
@@ -336,16 +333,17 @@ const DiscountsManager: React.FC<{business: Business}> = ({ business }) => {
             <form onSubmit={handleCreate} className="border p-4 rounded-lg space-y-4 bg-gray-50">
                 <h3 className="font-semibold text-gray-800">{t('newDiscount')}</h3>
                 <InputField label={t('discountName')} name="name" value={newDiscount.name} onChange={(e) => setNewDiscount({...newDiscount, name: e.target.value})} />
-                <TextAreaField label={t('description')} name="description" value={newDiscount.description} onChange={(e) => setNewDiscount({...newDiscount, description: e.target.value})} />
-                <InputField label={t('imageUrl')} name="image_url" value={newDiscount.image_url} onChange={(e) => setNewDiscount({...newDiscount, image_url: e.target.value})} />
+                <TextAreaField label={t('description')} name="description" value={newDiscount.description || ''} onChange={(e) => setNewDiscount({...newDiscount, description: e.target.value})} />
+                <InputField label={t('imageUrl')} name="image_url" value={newDiscount.image_url || ''} onChange={(e) => setNewDiscount({...newDiscount, image_url: e.target.value})} />
                 <button type="submit" className="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700">{t('createDiscount')}</button>
             </form>
-            <div className="space-y-2 mt-4">
-                {discounts.length === 0 ? <p className="text-sm text-gray-500">{t('noManageDiscounts')}</p> : discounts.map(d => (
-                    <div key={d.id} className="flex items-center gap-2 p-2 border rounded-lg bg-white">
-                         {d.image_url && <img src={d.image_url} alt="discount preview" className="w-12 h-12 rounded object-cover" />}
-                        <p className="flex-grow font-semibold">{d.name}</p>
-                        <button onClick={() => handleDelete(d.id)} className="text-red-500 hover:text-red-700 p-1"><TrashIcon /></button>
+            <div className="space-y-3 mt-6">
+                 <h3 className="font-semibold text-gray-800">Your Discounts</h3>
+                {discounts.length === 0 ? <p className="text-sm text-gray-500 py-4 text-center">{t('noManageDiscounts')}</p> : discounts.map(d => (
+                    <div key={d.id} className="flex items-center gap-4 p-3 border rounded-lg bg-white">
+                         {d.image_url ? <img src={d.image_url} alt="discount preview" className="w-14 h-14 rounded object-cover bg-gray-200" /> : <div className="w-14 h-14 rounded bg-gray-200 flex-shrink-0" />}
+                        <p className="flex-grow font-semibold text-gray-800 truncate">{d.name}</p>
+                        <button onClick={() => handleDelete(d.id)} className="text-red-500 hover:text-red-700 p-2 rounded-md hover:bg-gray-100 flex-shrink-0"><TrashIcon /></button>
                     </div>
                 ))}
             </div>
@@ -357,41 +355,64 @@ const DiscountsManager: React.FC<{business: Business}> = ({ business }) => {
 // UI & HELPER COMPONENTS
 
 const TabButton: React.FC<{label: string, isActive: boolean, onClick: () => void}> = ({label, isActive, onClick}) => (
-    <button onClick={onClick} className={`py-3 px-2 whitespace-nowrap border-b-2 font-medium text-sm transition-colors ${isActive ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>
+    <button onClick={onClick} className={`py-3 px-1 border-b-2 font-semibold text-sm transition-colors relative ${isActive ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
         {label}
     </button>
 );
 
 const StatCard: React.FC<{ title: string; value: string | number; icon: React.ReactNode }> = ({ title, value, icon }) => (
-    <div className="bg-white p-4 rounded-lg shadow-md flex items-center gap-4">
+    <div className="bg-white p-4 rounded-xl shadow-sm flex items-center gap-4">
         <div className="bg-blue-100 text-blue-600 p-3 rounded-full">{icon}</div>
         <div>
-            <p className="text-2xl font-bold text-gray-800">{value}</p>
-            <p className="text-sm text-gray-600">{title}</p>
+            <p className="text-3xl font-bold text-gray-800">{value}</p>
+            <p className="text-sm text-gray-500">{title}</p>
         </div>
     </div>
 );
 
 const QuickActionCard: React.FC<{ title: string; description: string; href?: string; onClick?: () => void; icon: React.ReactNode }> = ({ title, description, href, onClick, icon }) => {
-    const content = ( <div className="bg-white p-4 rounded-lg shadow-sm flex items-center gap-4 hover:bg-gray-50 transition-colors cursor-pointer h-full"> <div className="bg-blue-100 text-blue-600 p-3 rounded-full">{icon}</div> <div> <p className="font-bold text-gray-800">{title}</p> <p className="text-sm text-gray-600">{description}</p> </div> </div> );
+    const content = ( <div className="bg-white p-4 rounded-xl shadow-sm flex items-center gap-4 hover:bg-gray-50 transition-colors cursor-pointer h-full"> <div className="bg-gray-100 text-gray-600 p-3 rounded-full">{icon}</div> <div> <p className="font-bold text-gray-800">{title}</p> <p className="text-sm text-gray-500">{description}</p> </div> </div> );
     if (href) { return <a href={href}>{content}</a>; }
     return <div onClick={onClick}>{content}</div>;
 };
 
 const AnalyticsChart: React.FC<{ data: DailyAnalyticsData[], dataKey: keyof DailyAnalyticsData, dataKey2?: keyof DailyAnalyticsData, label1: string, label2?: string, color1: string, color2?: string }> = ({ data, dataKey, dataKey2, label1, label2, color1, color2 }) => {
     const svgRef = useRef<SVGSVGElement>(null);
+    const [tooltip, setTooltip] = useState<{ x: number; y: number; data: DailyAnalyticsData; dataKey: string; dataKey2?: string } | null>(null);
     const width = 300;
     const height = 150;
-    const padding = 20;
+    const padding = { top: 10, bottom: 20, left: 10, right: 10 };
 
     const maxVal1 = Math.max(...data.map(d => d[dataKey] as number), 1);
     const maxVal2 = dataKey2 ? Math.max(...data.map(d => d[dataKey2] as number), 1) : 0;
     const maxVal = Math.max(maxVal1, maxVal2);
 
     const getCoords = (val: number, index: number) => {
-        const x = padding + (index / (data.length - 1)) * (width - 2 * padding);
-        const y = height - padding - (val / maxVal) * (height - 2 * padding);
+        const x = padding.left + (index / (data.length - 1)) * (width - padding.left - padding.right);
+        const y = height - padding.bottom - (val / maxVal) * (height - padding.top - padding.bottom);
         return { x, y };
+    };
+
+    const handleMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
+        const svg = svgRef.current;
+        if (!svg) return;
+        const rect = svg.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        
+        const index = Math.round(((mouseX - padding.left) / (width - padding.left - padding.right)) * (data.length - 1));
+        if (index >= 0 && index < data.length) {
+            const pointData = data[index];
+            const y1 = getCoords(pointData[dataKey] as number, index).y;
+            const y2 = dataKey2 ? getCoords(pointData[dataKey2] as number, index).y : 0;
+            
+            setTooltip({
+                x: getCoords(0, index).x,
+                y: Math.min(y1, y2 > 0 ? y2 : Infinity),
+                data: pointData,
+                dataKey,
+                dataKey2
+            });
+        }
     };
 
     const linePath1 = data.map((d, i) => {
@@ -404,28 +425,36 @@ const AnalyticsChart: React.FC<{ data: DailyAnalyticsData[], dataKey: keyof Dail
         return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
     }).join(' ') : '';
     
-    const xLabels = data.map(d => new Date(d.log_date).toLocaleDateString('en-US', { weekday: 'short' }));
+    const xLabels = data.map(d => new Date(d.log_date).toLocaleDateString(navigator.language, { weekday: 'short' }));
 
     return (
-        <div>
-        <svg ref={svgRef} viewBox={`0 0 ${width} ${height}`} className="w-full h-auto">
-            {/* Grid Lines */}
-            {[...Array(4)].map((_, i) => (
-                <line key={i} x1={padding} y1={padding + i * ((height - 2*padding)/3)} x2={width-padding} y2={padding + i * ((height - 2*padding)/3)} stroke="#e5e7eb" strokeWidth="1" />
-            ))}
-            {/* Data Line 1 */}
-            <path d={linePath1} fill="none" stroke={color1} strokeWidth="2" />
-            {/* Data Line 2 */}
-            {dataKey2 && <path d={linePath2} fill="none" stroke={color2} strokeWidth="2" />}
-            {/* X-Axis Labels */}
-            {xLabels.map((label, i) => (
-                <text key={i} x={padding + (i / (data.length - 1)) * (width - 2 * padding)} y={height - 5} textAnchor="middle" fontSize="10" fill="#6b7280">{label}</text>
-            ))}
-        </svg>
-        <div className="flex justify-center gap-4 mt-2 text-xs">
-            <div className="flex items-center gap-1"><span className="w-3 h-3 rounded-full" style={{backgroundColor: color1}}></span>{label1}</div>
-            {label2 && <div className="flex items-center gap-1"><span className="w-3 h-3 rounded-full" style={{backgroundColor: color2}}></span>{label2}</div>}
-        </div>
+        <div className="relative">
+            <svg ref={svgRef} viewBox={`0 0 ${width} ${height}`} className="w-full h-auto" onMouseMove={handleMouseMove} onMouseLeave={() => setTooltip(null)}>
+                <line x1={padding.left} y1={height - padding.bottom} x2={width - padding.right} y2={height - padding.bottom} stroke="#e5e7eb" strokeWidth="1" />
+                <path d={linePath1} fill="none" stroke={color1} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                {dataKey2 && <path d={linePath2} fill="none" stroke={color2} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />}
+                
+                {xLabels.map((label, i) => (
+                    <text key={i} x={getCoords(0, i).x} y={height - 5} textAnchor="middle" fontSize="10" fill="#9ca3af">{label}</text>
+                ))}
+                
+                {tooltip && (
+                    <line x1={tooltip.x} y1={padding.top} x2={tooltip.x} y2={height - padding.bottom} stroke="#cbd5e1" strokeWidth="1" strokeDasharray="3,3" />
+                )}
+            </svg>
+            
+            {tooltip && (
+                <div className="absolute p-2 text-xs bg-gray-800 text-white rounded-md shadow-lg pointer-events-none" style={{ left: `${(tooltip.x / width * 100)}%`, top: `0px`, transform: 'translateX(-50%) translateY(-110%)' }}>
+                    <p className="font-bold mb-1">{new Date(tooltip.data.log_date).toLocaleDateString(navigator.language, { weekday: 'long', month: 'short', day: 'numeric' })}</p>
+                    <div className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{backgroundColor: color1}}></span>{label1}: <strong>{tooltip.data[dataKey] as number}</strong></div>
+                    {tooltip.dataKey2 && <div className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{backgroundColor: color2}}></span>{label2}: <strong>{tooltip.data[tooltip.dataKey2] as number}</strong></div>}
+                </div>
+            )}
+            
+            <div className="flex justify-center gap-4 mt-2 text-xs text-gray-600">
+                <div className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full" style={{backgroundColor: color1}}></span>{label1}</div>
+                {label2 && <div className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full" style={{backgroundColor: color2}}></span>{label2}</div>}
+            </div>
         </div>
     );
 };
@@ -446,34 +475,34 @@ const LoyaltySettingsEditor: React.FC<{business: Business, onUpdate: (b: Busines
     };
     
     return (
-        <div className="bg-white p-4 rounded-lg shadow-md">
-            <h3 className="font-bold text-lg mb-2">{t('loyaltyProgram')}</h3>
+        <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm">
+            <h3 className="font-bold text-lg mb-2 text-gray-800">{t('loyaltyProgram')}</h3>
             <div className="text-center bg-gray-50 p-4 rounded-lg">
-                <p className="text-sm text-gray-500">{t('pointsPerScan')}</p>
+                <p className="text-sm font-medium text-gray-500">{t('pointsPerScan')}</p>
                 <div className="flex items-center justify-center gap-4 my-2">
-                    <button onClick={() => setPoints(p => Math.max(1, p - 1))} className="w-8 h-8 rounded-full bg-gray-200 text-lg font-bold">-</button>
-                    <span className="text-5xl font-bold">{points}</span>
-                    <button onClick={() => setPoints(p => p + 1)} className="w-8 h-8 rounded-full bg-gray-200 text-lg font-bold">+</button>
+                    <button onClick={() => setPoints(p => Math.max(1, p - 1))} className="w-9 h-9 rounded-full bg-gray-200 text-lg font-bold hover:bg-gray-300 transition-colors">-</button>
+                    <span className="text-5xl font-bold text-gray-800 w-20">{points}</span>
+                    <button onClick={() => setPoints(p => p + 1)} className="w-9 h-9 rounded-full bg-gray-200 text-lg font-bold hover:bg-gray-300 transition-colors">+</button>
                 </div>
-                 <p className="text-sm text-gray-500 mt-4">{t('rewardThreshold')}</p>
+                 <p className="text-sm font-medium text-gray-500 mt-4">{t('rewardThreshold')}</p>
                 <div className="flex items-center justify-center gap-4 my-2">
-                    <button onClick={() => setThreshold(t => Math.max(1, t - 1))} className="w-8 h-8 rounded-full bg-gray-200 text-lg font-bold">-</button>
-                    <span className="text-5xl font-bold">{threshold}</span>
-                    <button onClick={() => setThreshold(t => t + 1)} className="w-8 h-8 rounded-full bg-gray-200 text-lg font-bold">+</button>
+                    <button onClick={() => setThreshold(t => Math.max(points, t - 1))} className="w-9 h-9 rounded-full bg-gray-200 text-lg font-bold hover:bg-gray-300 transition-colors">-</button>
+                    <span className="text-5xl font-bold text-gray-800 w-20">{threshold}</span>
+                    <button onClick={() => setThreshold(t => t + 1)} className="w-9 h-9 rounded-full bg-gray-200 text-lg font-bold hover:bg-gray-300 transition-colors">+</button>
                 </div>
             </div>
-            <div className="flex items-center justify-center gap-1 h-3 mt-4">
+            <div className="flex items-center justify-center gap-1 h-2 mt-4">
                 {[...Array(threshold)].map((_, i) => <div key={i} className={`h-full flex-1 rounded-full ${i < points ? 'bg-blue-500' : 'bg-gray-200'}`}></div>)}
             </div>
-            <button onClick={handleSave} disabled={isSaving} className="w-full mt-4 bg-blue-600 text-white font-bold py-2 rounded-lg hover:bg-blue-700 disabled:bg-blue-400">
-                {isSaving ? 'Saving...' : t('save')}
+            <button onClick={handleSave} disabled={isSaving || (points === business.points_per_scan && threshold === business.reward_threshold)} className="w-full mt-4 bg-blue-600 text-white font-bold py-2 rounded-lg hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed transition-colors">
+                {isSaving ? t('save')+'...' : t('save')}
             </button>
         </div>
     );
 };
 
 const SettingsCard: React.FC<{title: string, description: string, children: React.ReactNode}> = ({ title, description, children }) => (
-    <div className="bg-white p-6 rounded-lg shadow-md space-y-6 mb-8">
+    <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm space-y-6">
         <div><h2 className="text-xl font-bold text-gray-800">{title}</h2><p className="text-sm text-gray-500 mt-1">{description}</p></div>
         {children}
     </div>
