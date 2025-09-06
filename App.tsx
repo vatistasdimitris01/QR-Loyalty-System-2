@@ -7,7 +7,6 @@ import BusinessPage from './pages/BusinessPage';
 import CustomerPage from './pages/CustomerPage';
 import BusinessSignupPage from './pages/BusinessSignupPage';
 import CustomerSignupPage from './pages/CustomerSignupPage';
-import OneSignalSetup from './components/OneSignalSetup';
 import BusinessEditorPage from './pages/BusinessEditorPage';
 import AdminPage from './pages/AdminPage';
 
@@ -45,7 +44,6 @@ const App: React.FC = () => {
 
   return (
     <LanguageProvider>
-      <OneSignalSetup />
       {renderPage()}
     </LanguageProvider>
   );

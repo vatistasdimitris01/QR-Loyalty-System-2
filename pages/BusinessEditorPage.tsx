@@ -58,15 +58,17 @@ const BusinessEditorPage: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            <header className="sticky top-0 z-10 bg-white shadow-sm flex justify-between items-center p-4">
-                <h1 className="text-xl md:text-2xl font-bold text-gray-800">{t('businessSettings')}</h1>
-                <div className="flex items-center gap-4">
-                     {saveMessage && <p className={`text-sm font-semibold ${saveMessage === t('saveSuccess') ? 'text-green-600' : 'text-red-600'}`}>{saveMessage}</p>}
-                    <a href="/business" className="bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300 text-sm md:text-base">&larr; {t('back')}</a>
-                    <button onClick={handleSave} disabled={isSaving} className="bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-blue-400 flex items-center gap-2 text-sm md:text-base">
-                        {isSaving ? <Spinner className="h-5 w-5 text-white" /> : null}
-                        {isSaving ? 'Saving...' : t('saveSettings')}
-                    </button>
+            <header className="sticky top-0 z-10 bg-white shadow-sm p-4">
+                <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <h1 className="text-xl md:text-2xl font-bold text-gray-800 text-center sm:text-left">{t('businessSettings')}</h1>
+                    <div className="flex items-center justify-center sm:justify-end gap-2 flex-wrap">
+                        {saveMessage && <p className={`text-sm font-semibold ${saveMessage === t('saveSuccess') ? 'text-green-600' : 'text-red-600'} w-full sm:w-auto text-center order-first sm:order-none`}>{saveMessage}</p>}
+                        <a href="/business" className="bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300 text-sm md:text-base">&larr; {t('back')}</a>
+                        <button onClick={handleSave} disabled={isSaving} className="bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-blue-400 flex items-center gap-2 text-sm md:text-base">
+                            {isSaving ? <Spinner className="h-5 w-5 text-white" /> : null}
+                            {isSaving ? 'Saving...' : t('saveSettings')}
+                        </button>
+                    </div>
                 </div>
             </header>
             

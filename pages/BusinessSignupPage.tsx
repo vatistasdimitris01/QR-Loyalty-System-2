@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { signupBusiness } from '../services/api';
@@ -41,17 +40,25 @@ const ChatBubble: React.FC<{ message: string; isUser?: boolean }> = ({ message, 
 
 const BusinessSignupPage: React.FC = () => {
     const { t } = useLanguage();
-    const [step, setStep] = useState(1);
-    const [formData, setFormData] = useState({ name: '', email: '', password: '' });
+    
+    // Read params once at the top to set initial state
+    const searchParams = new URLSearchParams(window.location.search);
+    const initialName = searchParams.get('name') || '';
+    const initialEmail = searchParams.get('email') || '';
+    const isPrefilled = !!(initialName && initialEmail);
+
+    const [step, setStep] = useState(isPrefilled ? 3 : 1);
+    const [formData, setFormData] = useState({ name: initialName, email: initialEmail, password: '' });
     const [inputValue, setInputValue] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const [newBusiness, setNewBusiness] = useState<Business | null>(null);
-
-    const [messages, setMessages] = useState<Message[]>([]);
+    
+    const [messages, setMessages] = useState<Message[]>(isPrefilled ? [{ text: `Welcome! Let's finish setting up your account for "${initialName}".` }] : []);
     const [isBotTyping, setIsBotTyping] = useState(true);
     const chatEndRef = useRef<HTMLDivElement>(null);
 
+    // Define bot messages inside component to access formData
     const botMessages: { [key: number]: string } = {
         1: "Hello! Let's set up your QRoyal business account. First, what's the name of your business?",
         2: `Great name! Now, what's the best email address for this account?`,
@@ -62,7 +69,8 @@ const BusinessSignupPage: React.FC = () => {
     useEffect(() => {
         chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages, isBotTyping]);
-
+    
+    // This single effect handles posting bot messages when the step changes.
     useEffect(() => {
         if (step in botMessages) {
             setIsBotTyping(true);
@@ -72,7 +80,7 @@ const BusinessSignupPage: React.FC = () => {
             }, 1000);
         }
     }, [step]);
-    
+
     const handleNextStep = (e: React.FormEvent) => {
         e.preventDefault();
         setError('');

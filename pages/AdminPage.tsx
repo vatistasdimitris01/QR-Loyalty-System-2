@@ -140,7 +140,7 @@ const AdminPage: React.FC = () => {
             {createBusinessModalOpen && <CreateBusinessModal onCreate={handleCreateBusiness} onClose={() => setCreateBusinessModalOpen(false)} />}
             {newBusinessResult && <NewBusinessResultModal business={newBusinessResult} onClose={() => setNewBusinessResult(null)} />}
             
-            <header className="mb-6 flex justify-between items-center">
+            <header className="mb-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-center sm:text-left">
                 <h1 className="text-3xl font-bold text-gray-800">Admin Dashboard</h1>
                 <a href="/" className="text-sm text-blue-600 hover:underline">&larr; Back to Home</a>
             </header>

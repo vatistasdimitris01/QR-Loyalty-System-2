@@ -39,9 +39,17 @@ const LandingPage: React.FC = () => {
     const [isScannerOpen, setIsScannerOpen] = useState(false);
     const [loginStatus, setLoginStatus] = useState<{ loading: boolean; error: string }>({ loading: false, error: '' });
 
-    const handleContactClick = (e: React.MouseEvent) => {
+    const handleGeneralContactClick = (e: React.MouseEvent) => {
         e.preventDefault();
         if (window.$crisp) {
+            window.$crisp.push(['do', 'chat:open']);
+        }
+    };
+
+    const handleBusinessSignupClick = (e: React.MouseEvent) => {
+        e.preventDefault();
+        if (window.$crisp) {
+            window.$crisp.push(["set", "message:text", ["Hi! I'd like to create a business account."]]);
             window.$crisp.push(['do', 'chat:open']);
         }
     };
@@ -125,7 +133,7 @@ const LandingPage: React.FC = () => {
                     </a>
                     <div className="hidden md:flex items-center gap-8">
                         {navLinks}
-                        <button onClick={handleContactClick} className="bg-blue-600 text-white font-semibold py-2 px-5 rounded-lg hover:bg-blue-700 transition-all shadow-sm hover:shadow-md">
+                        <button onClick={handleBusinessSignupClick} className="bg-blue-600 text-white font-semibold py-2 px-5 rounded-lg hover:bg-blue-700 transition-all shadow-sm hover:shadow-md">
                             {t('landingCtaBusiness')}
                         </button>
                     </div>
@@ -137,7 +145,7 @@ const LandingPage: React.FC = () => {
                 </nav>
                 {isMenuOpen && (
                     <div className="md:hidden bg-white shadow-lg"><div className="flex flex-col items-center gap-4 py-4">{navLinks}
-                        <button onClick={handleContactClick} className="w-11/12 text-center bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">{t('landingCtaBusiness')}</button>
+                        <button onClick={handleBusinessSignupClick} className="w-11/12 text-center bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">{t('landingCtaBusiness')}</button>
                     </div></div>
                 )}
             </header>
@@ -152,7 +160,7 @@ const LandingPage: React.FC = () => {
                                 <a href="/signup/customer" className="bg-blue-600 text-white font-bold py-3 px-8 rounded-full text-lg shadow-md hover:bg-blue-700 transition-transform transform hover:scale-105">
                                     {t('landingCtaCustomer')}
                                 </a>
-                                <button onClick={handleContactClick} className="bg-white text-blue-600 border-2 border-blue-200 font-bold py-3 px-8 rounded-full text-lg shadow-sm hover:bg-blue-50 transition-transform transform hover:scale-105">
+                                <button onClick={handleBusinessSignupClick} className="bg-white text-blue-600 border-2 border-blue-200 font-bold py-3 px-8 rounded-full text-lg shadow-sm hover:bg-blue-50 transition-transform transform hover:scale-105">
                                     {t('landingForBusinesses')}
                                 </button>
                             </div>
@@ -221,7 +229,7 @@ const LandingPage: React.FC = () => {
                     <div className="container mx-auto py-20 px-6 text-center text-white">
                         <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Build Your Loyalty?</h2>
                         <p className="text-blue-200 text-lg mb-8 max-w-2xl mx-auto">Join hundreds of businesses growing with QRoyal. Get started today for free.</p>
-                        <button onClick={handleContactClick} className="bg-white text-blue-600 font-bold py-3 px-8 rounded-full text-lg shadow-md hover:bg-blue-100 transition-transform transform hover:scale-105">
+                        <button onClick={handleBusinessSignupClick} className="bg-white text-blue-600 font-bold py-3 px-8 rounded-full text-lg shadow-md hover:bg-blue-100 transition-transform transform hover:scale-105">
                             {t('landingCtaBusiness')}
                         </button>
                     </div>
@@ -249,7 +257,7 @@ const LandingPage: React.FC = () => {
                             <div>
                              <h4 className="font-bold text-white mb-3">Company</h4>
                              <ul className="space-y-2">
-                                <li><button onClick={handleContactClick} className="hover:text-white">Contact Us</button></li>
+                                <li><button onClick={handleGeneralContactClick} className="hover:text-white">Contact Us</button></li>
                              </ul>
                            </div>
                         </div>
