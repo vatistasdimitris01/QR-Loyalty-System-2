@@ -4,7 +4,6 @@ import { LanguageProvider } from './context/LanguageContext';
 import LandingPage from './pages/LandingPage';
 import BusinessLoginPage from './pages/BusinessLoginPage';
 import BusinessPage from './pages/BusinessPage';
-import BusinessScannerPage from './pages/BusinessScannerPage';
 import CustomerPage from './pages/CustomerPage';
 import BusinessSignupPage from './pages/BusinessSignupPage';
 import CustomerSignupPage from './pages/CustomerSignupPage';
@@ -22,10 +21,6 @@ const App: React.FC = () => {
     if (path === '/business') {
         const isLoggedIn = sessionStorage.getItem('isBusinessLoggedIn') === 'true';
         return isLoggedIn ? <BusinessPage /> : <BusinessLoginPage />;
-    }
-    if (path === '/business/scanner') {
-        const isLoggedIn = sessionStorage.getItem('isBusinessLoggedIn') === 'true';
-        return isLoggedIn ? <BusinessScannerPage /> : <BusinessLoginPage />;
     }
     if (path === '/business/editor') {
         const isLoggedIn = sessionStorage.getItem('isBusinessLoggedIn') === 'true';

@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { Membership, Business, Customer } from '../types';
 import { getMembershipsForBusiness, provisionCustomerForBusiness, removeMembership } from '../services/api';
-import { Spinner, CreateCustomerModal, UserAddIcon, CustomerQRModal } from '../components/common';
+import { Spinner, CreateCustomerModal, UserAddIcon, CustomerQRModal, BusinessScannerModal } from '../components/common';
 
 const StatCard: React.FC<{ title: string; value: string | number; icon: React.ReactNode }> = ({ title, value, icon }) => (
     <div className="bg-white p-6 rounded-lg shadow-md flex items-center gap-4">
@@ -42,6 +43,7 @@ const BusinessPage: React.FC = () => {
     const [newCustomerQr, setNewCustomerQr] = useState('');
     const [isQrModalOpen, setIsQrModalOpen] = useState(false);
     const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+    const [isScannerModalOpen, setIsScannerModalOpen] = useState(false);
 
 
     const fetchData = useCallback(async (businessId: string) => {
@@ -103,6 +105,12 @@ const BusinessPage: React.FC = () => {
         }
     };
 
+    const handleScanSuccess = () => {
+        if (business) {
+            fetchData(business.id);
+        }
+    };
+
     const stats = useMemo(() => {
         const totalCustomers = memberships.length;
         return { totalCustomers };
@@ -121,6 +129,12 @@ const BusinessPage: React.FC = () => {
                 isOpen={isQrModalOpen}
                 onClose={() => setIsQrModalOpen(false)}
                 customer={selectedCustomer}
+            />
+            <BusinessScannerModal
+                isOpen={isScannerModalOpen}
+                onClose={() => setIsScannerModalOpen(false)}
+                businessId={business?.id || ''}
+                onScanSuccess={handleScanSuccess}
             />
             <div className="min-h-screen bg-gray-50 p-4 md:p-8">
                 <header className="flex justify-between items-center mb-8">
@@ -210,7 +224,7 @@ const BusinessPage: React.FC = () => {
                                  <QuickActionCard 
                                     title={t('scanCustomerQR')} 
                                     description="Award points or join new customers." 
-                                    href="/business/scanner"
+                                    onClick={() => setIsScannerModalOpen(true)}
                                     icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" /></svg>}
                                 />
                                  <QuickActionCard 

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { getCustomerByQrToken, updateCustomer, joinBusiness, getMembershipsForCustomer } from '../services/api';
 import { Customer, Membership, Business } from '../types';
@@ -27,13 +28,13 @@ const CustomerPage: React.FC<CustomerPageProps> = ({ qrToken }) => {
   const [joinMessage, setJoinMessage] = useState('');
   const [viewingBusiness, setViewingBusiness] = useState<Business | null>(null);
 
-  const fetchCustomerAndMemberships = useCallback(async () => {
+  const fetchCustomerAndMemberships = useCallback(async (isInitialLoad = false) => {
+    if (isInitialLoad) setLoading(true);
     try {
-      setLoading(true);
       const customerData = await getCustomerByQrToken(qrToken);
       if (customerData) {
         setCustomer(customerData);
-        if (!customerData.phone_number || customerData.name === 'New Customer') {
+        if (isInitialLoad && (!customerData.phone_number || customerData.name === 'New Customer')) {
             setIsSetupModalOpen(true);
         }
         const membershipData = await getMembershipsForCustomer(customerData.id);
@@ -44,12 +45,18 @@ const CustomerPage: React.FC<CustomerPageProps> = ({ qrToken }) => {
     } catch {
       setError(t('errorUnexpected'));
     } finally {
-      setLoading(false);
+      if (isInitialLoad) setLoading(false);
     }
   }, [qrToken, t]);
 
   useEffect(() => {
-    fetchCustomerAndMemberships();
+    fetchCustomerAndMemberships(true); // Initial fetch
+    
+    const intervalId = setInterval(() => {
+        fetchCustomerAndMemberships(false); // Subsequent fetches
+    }, 10000); // Poll every 10 seconds
+
+    return () => clearInterval(intervalId); // Cleanup on component unmount
   }, [fetchCustomerAndMemberships]);
 
   const handleJoinSuccess = async () => {
@@ -79,7 +86,9 @@ const CustomerPage: React.FC<CustomerPageProps> = ({ qrToken }) => {
         }
     };
 
-    handleAutoJoin();
+    if (customer) {
+      handleAutoJoin();
+    }
   }, [customer, qrToken, t]);
 
   const handleSetupSave = async (details: { name: string; phone: string }) => {

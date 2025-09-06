@@ -1,6 +1,8 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '../context/LanguageContext';
-import { Customer, Discount } from '../types';
+import { Customer, ScanResult } from '../types';
+import { awardPoints } from '../services/api';
 
 declare const Html5Qrcode: any;
 declare const confetti: any;
@@ -73,53 +75,6 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, title }) => {
       </div>
     </div>
   );
-};
-
-export const QRScannerModal: React.FC<{
-    isOpen: boolean;
-    onClose: () => void;
-    onScan: (scannedText: string) => void;
-}> = ({ isOpen, onClose, onScan }) => {
-    const { t } = useLanguage();
-    const scannerId = "qr-scanner-in-modal";
-
-    useEffect(() => {
-        if (isOpen) {
-            const qrScanner = new Html5Qrcode(scannerId);
-            
-            const startScanner = () => {
-                qrScanner.start(
-                    { facingMode: "environment" },
-                    {
-                        fps: 10,
-                        qrbox: { width: 250, height: 250 }
-                    },
-                    (decodedText: string) => {
-                        onScan(decodedText);
-                    },
-                    (errorMessage: string) => {
-                        // ignore
-                    }
-                ).catch((err: any) => {
-                    console.error("Unable to start scanning.", err);
-                });
-            };
-            
-            startScanner();
-
-            return () => {
-                if (qrScanner && qrScanner.isScanning) {
-                    qrScanner.stop().catch((err: any) => console.error("Failed to stop scanner", err));
-                }
-            };
-        }
-    }, [isOpen, onScan]);
-
-    return (
-        <Modal isOpen={isOpen} onClose={onClose} title={t('scanQRCode')}>
-            <div id={scannerId} className="w-full" />
-        </Modal>
-    );
 };
 
 export const CreateCustomerModal: React.FC<{
@@ -290,6 +245,224 @@ export const RewardModal: React.FC<{
                 >
                     {t('close')}
                 </button>
+            </div>
+        </Modal>
+    );
+};
+
+// FIX: Add missing QRScannerModal component used in LandingPage.tsx
+export const QRScannerModal: React.FC<{
+    isOpen: boolean;
+    onClose: () => void;
+    onScan: (scannedText: string) => void;
+}> = ({ isOpen, onClose, onScan }) => {
+    const { t } = useLanguage();
+    const scannerId = "qr-scanner-modal";
+    const qrScannerRef = useRef<any>(null);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (isOpen) {
+            // Delay scanner initialization to ensure modal is rendered
+            const timerId = setTimeout(() => {
+                const scanner = new Html5Qrcode(scannerId);
+                qrScannerRef.current = scanner;
+
+                scanner.start(
+                    { facingMode: "environment" },
+                    { fps: 10, qrbox: { width: 250, height: 250 } },
+                    (decodedText: string) => {
+                        onScan(decodedText);
+                    },
+                    (errorMessage: string) => {
+                        // This callback is called when no QR is found. Ignore.
+                    }
+                ).catch((err: any) => {
+                    console.error("Unable to start scanning.", err);
+                    setError("Could not start camera. Please grant permission.");
+                });
+            }, 100);
+
+            return () => {
+                clearTimeout(timerId);
+                if (qrScannerRef.current && qrScannerRef.current.isScanning) {
+                    qrScannerRef.current.stop().catch((err: any) => {
+                        console.warn("QR Scanner stop failed, likely already stopped.", err);
+                    });
+                }
+            };
+        }
+    }, [isOpen, onScan]);
+
+    return (
+        <Modal isOpen={isOpen} onClose={onClose} title={t('scanQRCode')}>
+            <div id={scannerId} className="w-full" />
+            {error && <p className="text-red-500 text-center mt-2">{error}</p>}
+        </Modal>
+    );
+};
+
+export const BusinessScannerModal: React.FC<{
+    isOpen: boolean;
+    onClose: () => void;
+    businessId: string;
+    onScanSuccess: () => void;
+}> = ({ isOpen, onClose, businessId, onScanSuccess }) => {
+    const { t } = useLanguage();
+    const scannerId = "business-qr-scanner";
+    const [scanResult, setScanResult] = useState<ScanResult | null>(null);
+    const [error, setError] = useState<string | null>(null);
+    const [isRewardModalOpen, setIsRewardModalOpen] = useState(false);
+    const [rewardMessage, setRewardMessage] = useState('');
+    const qrScannerRef = useRef<any>(null);
+
+    useEffect(() => {
+        if (isOpen) {
+            // Delay scanner initialization to ensure modal is rendered
+            setTimeout(() => {
+                qrScannerRef.current = new Html5Qrcode(scannerId);
+                
+                const startScanner = () => {
+                    qrScannerRef.current.start(
+                        { facingMode: "environment" },
+                        { fps: 10, qrbox: { width: 250, height: 250 } },
+                        async (decodedText: string) => {
+                            qrScannerRef.current.pause();
+                            setScanResult(null);
+                            setError(null);
+                            
+                            try {
+                                let token = decodedText;
+                                try {
+                                    const url = new URL(decodedText);
+                                    if (url.pathname === '/customer' && url.searchParams.has('token')) {
+                                        token = url.searchParams.get('token')!;
+                                    }
+                                } catch (e) {}
+
+                                if (token.startsWith('cust_')) {
+                                   const result = await awardPoints(token, businessId);
+                                   setScanResult(result);
+                                   if (result.success) {
+                                       onScanSuccess(); // Notify parent to refresh data
+                                       if (result.rewardWon) {
+                                           setRewardMessage(result.rewardMessage || t('giftWonMessage'));
+                                           setIsRewardModalOpen(true);
+                                       }
+                                   }
+                                } else {
+                                    setError('Not a valid customer QR code.');
+                                }
+                            } catch (e) {
+                                setError(t('errorUnexpected'));
+                            } finally {
+                                setTimeout(() => {
+                                   if (qrScannerRef.current && qrScannerRef.current.getState() === 2) { // 2 = PAUSED
+                                        qrScannerRef.current.resume();
+                                   }
+                                }, 3000);
+                            }
+                        },
+                        (errorMessage: string) => {}
+                    ).catch((err: any) => {
+                        console.error("Unable to start scanning.", err);
+                        setError("Could not start camera. Please grant permission.");
+                    });
+                };
+                
+                startScanner();
+            }, 100);
+
+            return () => {
+                if (qrScannerRef.current && qrScannerRef.current.isScanning) {
+                    qrScannerRef.current.stop().catch((err: any) => console.error("Failed to stop scanner", err));
+                }
+            };
+        }
+    }, [isOpen, businessId, onScanSuccess, t]);
+    
+    const resultColor = scanResult?.success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+
+    return (
+        <>
+            <RewardModal 
+                isOpen={isRewardModalOpen}
+                onClose={() => setIsRewardModalOpen(false)}
+                rewardMessage={rewardMessage}
+            />
+            <Modal isOpen={isOpen} onClose={onClose} title={t('scanQRCode')}>
+                <div id={scannerId} className="w-full" />
+                <div className="mt-4 w-full">
+                    <h2 className="text-lg font-semibold mb-2">{t('scanResult')}</h2>
+                    <div className={`p-3 rounded-lg text-center font-medium ${!scanResult && !error ? 'bg-gray-100' : ''} ${scanResult ? resultColor : ''} ${error ? 'bg-red-100 text-red-800' : ''}`}>
+                        {scanResult ? (
+                            <div>
+                                <p>{scanResult.message}</p>
+                                {scanResult.customer && <p>Total Points: {scanResult.newPointsTotal}</p>}
+                            </div>
+                        ) : error ? (
+                            <p>{error}</p>
+                        ) : (
+                            <p className="text-gray-500">Scanning...</p>
+                        )}
+                    </div>
+                </div>
+            </Modal>
+        </>
+    );
+};
+
+export const DeleteAccountModal: React.FC<{
+    isOpen: boolean;
+    onClose: () => void;
+    onConfirm: () => Promise<void>;
+    customerPhoneNumber: string;
+}> = ({ isOpen, onClose, onConfirm, customerPhoneNumber }) => {
+    const { t } = useLanguage();
+    const [inputValue, setInputValue] = useState('');
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    const isMatch = inputValue === customerPhoneNumber;
+
+    const handleDelete = async () => {
+        if (!isMatch) return;
+        setIsDeleting(true);
+        await onConfirm();
+        setIsDeleting(false);
+    };
+
+    // Reset input when modal opens/closes
+    useEffect(() => {
+        if (!isOpen) {
+            setInputValue('');
+        }
+    }, [isOpen]);
+
+    return (
+        <Modal isOpen={isOpen} onClose={onClose} title={t('deleteAccountConfirmTitle')}>
+            <div className="space-y-4">
+                <p className="text-sm text-gray-700 font-medium bg-yellow-50 border border-yellow-200 p-3 rounded-md">{t('deleteAccountWarning')}</p>
+                <p className="text-gray-600">{t('deleteAccountPrompt')} <span className="font-semibold">{customerPhoneNumber}</span></p>
+                <div>
+                    <input 
+                        type="tel"
+                        value={inputValue}
+                        onChange={(e) => setInputValue(e.target.value)}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                        placeholder={customerPhoneNumber}
+                    />
+                </div>
+                <div className="flex justify-end gap-3 pt-4">
+                    <button onClick={onClose} className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 font-semibold">{t('cancel')}</button>
+                    <button 
+                        onClick={handleDelete}
+                        disabled={!isMatch || isDeleting}
+                        className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 font-semibold disabled:bg-red-300 disabled:cursor-not-allowed flex items-center gap-2"
+                    >
+                        {isDeleting && <Spinner className="h-4 w-4 text-white" />}
+                        {t('deleteAccount')}
+                    </button>
+                </div>
             </div>
         </Modal>
     );

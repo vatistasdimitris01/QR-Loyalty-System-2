@@ -1,34 +1,20 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Business, BusinessQrDesign, QrStyle } from '../types';
 import { useLanguage } from '../context/LanguageContext';
 import { generateQrCode } from '../services/qrGenerator';
 import { updateBusiness, getBusinessQrDesigns, createBusinessQrDesign, deleteBusinessQrDesign } from '../services/api';
-import { Spinner } from '../components/common';
+import { Spinner, StarIcon } from '../components/common';
 
-declare const L: any; // Declare Leaflet global
-declare const window: any; // Declare window for GeoSearch
+type EditorTab = 'profile' | 'branding' | 'loyalty' | 'location';
 
 const BusinessEditorPage: React.FC = () => {
     const { t } = useLanguage();
     const [business, setBusiness] = useState<Business | null>(null);
     const [formState, setFormState] = useState<Partial<Business>>({});
-    const [previewQr, setPreviewQr] = useState('');
     const [loading, setLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [saveMessage, setSaveMessage] = useState('');
-
-    // State for QR Designs
-    const [designs, setDesigns] = useState<BusinessQrDesign[]>([]);
-    const [newDesign, setNewDesign] = useState<QrStyle>({ qr_color: '#000000', qr_dot_style: 'square', qr_eye_shape: 'square', qr_logo_url: '' });
-    
-    // Map refs
-    const mapRef = useRef<any>(null);
-    const markerRef = useRef<any>(null);
-
-    const fetchDesigns = useCallback(async (businessId: string) => {
-        const fetchedDesigns = await getBusinessQrDesigns(businessId);
-        setDesigns(fetchedDesigns);
-    }, []);
+    const [activeTab, setActiveTab] = useState<EditorTab>('profile');
 
     useEffect(() => {
         setLoading(true);
@@ -52,81 +38,10 @@ const BusinessEditorPage: React.FC = () => {
                 reward_threshold: parsed.reward_threshold || 5,
                 reward_message: parsed.reward_message || '',
                 address_text: parsed.address_text || '',
-                latitude: parsed.latitude || null,
-                longitude: parsed.longitude || null,
             });
-            fetchDesigns(parsed.id);
         }
         setLoading(false);
-    }, [fetchDesigns]);
-
-    useEffect(() => {
-        if (business) {
-            const qrOptions = {
-                qr_logo_url: formState.qr_logo_url,
-                qr_color: formState.qr_color,
-                qr_eye_shape: formState.qr_eye_shape,
-                qr_dot_style: formState.qr_dot_style,
-            };
-            generateQrCode(business.qr_token, qrOptions).then(setPreviewQr);
-        }
-    }, [business, formState.qr_logo_url, formState.qr_color, formState.qr_eye_shape, formState.qr_dot_style]);
-    
-    // Map Initialization Effect
-    useEffect(() => {
-        if (typeof L === 'undefined' || typeof window.GeoSearch === 'undefined' || !business) {
-            return;
-        }
-
-        const initialLat = formState.latitude || 37.9838; // Default to Athens
-        const initialLng = formState.longitude || 23.7275;
-        const initialZoom = formState.latitude ? 16 : 10;
-
-        if (!mapRef.current) {
-            const map = L.map('map-editor').setView([initialLat, initialLng], initialZoom);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; OpenStreetMap contributors'
-            }).addTo(map);
-
-            const search = new window.GeoSearch.GeoSearchControl({
-                provider: new window.GeoSearch.OpenStreetMapProvider(),
-                style: 'bar',
-                showMarker: false, // We'll handle the marker ourselves
-            });
-            map.addControl(search);
-
-            map.on('geosearch/showlocation', (result: any) => {
-                const { x: lng, y: lat, label } = result.location;
-                setFormState(prev => ({ ...prev, latitude: lat, longitude: lng, address_text: label }));
-                
-                const newLatLng = new L.LatLng(lat, lng);
-                if (markerRef.current) {
-                    markerRef.current.setLatLng(newLatLng);
-                } else {
-                    markerRef.current = L.marker(newLatLng).addTo(map);
-                }
-                map.setView(newLatLng, 16);
-            });
-
-            mapRef.current = map;
-        }
-
-        // Add initial marker if location exists
-        if (formState.latitude && formState.longitude && !markerRef.current) {
-            markerRef.current = L.marker([formState.latitude, formState.longitude]).addTo(mapRef.current);
-        }
-
-    }, [business, formState.latitude, formState.longitude]);
-
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-        const { name, value } = e.target;
-        if (name === 'points_per_scan' || name === 'reward_threshold') {
-             setFormState({ ...formState, [name]: parseInt(value, 10) || 0 });
-        } else {
-            setFormState({ ...formState, [name]: value });
-        }
-    };
+    }, []);
 
     const handleSave = async () => {
         if (!business) return;
@@ -137,6 +52,7 @@ const BusinessEditorPage: React.FC = () => {
             if (updatedBusiness) {
                 sessionStorage.setItem('business', JSON.stringify(updatedBusiness));
                 setBusiness(updatedBusiness);
+                setFormState(prev => ({...prev, ...updatedBusiness}));
                 setSaveMessage(t('saveSuccess'));
             } else {
                 setSaveMessage(t('saveError'));
@@ -146,16 +62,174 @@ const BusinessEditorPage: React.FC = () => {
             setSaveMessage(t('saveError'));
         } finally {
             setIsSaving(false);
-            setTimeout(() => setSaveMessage(''), 5000);
+            setTimeout(() => setSaveMessage(''), 4000);
+        }
+    };
+    
+    if (loading) return <div className="flex justify-center items-center h-screen"><Spinner /></div>;
+    if (!business) return null;
+
+    return (
+        <div className="min-h-screen bg-gray-50">
+            <header className="sticky top-0 z-10 bg-white shadow-sm flex justify-between items-center p-4">
+                <h1 className="text-xl md:text-2xl font-bold text-gray-800">{t('businessSettings')}</h1>
+                <div className="flex items-center gap-4">
+                     {saveMessage && <p className={`text-sm font-semibold ${saveMessage === t('saveSuccess') ? 'text-green-600' : 'text-red-600'}`}>{saveMessage}</p>}
+                    <a href="/business" className="bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300 text-sm md:text-base">&larr; {t('back')}</a>
+                    <button onClick={handleSave} disabled={isSaving} className="bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-blue-400 flex items-center gap-2 text-sm md:text-base">
+                        {isSaving ? <Spinner className="h-5 w-5 text-white" /> : null}
+                        {isSaving ? 'Saving...' : t('saveSettings')}
+                    </button>
+                </div>
+            </header>
+            
+            <div className="flex flex-col lg:flex-row">
+                <main className="flex-grow p-4 md:p-8">
+                    <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+                        {/* Settings Column */}
+                        <div className="xl:col-span-2 space-y-8">
+                             <div className="border-b border-gray-200">
+                                <nav className="-mb-px flex space-x-6">
+                                    <TabButton label={t('publicProfile')} isActive={activeTab === 'profile'} onClick={() => setActiveTab('profile')} />
+                                    <TabButton label={t('qrCustomization')} isActive={activeTab === 'branding'} onClick={() => setActiveTab('branding')} />
+                                    <TabButton label={t('loyaltyProgram')} isActive={activeTab === 'loyalty'} onClick={() => setActiveTab('loyalty')} />
+                                    <TabButton label={t('location')} isActive={activeTab === 'location'} onClick={() => setActiveTab('location')} />
+                                </nav>
+                            </div>
+
+                            {activeTab === 'profile' && <ProfileSettings formState={formState} setFormState={setFormState} />}
+                            {activeTab === 'branding' && <BrandingSettings formState={formState} setFormState={setFormState} business={business} />}
+                            {activeTab === 'loyalty' && <LoyaltySettings formState={formState} setFormState={setFormState} />}
+                            {activeTab === 'location' && <LocationSettings formState={formState} setFormState={setFormState} />}
+                        </div>
+                        
+                        {/* Preview Column */}
+                        <div className="hidden xl:block">
+                            <div className="sticky top-24">
+                                <h3 className="text-lg font-semibold text-gray-700 mb-4">Live Preview</h3>
+                                <BusinessProfilePreview formState={formState} />
+                            </div>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </div>
+    );
+};
+
+// --- Child Components for Tabs ---
+
+const ProfileSettings: React.FC<{formState: Partial<Business>, setFormState: React.Dispatch<React.SetStateAction<Partial<Business>>>}> = ({ formState, setFormState }) => {
+    const { t } = useLanguage();
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setFormState(prev => ({...prev, [e.target.name]: e.target.value }));
+    
+    return (
+        <SettingsCard title={t('publicProfile')} description={t('publicProfileDesc')}>
+            <InputField label={t('publicBusinessName')} name="public_name" value={formState.public_name || ''} onChange={handleChange} />
+            <InputField label={t('logoUrl')} name="logo_url" value={formState.logo_url || ''} onChange={handleChange} placeholder="https://..." />
+            <TextAreaField label={t('bio')} name="bio" value={formState.bio || ''} onChange={handleChange} />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <InputField label={t('website')} name="website_url" value={formState.website_url || ''} onChange={handleChange} placeholder="https://..." />
+                <InputField label={t('contactPhone')} name="public_phone_number" value={formState.public_phone_number || ''} onChange={handleChange} />
+                <InputField label={t('facebook')} name="facebook_url" value={formState.facebook_url || ''} onChange={handleChange} placeholder="https://facebook.com/..." />
+                <InputField label={t('instagram')} name="instagram_url" value={formState.instagram_url || ''} onChange={handleChange} placeholder="https://instagram.com/..." />
+            </div>
+        </SettingsCard>
+    );
+};
+
+const BrandingSettings: React.FC<{formState: Partial<Business>, setFormState: React.Dispatch<React.SetStateAction<Partial<Business>>>, business: Business}> = ({ formState, setFormState, business }) => {
+    const { t } = useLanguage();
+    const [previewQr, setPreviewQr] = useState('');
+    
+    useEffect(() => {
+        const qrOptions = {
+            qr_logo_url: formState.qr_logo_url,
+            qr_color: formState.qr_color,
+            qr_eye_shape: formState.qr_eye_shape,
+            qr_dot_style: formState.qr_dot_style,
+        };
+        generateQrCode(business.qr_token, qrOptions).then(setPreviewQr);
+    }, [business.qr_token, formState.qr_logo_url, formState.qr_color, formState.qr_eye_shape, formState.qr_dot_style]);
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setFormState(prev => ({...prev, [e.target.name]: e.target.value }));
+
+    return (
+        <>
+            <SettingsCard title={t('qrCustomization')} description={t('qrCustomizationDesc')}>
+                <div className="flex flex-col md:flex-row gap-6 items-start">
+                    <div className="flex-shrink-0">
+                        {previewQr ? <img src={previewQr} alt="QR Code Preview" className="w-48 h-48 rounded-lg border"/> : <div className="w-48 h-48 bg-gray-200 rounded-lg animate-pulse" />}
+                    </div>
+                    <div className="flex-grow space-y-4">
+                        <InputField label={t('logoUrl')} name="qr_logo_url" value={formState.qr_logo_url || ''} onChange={handleChange} placeholder="https://..." />
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">{t('qrColor')}</label>
+                            <input type="color" name="qr_color" value={formState.qr_color} onChange={handleChange} className="mt-1 h-10 w-full p-1 border border-gray-300 rounded-md cursor-pointer" />
+                        </div>
+                        <SelectField label={t('eyeShape')} name="qr_eye_shape" value={formState.qr_eye_shape || 'square'} onChange={handleChange} options={[{value: 'square', label: 'Square'}, {value: 'rounded', label: 'Rounded'}]} />
+                        <SelectField label={t('dotStyle')} name="qr_dot_style" value={formState.qr_dot_style || 'square'} onChange={handleChange} options={[
+                            { value: 'square', label: 'Square' }, { value: 'dots', label: 'Dots' }, { value: 'rounded', label: 'Rounded' },
+                            { value: 'classy', label: 'Classy' }, { value: 'classy-rounded', label: 'Classy Rounded' }, { value: 'extra-rounded', label: 'Extra Rounded' }
+                        ]} />
+                    </div>
+                </div>
+            </SettingsCard>
+            <CustomerQrDesigns business={business} />
+        </>
+    );
+};
+
+const LoyaltySettings: React.FC<{formState: Partial<Business>, setFormState: React.Dispatch<React.SetStateAction<Partial<Business>>>}> = ({ formState, setFormState }) => {
+    const { t } = useLanguage();
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        if (name === 'points_per_scan' || name === 'reward_threshold') {
+             setFormState(prev => ({ ...prev, [name]: parseInt(value, 10) || 0 }));
+        } else {
+            setFormState(prev => ({ ...prev, [name]: value }));
         }
     };
 
-    const handleNewDesignChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        setNewDesign({ ...newDesign, [e.target.name]: e.target.value });
-    };
+    return (
+        <SettingsCard title={t('loyaltyProgram')} description={t('loyaltyProgramDesc')}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <InputField type="number" label={t('pointsPerScan')} name="points_per_scan" value={String(formState.points_per_scan || 1)} onChange={handleChange} />
+                <InputField type="number" label={t('rewardThreshold')} name="reward_threshold" value={String(formState.reward_threshold || 5)} onChange={handleChange} />
+            </div>
+            <InputField label={t('rewardMessage')} name="reward_message" value={formState.reward_message || ''} onChange={handleChange} placeholder={t('rewardMessagePlaceholder')} />
+        </SettingsCard>
+    );
+};
 
+const LocationSettings: React.FC<{formState: Partial<Business>, setFormState: React.Dispatch<React.SetStateAction<Partial<Business>>>}> = ({ formState, setFormState }) => {
+    const { t } = useLanguage();
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => setFormState(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    return (
+        <SettingsCard title={t('businessLocation')} description="Enter your full business address for the map.">
+            <InputField label={t('address')} name="address_text" value={formState.address_text || ''} onChange={handleChange} placeholder="e.g., 1600 Amphitheatre Parkway, Mountain View, CA" />
+        </SettingsCard>
+    );
+};
+
+
+const CustomerQrDesigns: React.FC<{business: Business}> = ({ business }) => {
+    const { t } = useLanguage();
+    const [designs, setDesigns] = useState<BusinessQrDesign[]>([]);
+    const [newDesign, setNewDesign] = useState<QrStyle>({ qr_color: '#000000', qr_dot_style: 'square', qr_eye_shape: 'square', qr_logo_url: '' });
+
+    const fetchDesigns = useCallback(async (businessId: string) => {
+        const fetchedDesigns = await getBusinessQrDesigns(businessId);
+        setDesigns(fetchedDesigns);
+    }, []);
+
+    useEffect(() => {
+        fetchDesigns(business.id);
+    }, [business.id, fetchDesigns]);
+
+    const handleNewDesignChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setNewDesign({ ...newDesign, [e.target.name]: e.target.value });
+    
     const handleAddDesign = async () => {
-        if (!business) return;
         const result = await createBusinessQrDesign({ business_id: business.id, ...newDesign });
         if (result) {
             setDesigns([result, ...designs]);
@@ -169,131 +243,59 @@ const BusinessEditorPage: React.FC = () => {
             setDesigns(designs.filter(d => d.id !== designId));
         }
     };
-    
-    if (loading) return <div className="flex justify-center items-center h-screen"><Spinner /></div>;
-    
+
     return (
-        <div className="min-h-screen bg-gray-50 p-4 md:p-8">
-            <header className="flex justify-between items-center mb-8">
+        <SettingsCard title={t('customerQrDesigns')} description={t('customerQrDesignsDesc')}>
+            <div className="border p-4 rounded-lg space-y-4 bg-gray-50">
+                <h3 className="font-semibold text-gray-800">Add New Design</h3>
+                <InputField label={t('logoUrl')} name="qr_logo_url" value={newDesign.qr_logo_url || ''} onChange={handleNewDesignChange} placeholder="https://..." />
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-800">{t('businessSettings')}</h1>
+                    <label className="block text-sm font-medium text-gray-700">{t('qrColor')}</label>
+                    <input type="color" name="qr_color" value={newDesign.qr_color} onChange={handleNewDesignChange} className="mt-1 h-10 w-full p-1 border border-gray-300 rounded-md cursor-pointer" />
                 </div>
-                <a href="/business" className="bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300">&larr; {t('back')}</a>
-            </header>
-            
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Left Column: Profile & Loyalty */}
-                <div className="lg:col-span-2 space-y-8">
-                    {/* Public Profile */}
-                    <div className="bg-white p-6 rounded-lg shadow-md space-y-6">
-                        <div>
-                            <h2 className="text-xl font-bold text-gray-800">{t('publicProfile')}</h2>
-                            <p className="text-sm text-gray-500">{t('publicProfileDesc')}</p>
-                        </div>
-                        <InputField label={t('publicBusinessName')} name="public_name" value={formState.public_name || ''} onChange={handleChange} />
-                        <InputField label={t('logoUrl')} name="logo_url" value={formState.logo_url || ''} onChange={handleChange} placeholder="https://..." />
-                        <TextAreaField label={t('bio')} name="bio" value={formState.bio || ''} onChange={handleChange} />
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <InputField label={t('website')} name="website_url" value={formState.website_url || ''} onChange={handleChange} placeholder="https://..." />
-                            <InputField label={t('contactPhone')} name="public_phone_number" value={formState.public_phone_number || ''} onChange={handleChange} />
-                            <InputField label={t('facebook')} name="facebook_url" value={formState.facebook_url || ''} onChange={handleChange} placeholder="https://facebook.com/..." />
-                            <InputField label={t('instagram')} name="instagram_url" value={formState.instagram_url || ''} onChange={handleChange} placeholder="https://instagram.com/..." />
-                        </div>
-                    </div>
-
-                     {/* Business Location */}
-                    <div className="bg-white p-6 rounded-lg shadow-md space-y-6">
-                        <div>
-                            <h2 className="text-xl font-bold text-gray-800">{t('businessLocation')}</h2>
-                            <p className="text-sm text-gray-500">{t('searchAddress')}</p>
-                        </div>
-                        <InputField label={t('address')} name="address_text" value={formState.address_text || ''} onChange={handleChange} placeholder="Address will appear here after search" />
-                        <div id="map-editor" style={{ height: '400px', width: '100%' }} className="rounded-lg border"></div>
-                    </div>
-
-
-                    {/* Loyalty Program */}
-                    <div className="bg-white p-6 rounded-lg shadow-md space-y-6">
-                         <div>
-                            <h2 className="text-xl font-bold text-gray-800">{t('loyaltyProgram')}</h2>
-                            <p className="text-sm text-gray-500">{t('loyaltyProgramDesc')}</p>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <InputField type="number" label={t('pointsPerScan')} name="points_per_scan" value={String(formState.points_per_scan || 1)} onChange={handleChange} />
-                            <InputField type="number" label={t('rewardThreshold')} name="reward_threshold" value={String(formState.reward_threshold || 5)} onChange={handleChange} />
-                        </div>
-                        <InputField label={t('rewardMessage')} name="reward_message" value={formState.reward_message || ''} onChange={handleChange} placeholder={t('rewardMessagePlaceholder')} />
-                    </div>
-                </div>
-
-                {/* Right Column: QR Customizations */}
-                <div className="lg:col-span-1 space-y-8">
-                    {/* Business QR */}
-                    <div className="bg-white p-6 rounded-lg shadow-md space-y-6">
-                        <div>
-                            <h2 className="text-xl font-bold text-gray-800">{t('qrCustomization')}</h2>
-                            <p className="text-sm text-gray-500">{t('qrCustomizationDesc')}</p>
-                        </div>
-                         {previewQr && <img src={previewQr} alt="QR Code Preview" className="w-48 h-48 rounded-lg border mx-auto"/>}
-                        <InputField label={t('logoUrl')} name="qr_logo_url" value={formState.qr_logo_url || ''} onChange={handleChange} placeholder="https://..." />
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700">{t('qrColor')}</label>
-                            <input type="color" name="qr_color" value={formState.qr_color} onChange={handleChange} className="mt-1 h-10 w-full p-1 border border-gray-300 rounded-md cursor-pointer" />
-                        </div>
-                        <SelectField label={t('eyeShape')} name="qr_eye_shape" value={formState.qr_eye_shape || 'square'} onChange={handleChange} options={[{value: 'square', label: 'Square'}, {value: 'rounded', label: 'Rounded'}]} />
-                        <SelectField label={t('dotStyle')} name="qr_dot_style" value={formState.qr_dot_style || 'square'} onChange={handleChange} options={[
-                            { value: 'square', label: 'Square' }, { value: 'dots', label: 'Dots' }, { value: 'rounded', label: 'Rounded' },
-                            { value: 'classy', label: 'Classy' }, { value: 'classy-rounded', label: 'Classy Rounded' }, { value: 'extra-rounded', label: 'Extra Rounded' }
-                        ]} />
-                    </div>
-
-                    {/* Customer QR Designs */}
-                    <div className="bg-white p-6 rounded-lg shadow-md space-y-6">
-                        <div>
-                            <h2 className="text-xl font-bold text-gray-800">{t('customerQrDesigns')}</h2>
-                            <p className="text-sm text-gray-500">{t('customerQrDesignsDesc')}</p>
-                        </div>
-                        <div className="border p-4 rounded-lg space-y-4">
-                            <h3 className="font-semibold">Add New Design</h3>
-                             <InputField label={t('logoUrl')} name="qr_logo_url" value={newDesign.qr_logo_url || ''} onChange={handleNewDesignChange} placeholder="https://..." />
-                             <div>
-                                <label className="block text-sm font-medium text-gray-700">{t('qrColor')}</label>
-                                <input type="color" name="qr_color" value={newDesign.qr_color} onChange={handleNewDesignChange} className="mt-1 h-10 w-full p-1 border border-gray-300 rounded-md cursor-pointer" />
-                            </div>
-                            <SelectField label={t('eyeShape')} name="qr_eye_shape" value={newDesign.qr_eye_shape || 'square'} onChange={handleNewDesignChange} options={[{value: 'square', label: 'Square'}, {value: 'rounded', label: 'Rounded'}]} />
-                            <SelectField label={t('dotStyle')} name="qr_dot_style" value={newDesign.qr_dot_style || 'square'} onChange={handleNewDesignChange} options={[
-                                { value: 'square', label: 'Square' }, { value: 'dots', label: 'Dots' }, { value: 'rounded', label: 'Rounded' }
-                            ]} />
-                            <button onClick={handleAddDesign} className="w-full bg-green-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-700">{t('addDesign')}</button>
-                        </div>
-                        <div className="space-y-2">
-                             {designs.length === 0 ? <p className="text-sm text-gray-500">{t('noDesigns')}</p> : designs.map(d => <QrDesignItem key={d.id} design={d} onDelete={handleDeleteDesign} />)}
-                        </div>
-                    </div>
-                </div>
+                <SelectField label={t('eyeShape')} name="qr_eye_shape" value={newDesign.qr_eye_shape || 'square'} onChange={handleNewDesignChange} options={[{value: 'square', label: 'Square'}, {value: 'rounded', label: 'Rounded'}]} />
+                <SelectField label={t('dotStyle')} name="qr_dot_style" value={newDesign.qr_dot_style || 'square'} onChange={handleNewDesignChange} options={[{ value: 'square', label: 'Square' }, { value: 'dots', label: 'Dots' }, { value: 'rounded', label: 'Rounded' }]} />
+                <button onClick={handleAddDesign} className="w-full bg-green-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-700">{t('addDesign')}</button>
             </div>
-
-             {/* Save Button */}
-            <div className="mt-8 flex items-center justify-end gap-4">
-                {saveMessage && <p className={`text-sm font-semibold ${saveMessage === t('saveSuccess') ? 'text-green-600' : 'text-red-600'}`}>{saveMessage}</p>}
-                <button onClick={handleSave} disabled={isSaving} className="bg-blue-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-blue-400 flex items-center gap-2">
-                    {isSaving && <Spinner className="h-5 w-5 text-white" />}
-                    {isSaving ? 'Saving...' : t('saveSettings')}
-                </button>
+            <div className="space-y-2 mt-4">
+                <h3 className="font-semibold text-gray-800">Your Designs</h3>
+                {designs.length === 0 ? <p className="text-sm text-gray-500">{t('noDesigns')}</p> : designs.map(d => <QrDesignItem key={d.id} design={d} onDelete={handleDeleteDesign} />)}
             </div>
-        </div>
+        </SettingsCard>
     );
 };
 
+
+// --- UI & Helper Components ---
+
+const BusinessProfilePreview: React.FC<{ formState: Partial<Business> }> = ({ formState }) => (
+    <div className="bg-white p-4 rounded-lg shadow-sm border flex items-center justify-between cursor-pointer hover:bg-gray-50 transition-colors w-full">
+        <div className="flex items-center gap-4">
+            <img 
+                src={formState.logo_url || 'https://via.placeholder.com/150'} 
+                alt="Logo Preview"
+                className="w-16 h-16 rounded-full object-cover bg-gray-200"
+            />
+            <div>
+                <p className="font-bold text-gray-800 text-lg">{formState.public_name || 'Business Name'}</p>
+                <p className="text-sm text-gray-500">{formState.bio ? (formState.bio.substring(0, 40) + '...') : 'Business bio appears here...'}</p>
+            </div>
+        </div>
+        <div className="flex items-center gap-2 text-amber-500">
+            <StarIcon className="h-8 w-8" />
+            <span className="font-bold text-2xl">5</span>
+        </div>
+    </div>
+);
+
 const QrDesignItem: React.FC<{ design: BusinessQrDesign, onDelete: (id: string) => void }> = ({ design, onDelete }) => {
-    const { t } = useLanguage();
     const [preview, setPreview] = useState('');
     useEffect(() => {
         generateQrCode('preview', design).then(setPreview);
     }, [design]);
 
     return (
-        <div className="flex items-center gap-2 p-2 border rounded-lg">
+        <div className="flex items-center gap-2 p-2 border rounded-lg bg-white">
             {preview ? <img src={preview} alt="design preview" className="w-12 h-12 rounded" /> : <div className="w-12 h-12 bg-gray-200 rounded animate-pulse" />}
             <div className="flex-grow">
                 <p className="text-xs">Color: <span className="font-mono">{design.qr_color}</span></p>
@@ -304,9 +306,24 @@ const QrDesignItem: React.FC<{ design: BusinessQrDesign, onDelete: (id: string) 
             </button>
         </div>
     );
-}
+};
 
-// Helper components for form fields
+const SettingsCard: React.FC<{title: string, description: string, children: React.ReactNode}> = ({ title, description, children }) => (
+    <div className="bg-white p-6 rounded-lg shadow-md space-y-6">
+        <div>
+            <h2 className="text-xl font-bold text-gray-800">{title}</h2>
+            <p className="text-sm text-gray-500 mt-1">{description}</p>
+        </div>
+        {children}
+    </div>
+);
+
+const TabButton: React.FC<{label: string, isActive: boolean, onClick: () => void}> = ({label, isActive, onClick}) => (
+    <button onClick={onClick} className={`py-3 px-1 border-b-2 font-medium text-sm transition-colors ${isActive ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>
+        {label}
+    </button>
+);
+
 const InputField: React.FC<{label: string, name: string, value: string, onChange: any, placeholder?: string, type?: string}> = ({label, name, value, onChange, placeholder, type = 'text'}) => (
     <div>
         <label htmlFor={name} className="block text-sm font-medium text-gray-700">{label}</label>

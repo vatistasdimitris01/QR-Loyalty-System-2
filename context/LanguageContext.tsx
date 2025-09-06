@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useContext, ReactNode } from 'react';
 
 const translations = {
@@ -128,6 +129,13 @@ const translations = {
     availableQrStyles: 'Available QR Styles',
     setAsMyStyle: 'Set as My Style',
     styleSetSuccess: 'Your QR code style has been updated!',
+    // Account Deletion
+    deleteAccount: 'Delete Account',
+    deleteAccountConfirmTitle: 'Delete Your Account?',
+    deleteAccountWarning: 'This action is permanent and cannot be undone. All your points and memberships will be lost forever.',
+    deleteAccountPrompt: 'To confirm, please type your full phone number:',
+    deleteAccountError: 'Failed to delete account. Please try again.',
+    deleteSuccess: 'Account deleted successfully.',
   },
   el: {
     customerSignin: 'Είσοδος Πελάτη',
@@ -256,6 +264,13 @@ const translations = {
     availableQrStyles: 'Διαθέσιμα Στυλ QR',
     setAsMyStyle: 'Ορισμός ως Στυλ μου',
     styleSetSuccess: 'Το στυλ του QR σας ενημερώθηκε!',
+    // Account Deletion
+    deleteAccount: 'Διαγραφή Λογαριασμού',
+    deleteAccountConfirmTitle: 'Διαγραφή του Λογαριασμού σας;',
+    deleteAccountWarning: 'Αυτή η ενέργεια είναι μόνιμη και δεν μπορεί να αναιρεθεί. Όλοι οι πόντοι και οι συνδρομές σας θα χαθούν οριστικά.',
+    deleteAccountPrompt: 'Για επιβεβαίωση, πληκτρολογήστε τον πλήρη αριθμό τηλεφώνου σας:',
+    deleteAccountError: 'Αποτυχία διαγραφής λογαριασμού. Παρακαλώ δοκιμάστε ξανά.',
+    deleteSuccess: 'Ο λογαριασμός διαγράφηκε επιτυχώς.',
   },
 };
 

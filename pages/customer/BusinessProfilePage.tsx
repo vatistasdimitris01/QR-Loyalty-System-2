@@ -1,11 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Business, Discount, BusinessQrDesign, QrStyle } from '../../types';
 import { useLanguage } from '../../context/LanguageContext';
 import { getDiscountsForBusiness, leaveBusiness, getBusinessQrDesigns, updateCustomer } from '../../services/api';
 import { generateQrCode } from '../../services/qrGenerator';
 import { Spinner, FacebookIcon, InstagramIcon, WebsiteIcon, PhoneIcon } from '../../components/common';
-
-declare const L: any; // Declare Leaflet global
 
 interface BusinessProfilePageProps {
     business: Business;
@@ -31,7 +29,6 @@ const BusinessProfilePage: React.FC<BusinessProfilePageProps> = ({ business, cus
     const [loadingDesigns, setLoadingDesigns] = useState(true);
     const [isSettingStyle, setIsSettingStyle] = useState(false);
     const [styleMessage, setStyleMessage] = useState('');
-    const mapRef = useRef<any>(null);
 
     useEffect(() => {
         const fetchDiscounts = async () => {
@@ -50,21 +47,6 @@ const BusinessProfilePage: React.FC<BusinessProfilePageProps> = ({ business, cus
         fetchDiscounts();
         fetchQrDesigns();
     }, [business.id]);
-
-    useEffect(() => {
-        if (business.latitude && business.longitude && typeof L !== 'undefined' && !mapRef.current) {
-            const map = L.map('map-display', {
-                center: [business.latitude, business.longitude],
-                zoom: 15,
-                scrollWheelZoom: false,
-                dragging: false,
-                zoomControl: true,
-            });
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-            L.marker([business.latitude, business.longitude]).addTo(map);
-            mapRef.current = map;
-        }
-    }, [business.latitude, business.longitude]);
 
     const handleLeave = async () => {
         const confirmed = window.confirm(t('leaveConfirm'));
@@ -153,11 +135,20 @@ const BusinessProfilePage: React.FC<BusinessProfilePageProps> = ({ business, cus
                 </div>
                 
                 {/* Location */}
-                {business.latitude && business.longitude && (
+                {business.address_text && (
                     <div className="bg-white p-6 rounded-lg shadow-md mb-6">
                         <h3 className="text-xl font-bold mb-4">{t('location')}</h3>
-                        {business.address_text && <p className="text-gray-700 mb-4">{business.address_text}</p>}
-                        <div id="map-display" style={{ height: '300px', width: '100%'}} className="rounded-lg border"></div>
+                        <p className="text-gray-700 mb-4">{business.address_text}</p>
+                        <div className="aspect-w-16 aspect-h-9 rounded-lg overflow-hidden border">
+                             <iframe
+                                className="w-full h-full"
+                                loading="lazy"
+                                allowFullScreen
+                                referrerPolicy="no-referrer-when-downgrade"
+                                src={`https://www.google.com/maps?q=${encodeURIComponent(business.address_text)}&output=embed`}
+                              >
+                              </iframe>
+                        </div>
                     </div>
                 )}
 

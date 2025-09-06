@@ -1,3 +1,4 @@
+
 import { Customer, ScanResult, Business, Membership, Discount, QrStyle, BusinessQrDesign } from '../types';
 import supabase from './supabaseClient';
 import { generateQrCode } from './qrGenerator';
@@ -157,6 +158,19 @@ export const leaveBusiness = async (customerId: string, businessId: string): Pro
     }
     return { success: true };
 }
+
+export const deleteCustomerAccount = async (customerId: string): Promise<{ success: boolean }> => {
+    const { error } = await supabase
+        .from('customers')
+        .delete()
+        .eq('id', customerId);
+
+    if (error) {
+        console.error('Error deleting customer account:', error);
+        return { success: false };
+    }
+    return { success: true };
+};
 
 
 // ====== BUSINESS-FACING APIs ======

@@ -1,14 +1,23 @@
 -- ================================================================
--- DATABASE MIGRATION SCRIPT (v5) - Business Location
+-- DATABASE MIGRATION SCRIPT (v6) - Google Maps Integration
 -- ================================================================
--- This script UPDATES your existing tables without deleting data.
+-- This script simplifies the location data by removing latitude/longitude,
+-- as they are no longer needed for the Google Maps iframe embed.
 -- ================================================================
 
--- Step 1: Add location columns to the `businesses` table.
+-- Step 1: Remove latitude and longitude columns from the `businesses` table.
 ALTER TABLE public.businesses
-ADD COLUMN IF NOT EXISTS address_text text,
-ADD COLUMN IF NOT EXISTS latitude double precision,
-ADD COLUMN IF NOT EXISTS longitude double precision;
+DROP COLUMN IF EXISTS latitude,
+DROP COLUMN IF EXISTS longitude;
+
+
+-- ================================================================
+-- PREVIOUS MIGRATION SCRIPT (v5) - Included for completeness
+-- ================================================================
+
+-- Step 1: Add location column to the `businesses` table.
+ALTER TABLE public.businesses
+ADD COLUMN IF NOT EXISTS address_text text;
 
 
 -- ================================================================

@@ -48,8 +48,6 @@ export interface Business {
 
   // Location
   address_text?: string | null;
-  latitude?: number | null;
-  longitude?: number | null;
 }
 
 export interface Membership {
