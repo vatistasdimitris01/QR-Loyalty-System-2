@@ -5,7 +5,7 @@ import { loginBusinessWithQrToken } from '../services/api';
 
 declare global {
   interface Window {
-    $crisp: any[];
+    tidioChatApi: any;
   }
 }
 
@@ -41,16 +41,15 @@ const LandingPage: React.FC = () => {
 
     const handleGeneralContactClick = (e: React.MouseEvent) => {
         e.preventDefault();
-        if (window.$crisp) {
-            window.$crisp.push(['do', 'chat:open']);
+        if (window.tidioChatApi) {
+            window.tidioChatApi.open();
         }
     };
 
     const handleBusinessSignupClick = (e: React.MouseEvent) => {
         e.preventDefault();
-        if (window.$crisp) {
-            window.$crisp.push(["set", "message:text", ["Hi! I'd like to create a business account."]]);
-            window.$crisp.push(['do', 'chat:open']);
+        if (window.tidioChatApi) {
+            window.tidioChatApi.open();
         }
     };
 
