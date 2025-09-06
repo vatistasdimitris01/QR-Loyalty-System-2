@@ -1,3 +1,4 @@
+
 import { Customer, ScanResult, Business, Membership, Discount, QrStyle, BusinessQrDesign, Post, BusinessAnalytics, DailyAnalyticsData } from '../types';
 import supabase from './supabaseClient';
 import { generateQrCode } from './qrGenerator';
@@ -545,4 +546,42 @@ export const deleteBusinessQrDesign = async (designId: string): Promise<{ succes
         return { success: false };
     }
     return { success: true };
+};
+
+// ====== ADMIN APIs ======
+
+export const getAllBusinesses = async (): Promise<Business[]> => {
+  const { data, error } = await supabase.from('businesses').select('*').order('created_at', { ascending: false });
+  if (error) {
+      console.error('Error fetching all businesses:', error);
+      return [];
+  }
+  return data || [];
+};
+
+export const getAllCustomers = async (): Promise<Customer[]> => {
+  const { data, error } = await supabase.from('customers').select('*').order('created_at', { ascending: false });
+  if (error) {
+      console.error('Error fetching all customers:', error);
+      return [];
+  }
+  return data || [];
+};
+
+export const getAllPosts = async (): Promise<Post[]> => {
+  const { data, error } = await supabase.from('posts').select('*, businesses(public_name)').order('created_at', { ascending: false });
+  if (error) {
+      console.error('Error fetching all posts:', error);
+      return [];
+  }
+  return (data as Post[]) || [];
+};
+
+export const getAllMemberships = async (): Promise<Membership[]> => {
+  const { data, error } = await supabase.from('memberships').select('*, businesses(public_name), customers(name, phone_number)').order('updated_at', { ascending: false });
+  if (error) {
+      console.error('Error fetching all memberships:', error);
+      return [];
+  }
+  return (data as Membership[]) || [];
 };

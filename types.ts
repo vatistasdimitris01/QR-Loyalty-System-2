@@ -95,6 +95,8 @@ export interface Post {
     video_url?: string | null;
     price_text?: string | null;
     external_url?: string | null;
+    // FIX: Add 'businesses' property to support joined data from getAllPosts.
+    businesses?: { public_name: string | null } | null;
 }
 
 export interface ScanResult {

@@ -9,12 +9,16 @@ import BusinessSignupPage from './pages/BusinessSignupPage';
 import CustomerSignupPage from './pages/CustomerSignupPage';
 import OneSignalSetup from './components/OneSignalSetup';
 import BusinessEditorPage from './pages/BusinessEditorPage';
+import AdminPage from './pages/AdminPage';
 
 const App: React.FC = () => {
   const path = window.location.pathname;
   const searchParams = new URLSearchParams(window.location.search);
 
   const renderPage = () => {
+    if (path === '/admin') {
+      return <AdminPage />;
+    }
     if (path === '/customer' && searchParams.has('token')) {
       return <CustomerPage qrToken={searchParams.get('token')!} />;
     }
