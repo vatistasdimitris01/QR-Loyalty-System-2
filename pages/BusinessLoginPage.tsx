@@ -83,15 +83,12 @@ const BusinessLoginPage: React.FC = () => {
                 <div className="mt-8 text-center border-t pt-6">
                     <h2 className="font-semibold text-gray-700 text-lg">Create a Business Account</h2>
                     <p className="text-sm text-gray-600 mt-2">
-                        To get started with QRoyal, please contact us via live chat or email to set up your account.
+                        To get started with QRoyal, please contact us via live chat to set up your account.
                     </p>
-                    <div className="flex flex-col sm:flex-row gap-3 mt-4">
+                    <div className="mt-4">
                         <button onClick={handleOpenChat} className="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors text-sm">
                             Chat With Us
                         </button>
-                        <a href="mailto:support@qroyal.com" className="w-full block text-center bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors text-sm">
-                            Email Us
-                        </a>
                     </div>
                 </div>
             </div>
