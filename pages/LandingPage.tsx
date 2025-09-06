@@ -64,17 +64,29 @@ const LandingPage: React.FC = () => {
     const handleScan = (scannedText: string) => {
         setIsScannerOpen(false);
         try {
+            // Case 1: Scanned text is a full URL
             const url = new URL(scannedText);
             const token = url.searchParams.get('token');
-            if (token && token.startsWith('biz_')) {
-                handleLoginWithToken(token);
+
+            if (token) {
+                if (token.startsWith('biz_')) {
+                    handleLoginWithToken(token);
+                } else if (token.startsWith('cust_')) {
+                    window.location.href = `/customer?token=${token}`;
+                } else {
+                     setLoginStatus({ loading: false, error: 'Invalid QR code.' });
+                     setTimeout(() => setLoginStatus({ loading: false, error: '' }), 4000);
+                }
             } else {
-                setLoginStatus({ loading: false, error: 'Not a valid business login QR code.' });
-                setTimeout(() => setLoginStatus({ loading: false, error: '' }), 4000);
+                 setLoginStatus({ loading: false, error: 'QR code does not contain a valid token.' });
+                 setTimeout(() => setLoginStatus({ loading: false, error: '' }), 4000);
             }
         } catch (e) {
+            // Case 2: Scanned text is just the raw token string
             if (scannedText.startsWith('biz_')) {
                 handleLoginWithToken(scannedText);
+            } else if (scannedText.startsWith('cust_')) {
+                window.location.href = `/customer?token=${scannedText}`;
             } else {
                 setLoginStatus({ loading: false, error: 'Invalid QR code format.' });
                 setTimeout(() => setLoginStatus({ loading: false, error: '' }), 4000);
