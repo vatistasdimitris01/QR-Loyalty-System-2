@@ -1,9 +1,12 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Business, BusinessQrDesign, QrStyle } from '../types';
 import { useLanguage } from '../context/LanguageContext';
 import { generateQrCode } from '../services/qrGenerator';
 import { updateBusiness, getBusinessQrDesigns, createBusinessQrDesign, deleteBusinessQrDesign } from '../services/api';
 import { Spinner } from '../components/common';
+
+declare const L: any; // Declare Leaflet global
+declare const window: any; // Declare window for GeoSearch
 
 const BusinessEditorPage: React.FC = () => {
     const { t } = useLanguage();
@@ -17,6 +20,10 @@ const BusinessEditorPage: React.FC = () => {
     // State for QR Designs
     const [designs, setDesigns] = useState<BusinessQrDesign[]>([]);
     const [newDesign, setNewDesign] = useState<QrStyle>({ qr_color: '#000000', qr_dot_style: 'square', qr_eye_shape: 'square', qr_logo_url: '' });
+    
+    // Map refs
+    const mapRef = useRef<any>(null);
+    const markerRef = useRef<any>(null);
 
     const fetchDesigns = useCallback(async (businessId: string) => {
         const fetchedDesigns = await getBusinessQrDesigns(businessId);
@@ -44,6 +51,9 @@ const BusinessEditorPage: React.FC = () => {
                 points_per_scan: parsed.points_per_scan || 1,
                 reward_threshold: parsed.reward_threshold || 5,
                 reward_message: parsed.reward_message || '',
+                address_text: parsed.address_text || '',
+                latitude: parsed.latitude || null,
+                longitude: parsed.longitude || null,
             });
             fetchDesigns(parsed.id);
         }
@@ -61,10 +71,56 @@ const BusinessEditorPage: React.FC = () => {
             generateQrCode(business.qr_token, qrOptions).then(setPreviewQr);
         }
     }, [business, formState.qr_logo_url, formState.qr_color, formState.qr_eye_shape, formState.qr_dot_style]);
+    
+    // Map Initialization Effect
+    useEffect(() => {
+        if (typeof L === 'undefined' || typeof window.GeoSearch === 'undefined' || !business) {
+            return;
+        }
+
+        const initialLat = formState.latitude || 37.9838; // Default to Athens
+        const initialLng = formState.longitude || 23.7275;
+        const initialZoom = formState.latitude ? 16 : 10;
+
+        if (!mapRef.current) {
+            const map = L.map('map-editor').setView([initialLat, initialLng], initialZoom);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+
+            const search = new window.GeoSearch.GeoSearchControl({
+                provider: new window.GeoSearch.OpenStreetMapProvider(),
+                style: 'bar',
+                showMarker: false, // We'll handle the marker ourselves
+            });
+            map.addControl(search);
+
+            map.on('geosearch/showlocation', (result: any) => {
+                const { x: lng, y: lat, label } = result.location;
+                setFormState(prev => ({ ...prev, latitude: lat, longitude: lng, address_text: label }));
+                
+                const newLatLng = new L.LatLng(lat, lng);
+                if (markerRef.current) {
+                    markerRef.current.setLatLng(newLatLng);
+                } else {
+                    markerRef.current = L.marker(newLatLng).addTo(map);
+                }
+                map.setView(newLatLng, 16);
+            });
+
+            mapRef.current = map;
+        }
+
+        // Add initial marker if location exists
+        if (formState.latitude && formState.longitude && !markerRef.current) {
+            markerRef.current = L.marker([formState.latitude, formState.longitude]).addTo(mapRef.current);
+        }
+
+    }, [business, formState.latitude, formState.longitude]);
+
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
-        // Ensure numeric fields are stored as numbers
         if (name === 'points_per_scan' || name === 'reward_threshold') {
              setFormState({ ...formState, [name]: parseInt(value, 10) || 0 });
         } else {
@@ -144,6 +200,17 @@ const BusinessEditorPage: React.FC = () => {
                             <InputField label={t('instagram')} name="instagram_url" value={formState.instagram_url || ''} onChange={handleChange} placeholder="https://instagram.com/..." />
                         </div>
                     </div>
+
+                     {/* Business Location */}
+                    <div className="bg-white p-6 rounded-lg shadow-md space-y-6">
+                        <div>
+                            <h2 className="text-xl font-bold text-gray-800">{t('businessLocation')}</h2>
+                            <p className="text-sm text-gray-500">{t('searchAddress')}</p>
+                        </div>
+                        <InputField label={t('address')} name="address_text" value={formState.address_text || ''} onChange={handleChange} placeholder="Address will appear here after search" />
+                        <div id="map-editor" style={{ height: '400px', width: '100%' }} className="rounded-lg border"></div>
+                    </div>
+
 
                     {/* Loyalty Program */}
                     <div className="bg-white p-6 rounded-lg shadow-md space-y-6">

@@ -1,8 +1,18 @@
 -- ================================================================
--- DATABASE MIGRATION SCRIPT (v4) - Customizable Loyalty & QR
+-- DATABASE MIGRATION SCRIPT (v5) - Business Location
 -- ================================================================
 -- This script UPDATES your existing tables without deleting data.
--- It is safe to run on a database with existing customers and businesses.
+-- ================================================================
+
+-- Step 1: Add location columns to the `businesses` table.
+ALTER TABLE public.businesses
+ADD COLUMN IF NOT EXISTS address_text text,
+ADD COLUMN IF NOT EXISTS latitude double precision,
+ADD COLUMN IF NOT EXISTS longitude double precision;
+
+
+-- ================================================================
+-- PREVIOUS MIGRATION SCRIPT (v4) - Included for completeness
 -- ================================================================
 
 -- Step 1: Add customizable loyalty program columns to `businesses` table.

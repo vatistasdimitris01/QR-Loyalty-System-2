@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { Membership, Business, Customer } from '../types';
-import { getMembershipsForBusiness, provisionCustomerForBusiness } from '../services/api';
+import { getMembershipsForBusiness, provisionCustomerForBusiness, removeMembership } from '../services/api';
 import { Spinner, CreateCustomerModal, UserAddIcon, CustomerQRModal } from '../components/common';
 
 const StatCard: React.FC<{ title: string; value: string | number; icon: React.ReactNode }> = ({ title, value, icon }) => (
@@ -92,6 +92,17 @@ const BusinessPage: React.FC = () => {
         setIsQrModalOpen(true);
     };
 
+    const handleRemoveCustomer = async (customerId: string) => {
+        if (business && window.confirm(t('removeConfirm'))) {
+            const result = await removeMembership(customerId, business.id);
+            if (result.success) {
+                setMemberships(prev => prev.filter(m => m.customer_id !== customerId));
+            } else {
+                alert('Failed to remove customer. Please try again.');
+            }
+        }
+    };
+
     const stats = useMemo(() => {
         const totalCustomers = memberships.length;
         return { totalCustomers };
@@ -151,6 +162,7 @@ const BusinessPage: React.FC = () => {
                                         <th className="p-3 font-semibold text-gray-600">{t('phoneNumber')}</th>
                                         <th className="p-3 font-semibold text-gray-600">{t('points')}</th>
                                         <th className="p-3 font-semibold text-gray-600">QR Code</th>
+                                        <th className="p-3 font-semibold text-gray-600">{t('actions')}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -167,10 +179,18 @@ const BusinessPage: React.FC = () => {
                                                     View
                                                 </button>
                                             </td>
+                                            <td className="p-3">
+                                                <button
+                                                    onClick={() => handleRemoveCustomer(membership.customers.id)}
+                                                    className="bg-red-100 text-red-700 font-semibold py-1 px-3 rounded-lg text-sm hover:bg-red-200"
+                                                >
+                                                    {t('remove')}
+                                                </button>
+                                            </td>
                                         </tr>
                                     )) : (
                                         <tr>
-                                            <td colSpan={4} className="text-center p-6 text-gray-500">No customers have joined yet.</td>
+                                            <td colSpan={5} className="text-center p-6 text-gray-500">No customers have joined yet.</td>
                                         </tr>
                                     )}
                                 </tbody>

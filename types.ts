@@ -45,6 +45,11 @@ export interface Business {
   points_per_scan?: number;
   reward_threshold?: number;
   reward_message?: string | null;
+
+  // Location
+  address_text?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
 }
 
 export interface Membership {

@@ -277,6 +277,19 @@ export const getMembershipsForBusiness = async (businessId: string): Promise<Mem
     return (data as Membership[]) || [];
 }
 
+export const removeMembership = async (customerId: string, businessId: string): Promise<{ success: boolean }> => {
+    const { error } = await supabase
+        .from('memberships')
+        .delete()
+        .match({ customer_id: customerId, business_id: businessId });
+
+    if (error) {
+        console.error('Error removing membership:', error);
+        return { success: false };
+    }
+    return { success: true };
+};
+
 export const loginBusiness = async (email: string, password: string): Promise<{ success: boolean; business?: Business; message?: string }> => {
     const { data, error } = await supabase
         .from('businesses')
