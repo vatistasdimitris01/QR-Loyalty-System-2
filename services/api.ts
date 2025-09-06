@@ -1,4 +1,3 @@
-
 import { Customer, ScanResult, Business } from '../types';
 import supabase from './supabaseClient';
 import { REWARD_THRESHOLD } from '../constants';
@@ -43,9 +42,10 @@ export const awardPoints = async (qrToken: string): Promise<ScanResult> => {
 
     const { data: updatedCustomer, error: updateError } = await supabase
       .from('customers')
+      .update({ points: newPoints, points_updated_at: new Date().toISOString() })
       .eq('id', customerRecord.id)
-      .single()
-      .update({ points: newPoints, points_updated_at: new Date().toISOString() });
+      .select()
+      .single();
 
     if (updateError || !updatedCustomer) {
       return { success: false, message: 'Failed to update customer points.' };
@@ -68,9 +68,11 @@ export const awardPoints = async (qrToken: string): Promise<ScanResult> => {
 export const updateCustomer = async (id: string, updatedData: Partial<Customer>): Promise<Customer | null> => {
     const { data, error } = await supabase
         .from('customers')
+        .update(updatedData)
         .eq('id', id)
-        .single()
-        .update(updatedData);
+        .select()
+        .single();
+
     if (error) {
         console.error(`Error updating customer ${id}:`, error);
         return null;
@@ -83,7 +85,7 @@ export const updateCustomerPhoneNumber = async (id: string, phoneNumber: string)
 };
 
 export const deleteCustomer = async (id: string): Promise<boolean> => {
-    const { error } = await supabase.from('customers').eq('id', id).delete();
+    const { error } = await supabase.from('customers').delete().eq('id', id);
     if (error) {
         console.error(`Error deleting customer ${id}:`, error);
         return false;
@@ -106,7 +108,8 @@ export const createCustomer = async (name: string): Promise<Customer | null> => 
 
     const { data, error } = await supabase
         .from('customers')
-        .insert(newCustomerData);
+        .insert(newCustomerData)
+        .select();
 
     if (error) {
         console.error('Error creating customer:', error);
@@ -171,7 +174,8 @@ export const signupBusiness = async (businessData: Omit<Business, 'id' | 'create
             password: businessData.password,
             qrToken,
             qrDataUrl
-        });
+        })
+        .select();
     
     if (error || !data || data.length === 0) {
         return { success: false, message: 'Failed to create business.' };
@@ -207,7 +211,8 @@ export const signupCustomer = async (phoneNumber: string, password: string): Pro
 
     const { data, error } = await supabase
         .from('customers')
-        .insert(newCustomerData);
+        .insert(newCustomerData)
+        .select();
 
     if (error || !data || data.length === 0) {
         console.error('Error creating customer:', error);
