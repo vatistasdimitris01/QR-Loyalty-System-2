@@ -115,6 +115,67 @@ const AnalyticsDashboard: React.FC<{business: Business, onBusinessUpdate: (b: Bu
     const [dailyData, setDailyData] = useState<DailyAnalyticsData[]>([]);
     const [isScannerModalOpen, setIsScannerModalOpen] = useState(false);
 
+    const [isEditMode, setIsEditMode] = useState(false);
+    const layoutStorageKey = `qroyal-dashboard-layout-${business.id}`;
+    
+    const componentKeys = {
+        NEW_MEMBERS: 'newMembers',
+        POINTS_AWARDED: 'pointsAwarded',
+        TOTAL_CUSTOMERS: 'totalCustomers',
+        LOYALTY_SETTINGS: 'loyaltySettings',
+        SCAN_QR: 'scanQr',
+        LOGIN_QR: 'loginQr',
+    };
+    
+    const [componentOrder, setComponentOrder] = useState<string[]>(Object.values(componentKeys));
+
+    useEffect(() => {
+        const savedLayout = localStorage.getItem(layoutStorageKey);
+        if (savedLayout) {
+            try {
+                const parsedLayout = JSON.parse(savedLayout);
+                if (Array.isArray(parsedLayout) && parsedLayout.every(key => Object.values(componentKeys).includes(key)) && parsedLayout.length === Object.values(componentKeys).length) {
+                   setComponentOrder(parsedLayout);
+                } else {
+                   // Clean up corrupted layout from storage
+                   localStorage.removeItem(layoutStorageKey);
+                }
+            } catch (e) { 
+                console.error("Failed to parse saved layout", e);
+                localStorage.removeItem(layoutStorageKey);
+            }
+        }
+    }, [layoutStorageKey]);
+
+    const handleSaveLayout = () => {
+        localStorage.setItem(layoutStorageKey, JSON.stringify(componentOrder));
+        setIsEditMode(false);
+    };
+
+    const dragItem = useRef<number | null>(null);
+    const dragOverItem = useRef<number | null>(null);
+
+    const handleDragStart = (index: number) => {
+        dragItem.current = index;
+    };
+
+    const handleDragEnter = (index: number) => {
+        dragOverItem.current = index;
+    };
+
+    const handleDrop = () => {
+        if (dragItem.current === null || dragOverItem.current === null || dragItem.current === dragOverItem.current) {
+            return;
+        }
+        const newOrder = [...componentOrder];
+        const draggedItemContent = newOrder.splice(dragItem.current, 1)[0];
+        newOrder.splice(dragOverItem.current, 0, draggedItemContent);
+        setComponentOrder(newOrder);
+        dragItem.current = null;
+        dragOverItem.current = null;
+    };
+
+
     const fetchData = useCallback(async () => {
         const [analyticsData, dailyAnalyticsData] = await Promise.all([
             getBusinessAnalytics(business.id),
@@ -128,38 +189,70 @@ const AnalyticsDashboard: React.FC<{business: Business, onBusinessUpdate: (b: Bu
         fetchData();
     }, [fetchData]);
     
+    const componentsMap: Record<string, React.ReactNode> = {
+        [componentKeys.NEW_MEMBERS]: (
+            <AnalyticsAreaChartCard 
+                title="New Members"
+                total={analytics?.new_members_7d}
+                data={dailyData}
+                dataKey="new_members_count"
+                color="#3b82f6"
+            />
+        ),
+        [componentKeys.POINTS_AWARDED]: (
+            <AnalyticsAreaChartCard 
+                title="Points Awarded"
+                total={analytics?.points_awarded_7d}
+                data={dailyData}
+                dataKey="points_awarded_sum"
+                color="#10b981"
+            />
+        ),
+        [componentKeys.TOTAL_CUSTOMERS]: <StatCard title={t('totalCustomers')} value={analytics?.total_customers ?? '...'} />,
+        [componentKeys.LOYALTY_SETTINGS]: <LoyaltySettingsEditor business={business} onUpdate={onBusinessUpdate} />,
+        [componentKeys.SCAN_QR]: <QuickActionCard title={t('scanCustomerQR')} description="Award points to a customer." onClick={() => setIsScannerModalOpen(true)} icon={<CameraIcon className="h-6 w-6"/>} />,
+        [componentKeys.LOGIN_QR]: (
+            <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm text-center">
+                <h3 className="font-bold text-lg mb-2">Business Login QR</h3>
+                <img src={business.qr_data_url} alt="Business Login QR Code" className="w-40 h-40 mx-auto rounded-lg" />
+                <p className="text-xs text-gray-500 mt-2">Scan this to log in quickly from any device.</p>
+            </div>
+        )
+    };
+    
     return (
         <>
             <BusinessScannerModal isOpen={isScannerModalOpen} onClose={() => setIsScannerModalOpen(false)} businessId={business.id} onScanSuccess={fetchData} />
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2 space-y-6">
-                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <AnalyticsAreaChartCard 
-                            title="New Members"
-                            total={analytics?.new_members_7d}
-                            data={dailyData}
-                            dataKey="new_members_count"
-                            color="#3b82f6"
-                        />
-                        <AnalyticsAreaChartCard 
-                            title="Points Awarded"
-                            total={analytics?.points_awarded_7d}
-                            data={dailyData}
-                            dataKey="points_awarded_sum"
-                            color="#10b981"
-                        />
+            <div className="flex justify-end mb-4 gap-2">
+                {isEditMode ? (
+                    <>
+                        <button onClick={() => setIsEditMode(false)} className="bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300 text-sm">Cancel</button>
+                        <button onClick={handleSaveLayout} className="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 text-sm">Save Layout</button>
+                    </>
+                ) : (
+                    <button onClick={() => setIsEditMode(true)} className="bg-white text-gray-700 font-semibold py-2 px-4 rounded-lg hover:bg-gray-100 border text-sm flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                        Edit Layout
+                    </button>
+                )}
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {componentOrder.map((key, index) => (
+                    <div
+                        key={key}
+                        draggable={isEditMode}
+                        onDragStart={() => handleDragStart(index)}
+                        onDragEnter={() => handleDragEnter(index)}
+                        onDragEnd={handleDrop}
+                        onDragOver={(e) => e.preventDefault()}
+                        className={isEditMode ? 'rounded-xl' : ''}
+                    >
+                        <div className={`relative h-full transition-all duration-300 ${isEditMode ? 'cursor-move ring-2 ring-blue-500 ring-dashed ring-offset-2 rounded-xl bg-white p-1' : ''}`}>
+                             {isEditMode && <DragHandleIcon />}
+                             {componentsMap[key]}
+                        </div>
                     </div>
-                </div>
-                <div className="space-y-6">
-                    <StatCard title={t('totalCustomers')} value={analytics?.total_customers ?? '...'} />
-                    <LoyaltySettingsEditor business={business} onUpdate={onBusinessUpdate} />
-                    <QuickActionCard title={t('scanCustomerQR')} description="Award points to a customer." onClick={() => setIsScannerModalOpen(true)} icon={<CameraIcon className="h-6 w-6"/>} />
-                    <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm text-center">
-                        <h3 className="font-bold text-lg mb-2">Business Login QR</h3>
-                        <img src={business.qr_data_url} alt="Business Login QR Code" className="w-40 h-40 mx-auto rounded-lg" />
-                        <p className="text-xs text-gray-500 mt-2">Scan this to log in quickly from any device.</p>
-                    </div>
-                </div>
+                ))}
             </div>
         </>
     );
@@ -390,6 +483,14 @@ const DiscountsManager: React.FC<{business: Business}> = ({ business }) => {
 
 // UI & HELPER COMPONENTS
 
+const DragHandleIcon: React.FC = () => (
+    <div className="absolute top-2 right-2 z-10 p-1.5 bg-white/70 rounded-full cursor-grab active:cursor-grabbing hover:bg-white transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
+        </svg>
+    </div>
+);
+
 const TabButton: React.FC<{label: string, isActive: boolean, onClick: () => void}> = ({label, isActive, onClick}) => (
     <button onClick={onClick} className={`py-3 px-1 border-b-2 font-semibold text-sm transition-colors relative ${isActive ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
         {label}
@@ -397,7 +498,7 @@ const TabButton: React.FC<{label: string, isActive: boolean, onClick: () => void
 );
 
 const StatCard: React.FC<{ title: string; value: string | number; }> = ({ title, value }) => (
-    <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm text-center">
+    <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm text-center h-full">
         <p className="text-4xl font-bold text-gray-800">{value}</p>
         <p className="text-sm text-gray-500 mt-1">{title}</p>
     </div>
@@ -459,7 +560,7 @@ const AnalyticsAreaChartCard: React.FC<{
     const gradientId = `gradient-${dataKey}`;
 
     return (
-        <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm">
+        <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm h-full">
             <h3 className="text-sm font-medium text-gray-500">{title}</h3>
             <div className="flex items-baseline gap-2 mt-1">
                 <p className="text-3xl font-bold text-gray-800">{total ?? '...'}</p>
@@ -503,7 +604,7 @@ const LoyaltySettingsEditor: React.FC<{business: Business, onUpdate: (b: Busines
     };
     
     return (
-        <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm">
+        <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm h-full">
             <h3 className="font-bold text-lg mb-2 text-gray-800">{t('loyaltyProgram')}</h3>
             <div className="text-center bg-gray-50 p-4 rounded-lg">
                 <p className="text-sm font-medium text-gray-500">{t('pointsPerScan')}</p>
