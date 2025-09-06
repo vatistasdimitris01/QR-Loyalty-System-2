@@ -49,6 +49,9 @@ export const InstagramIcon: React.FC<{ className?: string }> = ({ className }) =
 export const PhoneIcon: React.FC<{ className?: string }> = ({ className }) => (
     <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
 );
+export const CameraIcon: React.FC<{ className?: string }> = ({ className }) => (
+    <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+);
 
 
 // --- Modals ---
@@ -201,13 +204,20 @@ export const CustomerQRModal: React.FC<{
     if (!customer) return null;
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title={`QR Code for ${customer.name}`}>
-            <div className="text-center">
-                <img src={customer.qr_data_url} alt={`QR Code for ${customer.name}`} className="w-64 h-64 mx-auto rounded-lg border" />
-                <p className="mt-2 text-gray-600">{customer.phone_number}</p>
+        <Modal isOpen={isOpen} onClose={onClose} title={`Details for ${customer.name}`}>
+            <div className="text-center space-y-4">
+                <img src={customer.qr_data_url} alt={`QR Code for ${customer.name}`} className="w-56 h-56 mx-auto rounded-lg border" />
+                
+                <div className="text-left bg-gray-50 p-3 rounded-lg">
+                    <p><strong>Name:</strong> {customer.name}</p>
+                    <p><strong>Phone:</strong> {customer.phone_number}</p>
+                    <p><strong>ID:</strong> <code className="text-sm">{customer.id}</code></p>
+                    <p><strong>Token:</strong> <code className="text-sm">{customer.qr_token}</code></p>
+                </div>
+                
                 <button
                     onClick={handlePrint}
-                    className="mt-6 w-full bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+                    className="w-full bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v6a2 2 0 002 2h12a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z" clipRule="evenodd" /></svg>
                     {t('printQr')}

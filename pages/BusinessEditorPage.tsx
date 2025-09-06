@@ -5,7 +5,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { generateQrCode } from '../services/qrGenerator';
 import { 
     updateBusiness, getBusinessQrDesigns, createBusinessQrDesign, deleteBusinessQrDesign,
-    getPostsForBusiness, createPost, deletePost,
+    getPostsForBusiness, createPost, updatePost, deletePost,
     getProductsForBusiness, createProduct, deleteProduct,
     getDiscountsForBusiness, createDiscount, deleteDiscount
 } from '../services/api';
@@ -78,11 +78,10 @@ const BusinessEditorPage: React.FC = () => {
                  <div className="border-b border-gray-200 mb-6">
                     <nav className="-mb-px flex space-x-6 overflow-x-auto">
                         <TabButton label={t('publicProfile')} isActive={activeTab === 'profile'} onClick={() => setActiveTab('profile')} />
-                        {/* FIX: Changed t('branding') to a valid translation key t('qrCustomization') */}
                         <TabButton label={t('qrCustomization')} isActive={activeTab === 'branding'} onClick={() => setActiveTab('branding')} />
                         <TabButton label={t('loyaltyProgram')} isActive={activeTab === 'loyalty'} onClick={() => setActiveTab('loyalty')} />
                         <TabButton label={t('location')} isActive={activeTab === 'location'} onClick={() => setActiveTab('location')} />
-                        <TabButton label={t('posts')} isActive={activeTab === 'posts'} onClick={() => setActiveTab('posts')} />
+                        <TabButton label={t('managePosts')} isActive={activeTab === 'posts'} onClick={() => setActiveTab('posts')} />
                         <TabButton label={t('shop')} isActive={activeTab === 'shop'} onClick={() => setActiveTab('shop')} />
                         <TabButton label={t('discounts')} isActive={activeTab === 'discounts'} onClick={() => setActiveTab('discounts')} />
                     </nav>
@@ -253,7 +252,9 @@ const CustomerQrDesigns: React.FC<{business: Business}> = ({ business }) => {
 const PostsManager: React.FC<{business: Business}> = ({ business }) => {
     const { t } = useLanguage();
     const [posts, setPosts] = useState<Post[]>([]);
-    const [newPost, setNewPost] = useState({ title: '', content: '', image_url: '' });
+    const [editingPost, setEditingPost] = useState<Post | null>(null);
+    const emptyForm: Omit<Post, 'id' | 'business_id' | 'created_at'> = { title: '', content: '', image_url: '', post_type: 'standard', video_url: '', price_text: '', external_url: '' };
+    const [formState, setFormState] = useState(emptyForm);
 
     const fetchPosts = useCallback(async () => {
         const data = await getPostsForBusiness(business.id);
@@ -262,35 +263,65 @@ const PostsManager: React.FC<{business: Business}> = ({ business }) => {
 
     useEffect(() => { fetchPosts(); }, [fetchPosts]);
 
-    const handleCreate = async (e: React.FormEvent) => {
+    useEffect(() => {
+        if (editingPost) {
+            setFormState(editingPost);
+        } else {
+            setFormState(emptyForm);
+        }
+    }, [editingPost]);
+
+    const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+        setFormState(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        const result = await createPost({ ...newPost, business_id: business.id });
-        if(result) {
+        let result;
+        if (editingPost) {
+            result = await updatePost(editingPost.id, formState);
+        } else {
+            result = await createPost({ ...formState, business_id: business.id });
+        }
+        if (result) {
             fetchPosts();
-            setNewPost({ title: '', content: '', image_url: '' });
+            setEditingPost(null);
         }
     };
+    
+    const handleCancelEdit = () => {
+        setEditingPost(null);
+    };
+
     const handleDelete = async (id: string) => {
-        if(window.confirm('Are you sure?')) {
+        if (window.confirm('Are you sure?')) {
             const success = await deletePost(id);
-            if(success) fetchPosts();
+            if (success) fetchPosts();
         }
     };
 
     return (
         <SettingsCard title={t('managePosts')} description={t('managePostsDesc')}>
-            <form onSubmit={handleCreate} className="border p-4 rounded-lg space-y-4 bg-gray-50">
-                <h3 className="font-semibold text-gray-800">{t('newPost')}</h3>
-                <InputField label={t('title')} name="title" value={newPost.title} onChange={(e) => setNewPost({...newPost, title: e.target.value})} />
-                <TextAreaField label={t('content')} name="content" value={newPost.content} onChange={(e) => setNewPost({...newPost, content: e.target.value})} />
-                <InputField label={t('imageUrl')} name="image_url" value={newPost.image_url} onChange={(e) => setNewPost({...newPost, image_url: e.target.value})} />
-                <button type="submit" className="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700">{t('createPost')}</button>
+            <form onSubmit={handleSubmit} className="border p-4 rounded-lg space-y-4 bg-gray-50">
+                <h3 className="font-semibold text-gray-800">{editingPost ? t('editPost') : t('newPost')}</h3>
+                <InputField label={t('title')} name="title" value={formState.title} onChange={handleFormChange} />
+                <SelectField label={t('postType')} name="post_type" value={formState.post_type} onChange={handleFormChange} options={[ {value: 'standard', label: t('standardPost')}, {value: 'discount', label: t('discountOffer')} ]} />
+                <TextAreaField label={t('content')} name="content" value={formState.content || ''} onChange={handleFormChange} />
+                <InputField label={t('imageUrl')} name="image_url" value={formState.image_url || ''} onChange={handleFormChange} />
+                <InputField label={t('videoUrl')} name="video_url" value={formState.video_url || ''} onChange={handleFormChange} placeholder="https://youtube.com/..." />
+                <InputField label={t('priceOffer')} name="price_text" value={formState.price_text || ''} onChange={handleFormChange} placeholder="e.g., $19.99 or 50% OFF" />
+                <InputField label={t('externalLink')} name="external_url" value={formState.external_url || ''} onChange={handleFormChange} placeholder="https://yoursite.com/product" />
+                <div className="flex gap-4">
+                    {editingPost && <button type="button" onClick={handleCancelEdit} className="w-full bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300">{t('cancel')}</button>}
+                    <button type="submit" className="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700">{editingPost ? t('updatePost') : t('createPost')}</button>
+                </div>
             </form>
             <div className="space-y-2 mt-4">
                 {posts.length === 0 ? <p className="text-sm text-gray-500">{t('noPosts')}</p> : posts.map(p => (
                     <div key={p.id} className="flex items-center gap-2 p-2 border rounded-lg bg-white">
                         {p.image_url && <img src={p.image_url} alt="post preview" className="w-12 h-12 rounded object-cover" />}
                         <p className="flex-grow font-semibold">{p.title}</p>
+                        <button onClick={() => setEditingPost(p)} className="text-blue-500 hover:text-blue-700 p-1"><PencilIcon /></button>
                         <button onClick={() => handleDelete(p.id)} className="text-red-500 hover:text-red-700 p-1"><TrashIcon /></button>
                     </div>
                 ))}
@@ -407,6 +438,7 @@ const DiscountsManager: React.FC<{business: Business}> = ({ business }) => {
 
 // --- UI & Helper Components ---
 const TrashIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clipRule="evenodd" /></svg>
+const PencilIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fillRule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clipRule="evenodd" /></svg>
 
 const QrDesignItem: React.FC<{ design: BusinessQrDesign, onDelete: (id: string) => void }> = ({ design, onDelete }) => {
     const [preview, setPreview] = useState('');

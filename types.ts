@@ -15,6 +15,7 @@ export interface Customer {
   qr_data_url: string;
   created_at: string;
   qr_style_preferences?: QrStyle | null;
+  profile_picture_url?: string | null;
 }
 
 export interface Business {
@@ -90,6 +91,10 @@ export interface Post {
     content?: string;
     image_url?: string;
     created_at: string;
+    post_type: 'standard' | 'discount';
+    video_url?: string | null;
+    price_text?: string | null;
+    external_url?: string | null;
 }
 
 export interface Product {

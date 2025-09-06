@@ -14,7 +14,7 @@ export const getCustomerByQrToken = async (qrToken: string): Promise<Customer | 
   return data;
 };
 
-export const updateCustomer = async (id: string, updatedData: Partial<Pick<Customer, 'name' | 'phone_number' | 'qr_style_preferences'>>): Promise<Customer | null> => {
+export const updateCustomer = async (id: string, updatedData: Partial<Pick<Customer, 'name' | 'phone_number' | 'qr_style_preferences' | 'profile_picture_url'>>): Promise<Customer | null> => {
     // If QR style is being updated, regenerate the QR code data URL
     if ('qr_style_preferences' in updatedData && updatedData.qr_style_preferences) {
         const { data: currentCustomer } = await supabase.from('customers').select('qr_token').eq('id', id).single();
@@ -272,18 +272,19 @@ export const awardPoints = async (customerQrToken: string, businessId: string): 
   }
 };
 
-export const getMembershipsForBusiness = async (businessId: string): Promise<Membership[]> => {
+export const searchMembershipsForBusiness = async (businessId: string, searchTerm: string): Promise<Membership[]> => {
     const { data, error } = await supabase
-        .from('memberships')
-        .select('*, customers(*)')
-        .eq('business_id', businessId)
-        .order('updated_at', { ascending: false });
+        .rpc('search_memberships_for_business', {
+            business_id_param: businessId,
+            search_term_param: searchTerm
+        })
+        .select('*, customers(*)');
 
     if (error) {
-        console.error('Error fetching memberships for business:', error);
+        console.error('Error searching memberships for business:', error);
         return [];
     }
-    return (data as Membership[]) || [];
+    return (data as any[]) || [];
 }
 
 export const removeMembership = async (customerId: string, businessId: string): Promise<{ success: boolean }> => {
@@ -439,6 +440,11 @@ export const createPost = async (postData: Omit<Post, 'id' | 'created_at'>): Pro
     if (error) console.error('Error creating post:', error);
     return data;
 };
+export const updatePost = async (postId: string, postData: Partial<Omit<Post, 'id' | 'created_at' | 'business_id'>>): Promise<Post | null> => {
+    const { data, error } = await supabase.from('posts').update(postData).eq('id', postId).select().single();
+    if (error) console.error('Error updating post:', error);
+    return data;
+}
 export const deletePost = async (postId: string) => {
     const { error } = await supabase.from('posts').delete().eq('id', postId);
     if (error) console.error('Error deleting post:', error);

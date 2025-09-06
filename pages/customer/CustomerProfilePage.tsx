@@ -14,6 +14,7 @@ const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ customer, onU
     const { t } = useLanguage();
     const [name, setName] = useState(customer.name);
     const [phone, setPhone] = useState(customer.phone_number);
+    const [pfpUrl, setPfpUrl] = useState(customer.profile_picture_url || '');
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState('');
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -22,7 +23,7 @@ const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ customer, onU
         e.preventDefault();
         setLoading(true);
         setMessage('');
-        const updated = await updateCustomer(customer.id, { name, phone_number: phone });
+        const updated = await updateCustomer(customer.id, { name, phone_number: phone, profile_picture_url: pfpUrl });
         setLoading(false);
         if (updated) {
             onUpdate(updated);
@@ -79,6 +80,17 @@ const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ customer, onU
                                 type="tel"
                                 value={phone}
                                 onChange={(e) => setPhone(e.target.value)}
+                                className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                        </div>
+                         <div>
+                            <label htmlFor="profile-pfp" className="block text-sm font-medium text-gray-700">{t('profilePictureUrl')}</label>
+                            <input
+                                id="profile-pfp"
+                                type="url"
+                                value={pfpUrl}
+                                onChange={(e) => setPfpUrl(e.target.value)}
+                                placeholder="https://..."
                                 className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
                         </div>

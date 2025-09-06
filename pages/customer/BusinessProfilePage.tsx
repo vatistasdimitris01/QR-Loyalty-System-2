@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Business, Discount, Post, Product } from '../../types';
 import { useLanguage } from '../../context/LanguageContext';
 import { getDiscountsForBusiness, leaveBusiness, getPostsForBusiness, getProductsForBusiness } from '../../services/api';
@@ -16,6 +16,32 @@ type ProfileTab = 'posts' | 'shop' | 'discounts' | 'about';
 const BusinessProfilePage: React.FC<BusinessProfilePageProps> = ({ business, customerId, onBack, onLeaveSuccess }) => {
     const { t } = useLanguage();
     const [activeTab, setActiveTab] = useState<ProfileTab>('posts');
+    const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
+    
+    // Responsive Tabs
+    const allTabs: ProfileTab[] = ['posts', 'shop', 'discounts', 'about'];
+    const [visibleTabs, setVisibleTabs] = useState<ProfileTab[]>(allTabs);
+    const [dropdownTabs, setDropdownTabs] = useState<ProfileTab[]>([]);
+    const tabsRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleResize = () => {
+            if (!tabsRef.current) return;
+            // Simple logic: if screen is small (mobile), show 2 tabs + More
+            const screenWidth = window.innerWidth;
+            if (screenWidth < 420) {
+                setVisibleTabs(allTabs.slice(0, 2));
+                setDropdownTabs(allTabs.slice(2));
+            } else {
+                setVisibleTabs(allTabs);
+                setDropdownTabs([]);
+            }
+        };
+        handleResize();
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
 
     const handleLeave = async () => {
         const confirmed = window.confirm(t('leaveConfirm'));
@@ -39,11 +65,16 @@ const BusinessProfilePage: React.FC<BusinessProfilePageProps> = ({ business, cus
         }
     };
 
+    const selectTab = (tab: ProfileTab) => {
+        setActiveTab(tab);
+        setIsMoreMenuOpen(false);
+    }
+
     return (
         <div className="min-h-screen bg-gray-100 font-sans">
-            <header className="fixed top-0 left-0 right-0 bg-white bg-opacity-80 backdrop-blur-sm z-10 flex items-center p-2 shadow-sm">
+            <header className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-sm z-20 flex items-center p-2 shadow-sm">
                 <button onClick={onBack} className="p-2 rounded-full hover:bg-gray-200 transition-colors">
-                   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7 7zM8 12h11" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7 7-7-7h11" transform="rotate(180 11.5 12)"/></svg>
+                   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" /></svg>
                 </button>
                 <h1 className="text-lg font-bold text-gray-800 text-center flex-grow truncate px-2">{business.public_name}</h1>
                 <div className="w-10"></div>
@@ -66,11 +97,27 @@ const BusinessProfilePage: React.FC<BusinessProfilePageProps> = ({ business, cus
                 
                 {/* Tabs */}
                 <div className="sticky top-[56px] z-10 bg-white shadow-sm border-t border-b">
-                    <nav className="flex justify-center">
-                        <TabButton label={t('posts')} isActive={activeTab === 'posts'} onClick={() => setActiveTab('posts')} />
-                        <TabButton label={t('shop')} isActive={activeTab === 'shop'} onClick={() => setActiveTab('shop')} />
-                        <TabButton label={t('discounts')} isActive={activeTab === 'discounts'} onClick={() => setActiveTab('discounts')} />
-                        <TabButton label={t('about')} isActive={activeTab === 'about'} onClick={() => setActiveTab('about')} />
+                    <nav ref={tabsRef} className="flex justify-center relative">
+                        {visibleTabs.map(tab => (
+                             <TabButton key={tab} label={t(tab)} isActive={activeTab === tab} onClick={() => selectTab(tab)} />
+                        ))}
+                        {dropdownTabs.length > 0 && (
+                             <div className="relative">
+                                <button onClick={() => setIsMoreMenuOpen(prev => !prev)} className={`py-3 px-4 font-medium text-sm transition-colors relative flex items-center gap-1 ${dropdownTabs.includes(activeTab) ? 'text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}>
+                                    {t('more')}
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                                </button>
+                                {isMoreMenuOpen && (
+                                    <div className="absolute right-0 mt-2 w-36 bg-white rounded-md shadow-lg z-20 border">
+                                        {dropdownTabs.map(tab => (
+                                            <a key={tab} href="#" onClick={(e) => { e.preventDefault(); selectTab(tab); }} className={`block px-4 py-2 text-sm ${activeTab === tab ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'}`}>
+                                                {t(tab)}
+                                            </a>
+                                        ))}
+                                    </div>
+                                )}
+                             </div>
+                        )}
                     </nav>
                 </div>
 
@@ -104,21 +151,53 @@ const PostsTab: React.FC<{businessId: string}> = ({ businessId }) => {
         });
     }, [businessId]);
 
+    const getYouTubeEmbedUrl = (url: string) => {
+        try {
+            const urlObj = new URL(url);
+            let videoId = urlObj.searchParams.get('v');
+            if (urlObj.hostname === 'youtu.be') {
+                videoId = urlObj.pathname.slice(1);
+            }
+            return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
+        } catch {
+            return null;
+        }
+    };
+
     if (loading) return <div className="flex justify-center py-8"><Spinner /></div>;
     if (posts.length === 0) return <p className="text-center text-gray-500 py-8">{t('noBusinessPosts')}</p>;
 
     return (
         <div className="space-y-6">
-            {posts.map(post => (
-                <div key={post.id} className="bg-white rounded-lg shadow-md overflow-hidden">
-                    {post.image_url && <img src={post.image_url} alt={post.title} className="w-full h-56 object-cover" />}
-                    <div className="p-4">
-                        <h3 className="text-xl font-bold mb-2">{post.title}</h3>
-                        <p className="text-gray-500 text-xs mb-2 uppercase">{new Date(post.created_at).toLocaleString()}</p>
-                        <p className="text-gray-700 whitespace-pre-wrap">{post.content}</p>
+            {posts.map(post => {
+                const embedUrl = post.video_url ? getYouTubeEmbedUrl(post.video_url) : null;
+                return (
+                    <div key={post.id} className="bg-white rounded-lg shadow-md overflow-hidden">
+                        {post.image_url && <img src={post.image_url} alt={post.title} className="w-full h-auto max-h-96 object-cover" />}
+                        {embedUrl && (
+                             <div className="aspect-w-16 aspect-h-9">
+                                <iframe src={embedUrl} frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>
+                            </div>
+                        )}
+                        <div className="p-4">
+                            <h3 className="text-xl font-bold mb-2">{post.title}</h3>
+                            <p className="text-gray-500 text-xs mb-2 uppercase">{new Date(post.created_at).toLocaleString()}</p>
+                            {post.content && <p className="text-gray-700 whitespace-pre-wrap">{post.content}</p>}
+
+                             {(post.price_text || post.external_url) && (
+                                <div className="mt-4 pt-4 border-t flex items-center justify-between gap-4">
+                                    {post.price_text && <span className="text-2xl font-bold text-blue-600">{post.price_text}</span>}
+                                    {post.external_url && (
+                                        <a href={post.external_url} target="_blank" rel="noopener noreferrer" className="bg-blue-600 text-white font-semibold py-2 px-5 rounded-lg text-sm hover:bg-blue-700 transition-colors">
+                                            {t('learnMore')}
+                                        </a>
+                                    )}
+                                </div>
+                            )}
+                        </div>
                     </div>
-                </div>
-            ))}
+                );
+            })}
         </div>
     );
 };
