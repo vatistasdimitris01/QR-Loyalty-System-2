@@ -72,6 +72,13 @@ const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ customer, onU
                     </button>
                 </form>
             </div>
+
+             <a
+                href="/"
+                className="mt-8 w-full bg-red-500 text-white text-center font-bold py-3 rounded-lg hover:bg-red-600 disabled:bg-red-400 flex justify-center items-center"
+            >
+                {t('logout')}
+            </a>
         </div>
     );
 };

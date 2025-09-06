@@ -57,16 +57,22 @@ const BusinessEditorPage: React.FC = () => {
         if (!business) return;
         setIsSaving(true);
         setSaveMessage('');
-        const updatedBusiness = await updateBusiness(business.id, formState);
-        setIsSaving(false);
-        if (updatedBusiness) {
-            sessionStorage.setItem('business', JSON.stringify(updatedBusiness));
-            setBusiness(updatedBusiness);
-            setSaveMessage(t('saveSuccess'));
-        } else {
+        try {
+            const updatedBusiness = await updateBusiness(business.id, formState);
+            if (updatedBusiness) {
+                sessionStorage.setItem('business', JSON.stringify(updatedBusiness));
+                setBusiness(updatedBusiness);
+                setSaveMessage(t('saveSuccess'));
+            } else {
+                setSaveMessage(t('saveError'));
+            }
+        } catch (error) {
+            console.error('Failed to save settings:', error);
             setSaveMessage(t('saveError'));
+        } finally {
+            setIsSaving(false);
+            setTimeout(() => setSaveMessage(''), 5000);
         }
-        setTimeout(() => setSaveMessage(''), 5000);
     };
     
     if (loading) return <div className="flex justify-center items-center h-screen"><Spinner /></div>;
@@ -120,7 +126,7 @@ const BusinessEditorPage: React.FC = () => {
 
              {/* Save Button */}
             <div className="mt-8 flex items-center justify-end gap-4">
-                {saveMessage && <p className="text-green-600 text-sm font-semibold">{saveMessage}</p>}
+                {saveMessage && <p className={`text-sm font-semibold ${saveMessage === t('saveSuccess') ? 'text-green-600' : 'text-red-600'}`}>{saveMessage}</p>}
                 <button onClick={handleSave} disabled={isSaving} className="bg-blue-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-blue-400 flex items-center gap-2">
                     {isSaving && <Spinner className="h-5 w-5 text-white" />}
                     {isSaving ? 'Saving...' : t('saveSettings')}

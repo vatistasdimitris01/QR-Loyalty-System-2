@@ -100,6 +100,14 @@ const translations = {
     updateSuccess: 'Profile updated successfully!',
     joinSuccess: 'Successfully joined business!',
     printQr: 'Print QR',
+    // Business Profile Page (Customer)
+    businessProfile: 'Business Profile',
+    leaveBusiness: 'Leave Business',
+    leaveConfirm: 'Are you sure you want to leave this business? Your points will be permanently lost.',
+    cancel: 'Cancel',
+    leave: 'Leave',
+    noBusinessDiscounts: 'This business currently has no active discounts.',
+    contactInfo: 'Contact Information',
     
   },
   el: {
@@ -201,6 +209,14 @@ const translations = {
     updateSuccess: 'Το προφίλ ενημερώθηκε επιτυχώς!',
     joinSuccess: 'Επιτυχής συμμετοχή στην επιχείρηση!',
     printQr: 'Εκτύπωση QR',
+    // Business Profile Page (Customer)
+    businessProfile: 'Προφίλ Επιχείρησης',
+    leaveBusiness: 'Αποχώρηση από Επιχείρηση',
+    leaveConfirm: 'Είστε σίγουροι ότι θέλετε να αποχωρήσετε από αυτή την επιχείρηση; Οι πόντοι σας θα χαθούν οριστικά.',
+    cancel: 'Άκυρο',
+    leave: 'Αποχώρηση',
+    noBusinessDiscounts: 'Αυτή η επιχείρηση δεν έχει ενεργές προσφορές αυτή τη στιγμή.',
+    contactInfo: 'Στοιχεία Επικοινωνίας',
   },
 };
 

@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { getCustomerByQrToken, updateCustomer, joinBusiness } from '../services/api';
-import { Customer } from '../types';
+import { getCustomerByQrToken, updateCustomer, joinBusiness, getMembershipsForCustomer } from '../services/api';
+import { Customer, Membership, Business } from '../types';
 import { Spinner, CustomerSetupModal, HomeIcon, SearchIcon, UserIcon } from '../components/common';
 import { useLanguage } from '../context/LanguageContext';
 import CustomerHomePage from './customer/CustomerHomePage';
 import CustomerSearchPage from './customer/CustomerSearchPage';
 import CustomerProfilePage from './customer/CustomerProfilePage';
+import BusinessProfilePage from './customer/BusinessProfilePage';
 
 
 interface CustomerPageProps {
@@ -18,20 +19,25 @@ const CustomerPage: React.FC<CustomerPageProps> = ({ qrToken }) => {
   const { t } = useLanguage();
   
   const [customer, setCustomer] = useState<Customer | null>(null);
+  const [memberships, setMemberships] = useState<Membership[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isSetupModalOpen, setIsSetupModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<ActiveTab>('home');
   const [joinMessage, setJoinMessage] = useState('');
+  const [viewingBusiness, setViewingBusiness] = useState<Business | null>(null);
 
-  const fetchCustomer = useCallback(async () => {
+  const fetchCustomerAndMemberships = useCallback(async () => {
     try {
+      setLoading(true);
       const customerData = await getCustomerByQrToken(qrToken);
       if (customerData) {
         setCustomer(customerData);
         if (!customerData.phone_number || customerData.name === 'New Customer') {
             setIsSetupModalOpen(true);
         }
+        const membershipData = await getMembershipsForCustomer(customerData.id);
+        setMemberships(membershipData);
       } else {
         setError(t('customerNotFound'));
       }
@@ -43,8 +49,15 @@ const CustomerPage: React.FC<CustomerPageProps> = ({ qrToken }) => {
   }, [qrToken, t]);
 
   useEffect(() => {
-    fetchCustomer();
-  }, [fetchCustomer]);
+    fetchCustomerAndMemberships();
+  }, [fetchCustomerAndMemberships]);
+
+  const handleJoinSuccess = async () => {
+    if (customer) {
+        const membershipData = await getMembershipsForCustomer(customer.id);
+        setMemberships(membershipData);
+    }
+  };
 
   useEffect(() => {
     const handleAutoJoin = async () => {
@@ -57,6 +70,7 @@ const CustomerPage: React.FC<CustomerPageProps> = ({ qrToken }) => {
             const result = await joinBusiness(customer.id, businessIdToJoin);
             if (result) {
                 setJoinMessage(`${t('joinSuccess')} ${result.business.public_name}!`);
+                handleJoinSuccess();
                 setTimeout(() => setJoinMessage(''), 5000); // Hide message after 5s
             }
             // Remove join param from URL to prevent re-joining on refresh
@@ -77,19 +91,10 @@ const CustomerPage: React.FC<CustomerPageProps> = ({ qrToken }) => {
       }
     }
   };
-
-  const renderContent = () => {
-      if (!customer) return null;
-      switch (activeTab) {
-          case 'home':
-              return <CustomerHomePage customer={customer} />;
-          case 'search':
-              return <CustomerSearchPage customer={customer} />;
-          case 'profile':
-              return <CustomerProfilePage customer={customer} onUpdate={setCustomer} />;
-          default:
-              return <CustomerHomePage customer={customer} />;
-      }
+  
+  const handleLeaveBusiness = () => {
+      setViewingBusiness(null);
+      fetchCustomerAndMemberships();
   }
 
   if (loading) return <div className="min-h-screen bg-gray-100 flex justify-center items-center"><Spinner /></div>;
@@ -102,6 +107,31 @@ const CustomerPage: React.FC<CustomerPageProps> = ({ qrToken }) => {
       </div>
     </div>
   );
+  
+  if (viewingBusiness) {
+      return (
+          <BusinessProfilePage
+            business={viewingBusiness}
+            customerId={customer.id}
+            onBack={() => setViewingBusiness(null)}
+            onLeaveSuccess={handleLeaveBusiness}
+          />
+      )
+  }
+
+  const renderContent = () => {
+      if (!customer) return null;
+      switch (activeTab) {
+          case 'home':
+              return <CustomerHomePage customer={customer} memberships={memberships} onViewBusiness={setViewingBusiness} />;
+          case 'search':
+              return <CustomerSearchPage customer={customer} onJoinSuccess={handleJoinSuccess} />;
+          case 'profile':
+              return <CustomerProfilePage customer={customer} onUpdate={setCustomer} />;
+          default:
+              return <CustomerHomePage customer={customer} memberships={memberships} onViewBusiness={setViewingBusiness} />;
+      }
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 font-sans">

@@ -6,9 +6,10 @@ import { Spinner, SearchIcon } from '../../components/common';
 
 interface CustomerSearchPageProps {
     customer: Customer;
+    onJoinSuccess: () => void;
 }
 
-const CustomerSearchPage: React.FC<CustomerSearchPageProps> = ({ customer }) => {
+const CustomerSearchPage: React.FC<CustomerSearchPageProps> = ({ customer, onJoinSuccess }) => {
     const { t } = useLanguage();
     const [searchTerm, setSearchTerm] = useState('');
     const [results, setResults] = useState<Business[]>([]);
@@ -36,6 +37,7 @@ const CustomerSearchPage: React.FC<CustomerSearchPageProps> = ({ customer }) => 
         const result = await joinBusiness(customer.id, businessId);
         if (result) {
             setJoinedBusinessIds(prev => new Set(prev).add(businessId));
+            onJoinSuccess();
         }
     };
 
@@ -83,7 +85,7 @@ const CustomerSearchPage: React.FC<CustomerSearchPageProps> = ({ customer }) => 
                     ))}
                 </div>
             ) : (
-                <p className="text-center text-gray-500 mt-8">{t('noBusinessesFound')}</p>
+                searchTerm && <p className="text-center text-gray-500 mt-8">{t('noBusinessesFound')}</p>
             )}
         </div>
     );

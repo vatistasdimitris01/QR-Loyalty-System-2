@@ -1,4 +1,4 @@
-import { Customer, ScanResult, Business, Membership } from '../types';
+import { Customer, ScanResult, Business, Membership, Discount } from '../types';
 import supabase from './supabaseClient';
 import { generateQrCode } from './qrGenerator';
 
@@ -117,6 +117,35 @@ export const joinBusiness = async(customerId: string, businessId: string): Promi
         return null;
     }
     return { membership: data, business };
+}
+
+export const getDiscountsForBusiness = async (businessId: string): Promise<Discount[]> => {
+    const { data, error } = await supabase
+        .from('discounts')
+        .select('*')
+        .eq('business_id', businessId)
+        .eq('active', true)
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error(`Error fetching discounts for business ${businessId}:`, error);
+        return [];
+    }
+    return data || [];
+}
+
+export const leaveBusiness = async (customerId: string, businessId: string): Promise<{ success: boolean }> => {
+    const { error } = await supabase
+        .from('memberships')
+        .delete()
+        .eq('customer_id', customerId)
+        .eq('business_id', businessId);
+
+    if (error) {
+        console.error('Error leaving business:', error);
+        return { success: false };
+    }
+    return { success: true };
 }
 
 
@@ -306,7 +335,7 @@ export const signupBusiness = async (businessData: Omit<Business, 'id' | 'create
 
 export const updateBusiness = async (id: string, updatedData: Partial<Business>): Promise<Business | null> => {
     // If QR settings are changed, regenerate the business's own QR code
-    if (updatedData.qr_color || updatedData.qr_dot_style || updatedData.qr_eye_shape || updatedData.qr_logo_url) {
+    if ('qr_color' in updatedData || 'qr_dot_style' in updatedData || 'qr_eye_shape' in updatedData || 'qr_logo_url' in updatedData) {
         const { data: currentBusiness } = await supabase.from('businesses').select('qr_token, qr_logo_url, qr_color, qr_eye_shape, qr_dot_style').eq('id', id).single();
         if(currentBusiness) {
             const newQrSettings = { ...currentBusiness, ...updatedData };

@@ -1,28 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { Customer, Membership } from '../../types';
-import { getMembershipsForCustomer } from '../../services/api';
+import React from 'react';
+import { Customer, Membership, Business } from '../../types';
 import { useLanguage } from '../../context/LanguageContext';
 import { Spinner, StarIcon } from '../../components/common';
 
 interface CustomerHomePageProps {
     customer: Customer;
+    memberships: Membership[];
+    onViewBusiness: (business: Business) => void;
 }
 
-const CustomerHomePage: React.FC<CustomerHomePageProps> = ({ customer }) => {
+const CustomerHomePage: React.FC<CustomerHomePageProps> = ({ customer, memberships, onViewBusiness }) => {
     const { t } = useLanguage();
-    const [memberships, setMemberships] = useState<Membership[]>([]);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        const fetchMemberships = async () => {
-            setLoading(true);
-            const data = await getMembershipsForCustomer(customer.id);
-            setMemberships(data);
-            setLoading(false);
-        };
-        fetchMemberships();
-    }, [customer.id]);
-
+    
     return (
         <div className="p-4">
             <header className="text-center mb-6">
@@ -31,16 +20,21 @@ const CustomerHomePage: React.FC<CustomerHomePageProps> = ({ customer }) => {
             
             <h2 className="text-xl font-bold text-gray-800 mb-4">{t('myMemberships')}</h2>
 
-            {loading ? (
-                <div className="flex justify-center mt-8"><Spinner /></div>
-            ) : memberships.length === 0 ? (
+            {memberships.length === 0 ? (
                 <div className="bg-white p-6 rounded-lg shadow-sm text-center text-gray-600">
                     <p>{t('noMemberships')}</p>
                 </div>
             ) : (
                 <div className="space-y-4">
                     {memberships.map(membership => (
-                        <div key={membership.id} className="bg-white p-4 rounded-lg shadow-sm flex items-center justify-between">
+                        <div 
+                            key={membership.id} 
+                            onClick={() => onViewBusiness(membership.businesses)}
+                            className="bg-white p-4 rounded-lg shadow-sm flex items-center justify-between cursor-pointer hover:bg-gray-50 active:scale-95 transition-all"
+                            role="button"
+                            tabIndex={0}
+                            aria-label={`View profile for ${membership.businesses.public_name}`}
+                        >
                             <div className="flex items-center gap-4">
                                 <img 
                                     src={membership.businesses.logo_url || 'https://via.placeholder.com/150'} 
