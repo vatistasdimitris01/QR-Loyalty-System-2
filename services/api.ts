@@ -1,5 +1,5 @@
 
-import { Customer, ScanResult, Business, Membership, Discount, QrStyle, BusinessQrDesign } from '../types';
+import { Customer, ScanResult, Business, Membership, Discount, QrStyle, BusinessQrDesign, Post, Product, BusinessAnalytics } from '../types';
 import supabase from './supabaseClient';
 import { generateQrCode } from './qrGenerator';
 
@@ -151,21 +151,6 @@ export const joinBusiness = async(customerId: string, businessId: string): Promi
     return { membership: data, business };
 }
 
-export const getDiscountsForBusiness = async (businessId: string): Promise<Discount[]> => {
-    const { data, error } = await supabase
-        .from('discounts')
-        .select('*')
-        .eq('business_id', businessId)
-        .eq('active', true)
-        .order('created_at', { ascending: false });
-
-    if (error) {
-        console.error(`Error fetching discounts for business ${businessId}:`, error);
-        return [];
-    }
-    return data || [];
-}
-
 export const leaveBusiness = async (customerId: string, businessId: string): Promise<{ success: boolean }> => {
     const { error } = await supabase
         .from('memberships')
@@ -224,36 +209,27 @@ export const provisionCustomerForBusiness = async (businessId: string): Promise<
 
 export const awardPoints = async (customerQrToken: string, businessId: string): Promise<ScanResult> => {
   try {
-    // 1. Find the customer
     const customer = await getCustomerByQrToken(customerQrToken);
-    if (!customer) {
-      return { success: false, message: 'Customer QR not found.' };
-    }
+    if (!customer) return { success: false, message: 'Customer QR not found.' };
 
-    // 2. Find the business and its loyalty settings
     const { data: business, error: businessError } = await supabase.from('businesses').select('*').eq('id', businessId).single();
-    if (businessError || !business) {
-        return { success: false, message: 'Business not found.' };
-    }
+    if (businessError || !business) return { success: false, message: 'Business not found.' };
+
     const pointsPerScan = business.points_per_scan || 1;
     const rewardThreshold = business.reward_threshold || 5;
     const rewardMessage = business.reward_message || 'You won a reward!';
 
-
-    // 3. Find existing membership
     const { data: membership, error: membershipError } = await supabase
       .from('memberships')
       .select('*')
       .eq('customer_id', customer.id)
       .eq('business_id', businessId)
       .maybeSingle();
-
     if (membershipError) throw membershipError;
 
     let newPointsTotal: number;
     let newMember = false;
 
-    // 4. If membership exists, update points. If not, create it.
     if (membership) {
         newPointsTotal = membership.points + pointsPerScan;
     } else {
@@ -261,36 +237,34 @@ export const awardPoints = async (customerQrToken: string, businessId: string): 
         newMember = true;
     }
 
-    // 5. Check for reward
     const rewardWon = newPointsTotal >= rewardThreshold;
-    const finalPoints = rewardWon ? 0 : newPointsTotal; // Reset points on win
+    const finalPoints = rewardWon ? 0 : newPointsTotal;
     const pointsAwarded = newMember ? newPointsTotal : pointsPerScan;
 
-    // 6. Upsert membership
-     const { error: upsertError } = await supabase
+    const { error: upsertError } = await supabase
         .from('memberships')
         .upsert({ 
-            id: membership?.id, // Supabase uses id for upsert matching
+            id: membership?.id,
             customer_id: customer.id, 
             business_id: businessId, 
             points: finalPoints,
             updated_at: new Date().toISOString()
         });
     if (upsertError) throw upsertError;
-    
+
+    // Log scan for analytics
+    const { error: logError } = await supabase.from('scan_logs').insert({
+        business_id: businessId,
+        customer_id: customer.id,
+        points_awarded: pointsAwarded,
+        reward_claimed: rewardWon
+    });
+    if (logError) console.error("Error logging scan:", logError);
+
     let message = `+${pointsAwarded} point${pointsAwarded > 1 ? 's' : ''} for ${customer.name}!`;
     if (newMember) message = `${customer.name} just joined and earned ${pointsAwarded} point${pointsAwarded > 1 ? 's' : ''}!`;
 
-    return { 
-        success: true, 
-        message: message,
-        customer,
-        business,
-        newPointsTotal: finalPoints,
-        newMember,
-        rewardWon,
-        rewardMessage
-    };
+    return { success: true, message, customer, business, newPointsTotal: finalPoints, newMember, rewardWon, rewardMessage };
 
   } catch (error) {
     console.error('Error in awardPoints:', error);
@@ -382,7 +356,7 @@ export const signupBusiness = async (businessData: Omit<Business, 'id' | 'create
         .from('businesses')
         .insert({
             name: businessData.name,
-            public_name: businessData.name, // Default public name to internal name
+            public_name: businessData.name,
             email: businessData.email,
             password: businessData.password,
             qr_token,
@@ -403,7 +377,6 @@ export const signupBusiness = async (businessData: Omit<Business, 'id' | 'create
 
 
 export const updateBusiness = async (id: string, updatedData: Partial<Business>): Promise<Business | null> => {
-    // If QR settings are changed, regenerate the business's own QR code
     if ('qr_color' in updatedData || 'qr_dot_style' in updatedData || 'qr_eye_shape' in updatedData || 'qr_logo_url' in updatedData) {
         const { data: currentBusiness } = await supabase.from('businesses').select('qr_token, qr_logo_url, qr_color, qr_eye_shape, qr_dot_style').eq('id', id).single();
         if(currentBusiness) {
@@ -412,7 +385,6 @@ export const updateBusiness = async (id: string, updatedData: Partial<Business>)
         }
     }
 
-    // If address is updated, geocode it
     if ('address_text' in updatedData) {
         try {
             const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(updatedData.address_text || '')}&format=json&limit=1`);
@@ -445,6 +417,66 @@ export const updateBusiness = async (id: string, updatedData: Partial<Business>)
     const { password: _, ...businessData } = data;
     return businessData as Business;
 };
+
+// ====== BUSINESS CONTENT APIs ======
+
+export const getBusinessAnalytics = async (businessId: string): Promise<BusinessAnalytics | null> => {
+    const { data, error } = await supabase.rpc('get_business_analytics', { p_business_id: businessId }).single();
+    if (error) {
+        console.error('Error fetching analytics:', error);
+        return null;
+    }
+    return data;
+};
+
+export const getPostsForBusiness = async (businessId: string): Promise<Post[]> => {
+    const { data, error } = await supabase.from('posts').select('*').eq('business_id', businessId).order('created_at', { ascending: false });
+    if (error) console.error('Error fetching posts:', error);
+    return data || [];
+};
+export const createPost = async (postData: Omit<Post, 'id' | 'created_at'>): Promise<Post | null> => {
+    const { data, error } = await supabase.from('posts').insert(postData).select().single();
+    if (error) console.error('Error creating post:', error);
+    return data;
+};
+export const deletePost = async (postId: string) => {
+    const { error } = await supabase.from('posts').delete().eq('id', postId);
+    if (error) console.error('Error deleting post:', error);
+    return !error;
+};
+
+export const getProductsForBusiness = async (businessId: string): Promise<Product[]> => {
+    const { data, error } = await supabase.from('products').select('*').eq('business_id', businessId).order('created_at', { ascending: false });
+    if (error) console.error('Error fetching products:', error);
+    return data || [];
+};
+export const createProduct = async (productData: Omit<Product, 'id' | 'created_at'>): Promise<Product | null> => {
+    const { data, error } = await supabase.from('products').insert(productData).select().single();
+    if (error) console.error('Error creating product:', error);
+    return data;
+};
+export const deleteProduct = async (productId: string) => {
+    const { error } = await supabase.from('products').delete().eq('id', productId);
+    if (error) console.error('Error deleting product:', error);
+    return !error;
+};
+
+export const getDiscountsForBusiness = async (businessId: string): Promise<Discount[]> => {
+    const { data, error } = await supabase.from('discounts').select('*').eq('business_id', businessId).eq('active', true).order('created_at', { ascending: false });
+    if (error) console.error('Error fetching discounts:', error);
+    return data || [];
+};
+export const createDiscount = async (discountData: Omit<Discount, 'id' | 'created_at' | 'active'>): Promise<Discount | null> => {
+    const { data, error } = await supabase.from('discounts').insert({ ...discountData, active: true }).select().single();
+    if (error) console.error('Error creating discount:', error);
+    return data;
+};
+export const deleteDiscount = async (discountId: string) => {
+    const { error } = await supabase.from('discounts').delete().eq('id', discountId);
+    if (error) console.error('Error deleting discount:', error);
+    return !error;
+};
+
 
 // ====== BUSINESS QR DESIGN APIs ======
 

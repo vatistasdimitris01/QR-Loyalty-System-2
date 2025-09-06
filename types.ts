@@ -35,6 +35,7 @@ export interface Business {
   // Public Profile
   public_name?: string | null;
   logo_url?: string | null;
+  cover_photo_url?: string | null;
   bio?: string | null;
   website_url?: string | null;
   facebook_url?: string | null;
@@ -69,16 +70,37 @@ export interface Membership {
 
 export interface Discount {
   id: string;
-  business_id?: string | null;
+  business_id: string;
   name: string;
   description?: string;
   image_url?: string;
-  expiry_date?: string;
   active: boolean;
   created_at: string;
+  // FIX: Add missing properties used in DiscountsPage.tsx
   percentage?: number;
+  expiry_date?: string;
   price?: number;
   price_cutoff?: number;
+}
+
+export interface Post {
+    id: string;
+    business_id: string;
+    title: string;
+    content?: string;
+    image_url?: string;
+    created_at: string;
+}
+
+export interface Product {
+    id: string;
+    business_id: string;
+    name: string;
+    description?: string;
+    price?: number;
+    image_url?: string;
+    product_url?: string;
+    created_at: string;
 }
 
 export interface ScanResult {
@@ -97,4 +119,11 @@ export interface BusinessQrDesign extends QrStyle {
   id: string;
   business_id: string;
   created_at: string;
+}
+
+export interface BusinessAnalytics {
+    total_customers: number;
+    new_members_7d: number;
+    points_awarded_7d: number;
+    rewards_claimed_7d: number;
 }

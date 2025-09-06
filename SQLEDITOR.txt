@@ -1,186 +1,83 @@
 -- ================================================================
--- DATABASE MIGRATION SCRIPT (v7) - Nearby & Popular Search
+-- DATABASE MIGRATION SCRIPT (v8) - Content & Analytics
 -- ================================================================
--- This script re-introduces location columns and adds functions
--- to enable searching for businesses by popularity and proximity.
+-- This script adds tables for posts, products, and scan logging,
+-- and a function to power the new business analytics dashboard.
+-- It also adds a cover photo field to businesses.
 -- ================================================================
 
--- Step 1: Add latitude and longitude columns back to the `businesses` table.
+-- Step 1: Add a cover photo URL to the `businesses` table.
 ALTER TABLE public.businesses
-ADD COLUMN IF NOT EXISTS latitude double precision,
-ADD COLUMN IF NOT EXISTS longitude double precision;
+ADD COLUMN IF NOT EXISTS cover_photo_url text;
 
--- Step 2: Create a function to get the most popular businesses (most members).
-CREATE OR REPLACE FUNCTION get_popular_businesses()
+-- Step 2: Create the `posts` table for business announcements.
+CREATE TABLE IF NOT EXISTS public.posts (
+    id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+    business_id uuid NOT NULL REFERENCES public.businesses(id) ON DELETE CASCADE,
+    title text NOT NULL,
+    content text,
+    image_url text,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+ALTER TABLE public.posts ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public can view posts." ON public.posts FOR SELECT USING (true);
+CREATE POLICY "Businesses can manage their own posts." ON public.posts FOR ALL USING (
+    (SELECT id FROM public.businesses WHERE id = business_id) IS NOT NULL
+);
+GRANT ALL ON TABLE public.posts TO anon;
+
+-- Step 3: Create the `products` table for the business shop tab.
+CREATE TABLE IF NOT EXISTS public.products (
+    id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+    business_id uuid NOT NULL REFERENCES public.businesses(id) ON DELETE CASCADE,
+    name text NOT NULL,
+    description text,
+    price numeric(10, 2),
+    image_url text,
+    product_url text,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public can view products." ON public.products FOR SELECT USING (true);
+CREATE POLICY "Businesses can manage their own products." ON public.products FOR ALL USING (
+    (SELECT id FROM public.businesses WHERE id = business_id) IS NOT NULL
+);
+GRANT ALL ON TABLE public.products TO anon;
+
+-- Step 4: Create the `scan_logs` table for analytics.
+CREATE TABLE IF NOT EXISTS public.scan_logs (
+    id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+    business_id uuid NOT NULL REFERENCES public.businesses(id) ON DELETE CASCADE,
+    customer_id uuid NOT NULL REFERENCES public.customers(id) ON DELETE CASCADE,
+    points_awarded integer NOT NULL,
+    reward_claimed boolean DEFAULT false NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+ALTER TABLE public.scan_logs ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Businesses can read their own scan logs." ON public.scan_logs FOR SELECT USING (
+    (SELECT id FROM public.businesses WHERE id = business_id) IS NOT NULL
+);
+-- Service role will be used for inserts from API.
+
+-- Step 5: Create a function to get business analytics.
+CREATE OR REPLACE FUNCTION get_business_analytics(p_business_id uuid)
 RETURNS TABLE (
-    id uuid,
-    name text,
-    email text,
-    qr_token text,
-    qr_data_url text,
-    created_at timestamptz,
-    qr_logo_url text,
-    qr_color text,
-    qr_eye_shape text,
-    qr_dot_style text,
-    public_name text,
-    logo_url text,
-    bio text,
-    website_url text,
-    facebook_url text,
-    instagram_url text,
-    public_phone_number text,
-    points_per_scan integer,
-    reward_threshold integer,
-    reward_message text,
-    address_text text,
-    latitude double precision,
-    longitude double precision,
-    membership_count bigint
+    total_customers bigint,
+    new_members_7d bigint,
+    points_awarded_7d bigint,
+    rewards_claimed_7d bigint
 )
 AS $$
 BEGIN
     RETURN QUERY
     SELECT
-        b.*,
-        COUNT(m.id) as membership_count
-    FROM
-        public.businesses b
-    JOIN
-        public.memberships m ON b.id = m.business_id
-    GROUP BY
-        b.id
-    ORDER BY
-        membership_count DESC
-    LIMIT 20;
+        (SELECT COUNT(*) FROM public.memberships WHERE business_id = p_business_id) AS total_customers,
+        (SELECT COUNT(*) FROM public.memberships WHERE business_id = p_business_id AND created_at >= now() - interval '7 days') AS new_members_7d,
+        (SELECT COALESCE(SUM(points_awarded), 0) FROM public.scan_logs WHERE business_id = p_business_id AND created_at >= now() - interval '7 days') AS points_awarded_7d,
+        (SELECT COUNT(*) FROM public.scan_logs WHERE business_id = p_business_id AND reward_claimed = true AND created_at >= now() - interval '7 days') AS rewards_claimed_7d;
 END;
 $$ LANGUAGE plpgsql;
-
-
--- Step 3: Create a function to get nearby businesses using Haversine distance formula.
-CREATE OR REPLACE FUNCTION get_nearby_businesses(user_lat double precision, user_lon double precision)
-RETURNS TABLE (
-    id uuid,
-    name text,
-    email text,
-    qr_token text,
-    qr_data_url text,
-    created_at timestamptz,
-    qr_logo_url text,
-    qr_color text,
-    qr_eye_shape text,
-    qr_dot_style text,
-    public_name text,
-    logo_url text,
-    bio text,
-    website_url text,
-    facebook_url text,
-    instagram_url text,
-    public_phone_number text,
-    points_per_scan integer,
-    reward_threshold integer,
-    reward_message text,
-    address_text text,
-    latitude double precision,
-    longitude double precision,
-    dist_meters double precision
-)
-AS $$
-BEGIN
-    RETURN QUERY
-    SELECT
-        b.*,
-        -- Haversine formula to calculate distance in meters
-        6371000 * 2 * ASIN(
-            SQRT(
-                POWER(SIN(RADIANS(b.latitude - user_lat) / 2), 2) +
-                COS(RADIANS(user_lat)) * COS(RADIANS(b.latitude)) *
-                POWER(SIN(RADIANS(b.longitude - user_lon) / 2), 2)
-            )
-        ) AS dist_meters
-    FROM
-        public.businesses b
-    WHERE
-        b.latitude IS NOT NULL AND b.longitude IS NOT NULL
-    ORDER BY
-        dist_meters ASC
-    LIMIT 20;
-END;
-$$ LANGUAGE plpgsql;
-
 
 -- ================================================================
 -- MIGRATION COMPLETE
 -- ================================================================
--- All necessary database changes for the popular and nearby
--- search features have been applied.
--- ================================================================
-
--- ================================================================
--- PREVIOUS MIGRATION SCRIPT (v6) - Included for completeness
--- ================================================================
--- This script simplifies the location data by removing latitude/longitude,
--- as they are no longer needed for the Google Maps iframe embed.
--- ================================================================
-
--- Step 1: Remove latitude and longitude columns from the `businesses` table.
--- ALTER TABLE public.businesses
--- DROP COLUMN IF EXISTS latitude,
--- DROP COLUMN IF EXISTS longitude;
-
-
--- ================================================================
--- PREVIOUS MIGRATION SCRIPT (v5) - Included for completeness
--- ================================================================
-
--- Step 1: Add location column to the `businesses` table.
--- ALTER TABLE public.businesses
--- ADD COLUMN IF NOT EXISTS address_text text;
-
-
--- ================================================================
--- PREVIOUS MIGRATION SCRIPT (v4) - Included for completeness
--- ================================================================
-
--- Step 1: Add customizable loyalty program columns to `businesses` table.
--- ALTER TABLE public.businesses
--- ADD COLUMN IF NOT EXISTS points_per_scan integer NOT NULL DEFAULT 1,
--- ADD COLUMN IF NOT EXISTS reward_threshold integer NOT NULL DEFAULT 5,
--- ADD COLUMN IF NOT EXISTS reward_message text;
-
--- Step 2: Add QR style preference column to `customers` table.
--- ALTER TABLE public.customers
--- ADD COLUMN IF NOT EXISTS qr_style_preferences jsonb;
-
--- Step 3: Create the new 'business_qr_designs' table.
--- CREATE TABLE IF NOT EXISTS public.business_qr_designs (
---     id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
---     business_id uuid NOT NULL,
---     qr_logo_url text,
---     qr_color text,
---     qr_eye_shape text,
---     qr_dot_style text,
---     created_at timestamp with time zone DEFAULT now() NOT NULL,
---     CONSTRAINT business_qr_designs_business_id_fkey FOREIGN KEY (business_id) REFERENCES public.businesses(id) ON DELETE CASCADE
--- );
-
--- Step 4: Setup Row Level Security (RLS) for the new 'business_qr_designs' table.
--- ALTER TABLE public.business_qr_designs ENABLE ROW LEVEL SECURITY;
-
--- DROP POLICY IF EXISTS "Public can view designs." ON public.business_qr_designs;
--- CREATE POLICY "Public can view designs." ON public.business_qr_designs
--- FOR SELECT USING (true);
-
--- DROP POLICY IF EXISTS "Businesses can manage their own designs." ON public.business_qr_designs;
--- CREATE POLICY "Businesses can manage their own designs." ON public.business_qr_designs
--- FOR ALL USING (
---     (SELECT id FROM public.businesses WHERE id = business_id) IS NOT NULL -- A simple check, can be enhanced with auth.uid()
--- );
-
--- Step 5: Grant permissions to the anon role for the new table.
--- GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.business_qr_designs TO anon;
-
--- Step 6: Update existing business reward messages with a default value
--- UPDATE public.businesses
--- SET reward_message = 'Congratulations! You have earned a free gift!'
--- WHERE reward_message IS NULL;

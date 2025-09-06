@@ -1,11 +1,17 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
-import { Business, BusinessQrDesign, QrStyle } from '../types';
+import { Business, BusinessQrDesign, QrStyle, Post, Product, Discount } from '../types';
 import { useLanguage } from '../context/LanguageContext';
 import { generateQrCode } from '../services/qrGenerator';
-import { updateBusiness, getBusinessQrDesigns, createBusinessQrDesign, deleteBusinessQrDesign } from '../services/api';
-import { Spinner, StarIcon } from '../components/common';
+import { 
+    updateBusiness, getBusinessQrDesigns, createBusinessQrDesign, deleteBusinessQrDesign,
+    getPostsForBusiness, createPost, deletePost,
+    getProductsForBusiness, createProduct, deleteProduct,
+    getDiscountsForBusiness, createDiscount, deleteDiscount
+} from '../services/api';
+import { Spinner } from '../components/common';
 
-type EditorTab = 'profile' | 'branding' | 'loyalty' | 'location';
+type EditorTab = 'profile' | 'branding' | 'loyalty' | 'location' | 'posts' | 'shop' | 'discounts';
 
 const BusinessEditorPage: React.FC = () => {
     const { t } = useLanguage();
@@ -22,23 +28,7 @@ const BusinessEditorPage: React.FC = () => {
         if (storedBusiness) {
             const parsed = JSON.parse(storedBusiness);
             setBusiness(parsed);
-            setFormState({
-                public_name: parsed.public_name || parsed.name,
-                logo_url: parsed.logo_url || '',
-                bio: parsed.bio || '',
-                website_url: parsed.website_url || '',
-                facebook_url: parsed.facebook_url || '',
-                instagram_url: parsed.instagram_url || '',
-                public_phone_number: parsed.public_phone_number || '',
-                qr_logo_url: parsed.qr_logo_url || '',
-                qr_color: parsed.qr_color || '#000000',
-                qr_eye_shape: parsed.qr_eye_shape || 'square',
-                qr_dot_style: parsed.qr_dot_style || 'square',
-                points_per_scan: parsed.points_per_scan || 1,
-                reward_threshold: parsed.reward_threshold || 5,
-                reward_message: parsed.reward_message || '',
-                address_text: parsed.address_text || '',
-            });
+            setFormState(parsed);
         }
         setLoading(false);
     }, []);
@@ -50,9 +40,10 @@ const BusinessEditorPage: React.FC = () => {
         try {
             const updatedBusiness = await updateBusiness(business.id, formState);
             if (updatedBusiness) {
-                sessionStorage.setItem('business', JSON.stringify(updatedBusiness));
-                setBusiness(updatedBusiness);
-                setFormState(prev => ({...prev, ...updatedBusiness}));
+                const newBusinessState = { ...business, ...updatedBusiness };
+                sessionStorage.setItem('business', JSON.stringify(newBusinessState));
+                setBusiness(newBusinessState);
+                setFormState(newBusinessState);
                 setSaveMessage(t('saveSuccess'));
             } else {
                 setSaveMessage(t('saveError'));
@@ -83,36 +74,30 @@ const BusinessEditorPage: React.FC = () => {
                 </div>
             </header>
             
-            <div className="flex flex-col lg:flex-row">
-                <main className="flex-grow p-4 md:p-8">
-                    <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-                        {/* Settings Column */}
-                        <div className="xl:col-span-2 space-y-8">
-                             <div className="border-b border-gray-200">
-                                <nav className="-mb-px flex space-x-6">
-                                    <TabButton label={t('publicProfile')} isActive={activeTab === 'profile'} onClick={() => setActiveTab('profile')} />
-                                    <TabButton label={t('qrCustomization')} isActive={activeTab === 'branding'} onClick={() => setActiveTab('branding')} />
-                                    <TabButton label={t('loyaltyProgram')} isActive={activeTab === 'loyalty'} onClick={() => setActiveTab('loyalty')} />
-                                    <TabButton label={t('location')} isActive={activeTab === 'location'} onClick={() => setActiveTab('location')} />
-                                </nav>
-                            </div>
+            <main className="p-4 md:p-8">
+                 <div className="border-b border-gray-200 mb-6">
+                    <nav className="-mb-px flex space-x-6 overflow-x-auto">
+                        <TabButton label={t('publicProfile')} isActive={activeTab === 'profile'} onClick={() => setActiveTab('profile')} />
+                        {/* FIX: Changed t('branding') to a valid translation key t('qrCustomization') */}
+                        <TabButton label={t('qrCustomization')} isActive={activeTab === 'branding'} onClick={() => setActiveTab('branding')} />
+                        <TabButton label={t('loyaltyProgram')} isActive={activeTab === 'loyalty'} onClick={() => setActiveTab('loyalty')} />
+                        <TabButton label={t('location')} isActive={activeTab === 'location'} onClick={() => setActiveTab('location')} />
+                        <TabButton label={t('posts')} isActive={activeTab === 'posts'} onClick={() => setActiveTab('posts')} />
+                        <TabButton label={t('shop')} isActive={activeTab === 'shop'} onClick={() => setActiveTab('shop')} />
+                        <TabButton label={t('discounts')} isActive={activeTab === 'discounts'} onClick={() => setActiveTab('discounts')} />
+                    </nav>
+                </div>
 
-                            {activeTab === 'profile' && <ProfileSettings formState={formState} setFormState={setFormState} />}
-                            {activeTab === 'branding' && <BrandingSettings formState={formState} setFormState={setFormState} business={business} />}
-                            {activeTab === 'loyalty' && <LoyaltySettings formState={formState} setFormState={setFormState} />}
-                            {activeTab === 'location' && <LocationSettings formState={formState} setFormState={setFormState} />}
-                        </div>
-                        
-                        {/* Preview Column */}
-                        <div className="hidden xl:block">
-                            <div className="sticky top-24">
-                                <h3 className="text-lg font-semibold text-gray-700 mb-4">Live Preview</h3>
-                                <BusinessProfilePreview formState={formState} />
-                            </div>
-                        </div>
-                    </div>
-                </main>
-            </div>
+                <div className="max-w-4xl mx-auto">
+                    {activeTab === 'profile' && <ProfileSettings formState={formState} setFormState={setFormState} />}
+                    {activeTab === 'branding' && <BrandingSettings formState={formState} setFormState={setFormState} business={business} />}
+                    {activeTab === 'loyalty' && <LoyaltySettings formState={formState} setFormState={setFormState} />}
+                    {activeTab === 'location' && <LocationSettings formState={formState} setFormState={setFormState} />}
+                    {activeTab === 'posts' && <PostsManager business={business} />}
+                    {activeTab === 'shop' && <ShopManager business={business} />}
+                    {activeTab === 'discounts' && <DiscountsManager business={business} />}
+                </div>
+            </main>
         </div>
     );
 };
@@ -127,6 +112,7 @@ const ProfileSettings: React.FC<{formState: Partial<Business>, setFormState: Rea
         <SettingsCard title={t('publicProfile')} description={t('publicProfileDesc')}>
             <InputField label={t('publicBusinessName')} name="public_name" value={formState.public_name || ''} onChange={handleChange} />
             <InputField label={t('logoUrl')} name="logo_url" value={formState.logo_url || ''} onChange={handleChange} placeholder="https://..." />
+            <InputField label={t('coverPhotoUrl')} name="cover_photo_url" value={formState.cover_photo_url || ''} onChange={handleChange} placeholder="https://..." />
             <TextAreaField label={t('bio')} name="bio" value={formState.bio || ''} onChange={handleChange} />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <InputField label={t('website')} name="website_url" value={formState.website_url || ''} onChange={handleChange} placeholder="https://..." />
@@ -212,7 +198,6 @@ const LocationSettings: React.FC<{formState: Partial<Business>, setFormState: Re
     );
 };
 
-
 const CustomerQrDesigns: React.FC<{business: Business}> = ({ business }) => {
     const { t } = useLanguage();
     const [designs, setDesigns] = useState<BusinessQrDesign[]>([]);
@@ -265,28 +250,163 @@ const CustomerQrDesigns: React.FC<{business: Business}> = ({ business }) => {
     );
 };
 
+const PostsManager: React.FC<{business: Business}> = ({ business }) => {
+    const { t } = useLanguage();
+    const [posts, setPosts] = useState<Post[]>([]);
+    const [newPost, setNewPost] = useState({ title: '', content: '', image_url: '' });
+
+    const fetchPosts = useCallback(async () => {
+        const data = await getPostsForBusiness(business.id);
+        setPosts(data);
+    }, [business.id]);
+
+    useEffect(() => { fetchPosts(); }, [fetchPosts]);
+
+    const handleCreate = async (e: React.FormEvent) => {
+        e.preventDefault();
+        const result = await createPost({ ...newPost, business_id: business.id });
+        if(result) {
+            fetchPosts();
+            setNewPost({ title: '', content: '', image_url: '' });
+        }
+    };
+    const handleDelete = async (id: string) => {
+        if(window.confirm('Are you sure?')) {
+            const success = await deletePost(id);
+            if(success) fetchPosts();
+        }
+    };
+
+    return (
+        <SettingsCard title={t('managePosts')} description={t('managePostsDesc')}>
+            <form onSubmit={handleCreate} className="border p-4 rounded-lg space-y-4 bg-gray-50">
+                <h3 className="font-semibold text-gray-800">{t('newPost')}</h3>
+                <InputField label={t('title')} name="title" value={newPost.title} onChange={(e) => setNewPost({...newPost, title: e.target.value})} />
+                <TextAreaField label={t('content')} name="content" value={newPost.content} onChange={(e) => setNewPost({...newPost, content: e.target.value})} />
+                <InputField label={t('imageUrl')} name="image_url" value={newPost.image_url} onChange={(e) => setNewPost({...newPost, image_url: e.target.value})} />
+                <button type="submit" className="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700">{t('createPost')}</button>
+            </form>
+            <div className="space-y-2 mt-4">
+                {posts.length === 0 ? <p className="text-sm text-gray-500">{t('noPosts')}</p> : posts.map(p => (
+                    <div key={p.id} className="flex items-center gap-2 p-2 border rounded-lg bg-white">
+                        {p.image_url && <img src={p.image_url} alt="post preview" className="w-12 h-12 rounded object-cover" />}
+                        <p className="flex-grow font-semibold">{p.title}</p>
+                        <button onClick={() => handleDelete(p.id)} className="text-red-500 hover:text-red-700 p-1"><TrashIcon /></button>
+                    </div>
+                ))}
+            </div>
+        </SettingsCard>
+    )
+};
+
+const ShopManager: React.FC<{business: Business}> = ({ business }) => {
+    const { t } = useLanguage();
+    const [products, setProducts] = useState<Product[]>([]);
+    const [newProduct, setNewProduct] = useState({ name: '', description: '', price: '', image_url: '', product_url: '' });
+
+    const fetchProducts = useCallback(async () => {
+        const data = await getProductsForBusiness(business.id);
+        setProducts(data);
+    }, [business.id]);
+
+    useEffect(() => { fetchProducts(); }, [fetchProducts]);
+
+    const handleCreate = async (e: React.FormEvent) => {
+        e.preventDefault();
+        const result = await createProduct({ 
+            ...newProduct, 
+            business_id: business.id,
+            price: parseFloat(newProduct.price) || 0
+        });
+        if(result) {
+            fetchProducts();
+            setNewProduct({ name: '', description: '', price: '', image_url: '', product_url: '' });
+        }
+    };
+    const handleDelete = async (id: string) => {
+        if(window.confirm('Are you sure?')) {
+            const success = await deleteProduct(id);
+            if(success) fetchProducts();
+        }
+    };
+
+    return (
+        <SettingsCard title={t('manageProducts')} description={t('manageProductsDesc')}>
+            <form onSubmit={handleCreate} className="border p-4 rounded-lg space-y-4 bg-gray-50">
+                <h3 className="font-semibold text-gray-800">{t('newProduct')}</h3>
+                <InputField label={t('productName')} name="name" value={newProduct.name} onChange={(e) => setNewProduct({...newProduct, name: e.target.value})} />
+                <TextAreaField label={t('description')} name="description" value={newProduct.description} onChange={(e) => setNewProduct({...newProduct, description: e.target.value})} />
+                <InputField label={t('price')} name="price" type="number" value={newProduct.price} onChange={(e) => setNewProduct({...newProduct, price: e.target.value})} />
+                <InputField label={t('imageUrl')} name="image_url" value={newProduct.image_url} onChange={(e) => setNewProduct({...newProduct, image_url: e.target.value})} />
+                <InputField label={t('productUrl')} name="product_url" value={newProduct.product_url} onChange={(e) => setNewProduct({...newProduct, product_url: e.target.value})} />
+                <button type="submit" className="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700">{t('createProduct')}</button>
+            </form>
+            <div className="space-y-2 mt-4">
+                {products.length === 0 ? <p className="text-sm text-gray-500">{t('noProducts')}</p> : products.map(p => (
+                    <div key={p.id} className="flex items-center gap-2 p-2 border rounded-lg bg-white">
+                        {p.image_url && <img src={p.image_url} alt="product preview" className="w-12 h-12 rounded object-cover" />}
+                        <p className="flex-grow font-semibold">{p.name}</p>
+                        <span className="font-bold">${p.price}</span>
+                        <button onClick={() => handleDelete(p.id)} className="text-red-500 hover:text-red-700 p-1"><TrashIcon /></button>
+                    </div>
+                ))}
+            </div>
+        </SettingsCard>
+    )
+};
+
+const DiscountsManager: React.FC<{business: Business}> = ({ business }) => {
+    const { t } = useLanguage();
+    const [discounts, setDiscounts] = useState<Discount[]>([]);
+    const [newDiscount, setNewDiscount] = useState({ name: '', description: '', image_url: '' });
+
+    const fetchDiscounts = useCallback(async () => {
+        const data = await getDiscountsForBusiness(business.id);
+        setDiscounts(data);
+    }, [business.id]);
+
+    useEffect(() => { fetchDiscounts(); }, [fetchDiscounts]);
+
+    const handleCreate = async (e: React.FormEvent) => {
+        e.preventDefault();
+        const result = await createDiscount({ ...newDiscount, business_id: business.id });
+        if(result) {
+            fetchDiscounts();
+            setNewDiscount({ name: '', description: '', image_url: '' });
+        }
+    };
+    const handleDelete = async (id: string) => {
+        if(window.confirm('Are you sure?')) {
+            const success = await deleteDiscount(id);
+            if(success) fetchDiscounts();
+        }
+    };
+
+    return (
+        <SettingsCard title={t('manageDiscounts')} description={t('manageDiscountsDesc')}>
+            <form onSubmit={handleCreate} className="border p-4 rounded-lg space-y-4 bg-gray-50">
+                <h3 className="font-semibold text-gray-800">{t('newDiscount')}</h3>
+                <InputField label={t('discountName')} name="name" value={newDiscount.name} onChange={(e) => setNewDiscount({...newDiscount, name: e.target.value})} />
+                <TextAreaField label={t('description')} name="description" value={newDiscount.description} onChange={(e) => setNewDiscount({...newDiscount, description: e.target.value})} />
+                <InputField label={t('imageUrl')} name="image_url" value={newDiscount.image_url} onChange={(e) => setNewDiscount({...newDiscount, image_url: e.target.value})} />
+                <button type="submit" className="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700">{t('createDiscount')}</button>
+            </form>
+            <div className="space-y-2 mt-4">
+                {discounts.length === 0 ? <p className="text-sm text-gray-500">{t('noManageDiscounts')}</p> : discounts.map(d => (
+                    <div key={d.id} className="flex items-center gap-2 p-2 border rounded-lg bg-white">
+                         {d.image_url && <img src={d.image_url} alt="discount preview" className="w-12 h-12 rounded object-cover" />}
+                        <p className="flex-grow font-semibold">{d.name}</p>
+                        <button onClick={() => handleDelete(d.id)} className="text-red-500 hover:text-red-700 p-1"><TrashIcon /></button>
+                    </div>
+                ))}
+            </div>
+        </SettingsCard>
+    )
+};
+
 
 // --- UI & Helper Components ---
-
-const BusinessProfilePreview: React.FC<{ formState: Partial<Business> }> = ({ formState }) => (
-    <div className="bg-white p-4 rounded-lg shadow-sm border flex items-center justify-between cursor-pointer hover:bg-gray-50 transition-colors w-full">
-        <div className="flex items-center gap-4">
-            <img 
-                src={formState.logo_url || 'https://via.placeholder.com/150'} 
-                alt="Logo Preview"
-                className="w-16 h-16 rounded-full object-cover bg-gray-200"
-            />
-            <div>
-                <p className="font-bold text-gray-800 text-lg">{formState.public_name || 'Business Name'}</p>
-                <p className="text-sm text-gray-500">{formState.bio ? (formState.bio.substring(0, 40) + '...') : 'Business bio appears here...'}</p>
-            </div>
-        </div>
-        <div className="flex items-center gap-2 text-amber-500">
-            <StarIcon className="h-8 w-8" />
-            <span className="font-bold text-2xl">5</span>
-        </div>
-    </div>
-);
+const TrashIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clipRule="evenodd" /></svg>
 
 const QrDesignItem: React.FC<{ design: BusinessQrDesign, onDelete: (id: string) => void }> = ({ design, onDelete }) => {
     const [preview, setPreview] = useState('');
@@ -301,15 +421,13 @@ const QrDesignItem: React.FC<{ design: BusinessQrDesign, onDelete: (id: string) 
                 <p className="text-xs">Color: <span className="font-mono">{design.qr_color}</span></p>
                 <p className="text-xs">Style: {design.qr_dot_style}</p>
             </div>
-            <button onClick={() => onDelete(design.id)} className="text-red-500 hover:text-red-700 p-1">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clipRule="evenodd" /></svg>
-            </button>
+            <button onClick={() => onDelete(design.id)} className="text-red-500 hover:text-red-700 p-1"><TrashIcon /></button>
         </div>
     );
 };
 
 const SettingsCard: React.FC<{title: string, description: string, children: React.ReactNode}> = ({ title, description, children }) => (
-    <div className="bg-white p-6 rounded-lg shadow-md space-y-6">
+    <div className="bg-white p-6 rounded-lg shadow-md space-y-6 mb-8">
         <div>
             <h2 className="text-xl font-bold text-gray-800">{title}</h2>
             <p className="text-sm text-gray-500 mt-1">{description}</p>
@@ -319,7 +437,7 @@ const SettingsCard: React.FC<{title: string, description: string, children: Reac
 );
 
 const TabButton: React.FC<{label: string, isActive: boolean, onClick: () => void}> = ({label, isActive, onClick}) => (
-    <button onClick={onClick} className={`py-3 px-1 border-b-2 font-medium text-sm transition-colors ${isActive ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>
+    <button onClick={onClick} className={`py-3 px-2 whitespace-nowrap border-b-2 font-medium text-sm transition-colors ${isActive ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>
         {label}
     </button>
 );

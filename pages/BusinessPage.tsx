@@ -1,16 +1,16 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useLanguage } from '../context/LanguageContext';
-import { Membership, Business, Customer } from '../types';
-import { getMembershipsForBusiness, provisionCustomerForBusiness, removeMembership } from '../services/api';
+import { Membership, Business, Customer, BusinessAnalytics } from '../types';
+import { getMembershipsForBusiness, provisionCustomerForBusiness, removeMembership, getBusinessAnalytics } from '../services/api';
 import { Spinner, CreateCustomerModal, UserAddIcon, CustomerQRModal, BusinessScannerModal } from '../components/common';
 
 const StatCard: React.FC<{ title: string; value: string | number; icon: React.ReactNode }> = ({ title, value, icon }) => (
-    <div className="bg-white p-6 rounded-lg shadow-md flex items-center gap-4">
+    <div className="bg-white p-4 rounded-lg shadow-md flex items-center gap-4">
         <div className="bg-blue-100 text-blue-600 p-3 rounded-full">{icon}</div>
         <div>
             <p className="text-2xl font-bold text-gray-800">{value}</p>
-            <p className="text-gray-600">{title}</p>
+            <p className="text-sm text-gray-600">{title}</p>
         </div>
     </div>
 );
@@ -37,6 +37,7 @@ const BusinessPage: React.FC = () => {
     const { t } = useLanguage();
     const [memberships, setMemberships] = useState<Membership[]>([]);
     const [business, setBusiness] = useState<Business | null>(null);
+    const [analytics, setAnalytics] = useState<BusinessAnalytics | null>(null);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -47,8 +48,12 @@ const BusinessPage: React.FC = () => {
 
 
     const fetchData = useCallback(async (businessId: string) => {
-        const data = await getMembershipsForBusiness(businessId);
-        setMemberships(data);
+        const [membershipsData, analyticsData] = await Promise.all([
+            getMembershipsForBusiness(businessId),
+            getBusinessAnalytics(businessId)
+        ]);
+        setMemberships(membershipsData);
+        setAnalytics(analyticsData);
         if (loading) setLoading(false);
     }, [loading]);
 
@@ -58,12 +63,6 @@ const BusinessPage: React.FC = () => {
             const parsedBusiness = JSON.parse(storedBusiness);
             setBusiness(parsedBusiness);
             fetchData(parsedBusiness.id);
-
-            const intervalId = setInterval(() => {
-                fetchData(parsedBusiness.id);
-            }, 5000); // Poll every 5 seconds
-
-            return () => clearInterval(intervalId); // Cleanup on component unmount
         } else {
              window.location.href = '/business/login';
         }
@@ -77,13 +76,12 @@ const BusinessPage: React.FC = () => {
 
     const handleCreateCustomer = async () => {
         if (!business) return;
-        setNewCustomerQr(''); // Clear previous QR
-        setIsCreateModalOpen(true); // Open modal immediately to show loading spinner
+        setNewCustomerQr('');
+        setIsCreateModalOpen(true);
         const newCustomer = await provisionCustomerForBusiness(business.id);
         if (newCustomer && newCustomer.qr_data_url) {
             setNewCustomerQr(newCustomer.qr_data_url);
         } else {
-            // Handle error, maybe close modal and show a toast
             setIsCreateModalOpen(false);
             alert('Failed to create a new customer QR code.');
         }
@@ -98,7 +96,7 @@ const BusinessPage: React.FC = () => {
         if (business && window.confirm(t('removeConfirm'))) {
             const result = await removeMembership(customerId, business.id);
             if (result.success) {
-                setMemberships(prev => prev.filter(m => m.customer_id !== customerId));
+                fetchData(business.id);
             } else {
                 alert('Failed to remove customer. Please try again.');
             }
@@ -111,12 +109,7 @@ const BusinessPage: React.FC = () => {
         }
     };
 
-    const stats = useMemo(() => {
-        const totalCustomers = memberships.length;
-        return { totalCustomers };
-    }, [memberships]);
-
-    if (loading) return <div className="flex justify-center items-center h-screen"><Spinner /></div>;
+    if (loading || !analytics) return <div className="flex justify-center items-center h-screen"><Spinner /></div>;
 
     return (
         <>
@@ -145,15 +138,12 @@ const BusinessPage: React.FC = () => {
                     <button onClick={handleLogout} className="bg-red-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-red-600">{t('logout')}</button>
                 </header>
                 
+                <h2 className="text-2xl font-bold text-gray-800 mb-4">{t('analytics')}</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    <StatCard title={t('totalCustomers')} value={stats.totalCustomers} icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.653-.122-1.28-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.653.122-1.28.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>} />
-                     {business?.qr_data_url && (
-                         <div className="bg-white p-4 rounded-lg shadow-md flex flex-col items-center justify-center gap-2">
-                            <h3 className="font-bold text-gray-800">Your Business QR</h3>
-                            <img src={business.qr_data_url} alt="Business QR Code" className="w-24 h-24" />
-                            <p className="text-xs text-gray-500 text-center">Scan this for quick login</p>
-                        </div>
-                    )}
+                    <StatCard title={t('totalCustomers')} value={analytics.total_customers} icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.653-.122-1.28-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.653.122-1.28.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>} />
+                    <StatCard title={t('newMembers7d')} value={analytics.new_members_7d} icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>} />
+                    <StatCard title={t('pointsAwarded7d')} value={analytics.points_awarded_7d} icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.539 1.118l-3.975-2.888a1 1 0 00-1.176 0l-3.975 2.888c-.783.57-1.838-.196-1.539-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.783-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>} />
+                    <StatCard title={t('rewardsClaimed7d')} value={analytics.rewards_claimed_7d} icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V6a2 2 0 00-2 2h2zm0 13l-4-4h8l-4 4zm0 0V8m-4 5h8m-8 0a4 4 0 100 8h0a4 4 0 100-8z" /></svg>} />
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -228,8 +218,8 @@ const BusinessPage: React.FC = () => {
                                     icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" /></svg>}
                                 />
                                  <QuickActionCard 
-                                    title={t('businessSettings')}
-                                    description="Edit your public profile and QR style."
+                                    title={t('manageContent')}
+                                    description={t('manageContentDesc')}
                                     href="/business/editor"
                                     icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>}
                                 />
