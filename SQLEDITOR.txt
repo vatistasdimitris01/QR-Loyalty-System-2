@@ -1,182 +1,64 @@
 -- ================================================================
--- DATABASE RESET SCRIPT
+-- DATABASE MIGRATION SCRIPT (v2)
 -- ================================================================
--- This script will first DROP existing tables to ensure a clean
--- state, then recreate the entire schema with correct permissions.
--- Running this script is safe and will reset the database.
+-- This script UPDATES your existing tables without deleting data.
+-- It adds the new columns required for the QR Code Editor feature.
+-- It is safe to run on a database with existing customers and businesses.
 -- ================================================================
 
--- Drop tables in reverse order of creation, using CASCADE to handle dependencies.
-DROP TABLE IF EXISTS public.discounts CASCADE;
-DROP TABLE IF EXISTS public.customers CASCADE;
-DROP TABLE IF EXISTS public.businesses CASCADE;
-DROP FUNCTION IF EXISTS public.handle_updated_at() CASCADE;
+-- Step 1: Add customization columns to the `businesses` table.
+-- This is safe and will not affect existing business data.
+ALTER TABLE public.businesses
+ADD COLUMN IF NOT EXISTS qr_logo_url text,
+ADD COLUMN IF NOT EXISTS qr_color text,
+ADD COLUMN IF NOT EXISTS qr_eye_shape text,
+ADD COLUMN IF NOT EXISTS qr_dot_style text;
 
---
--- Enables the `gen_random_uuid()` function for generating UUIDs.
--- This should be enabled in your Supabase project.
---
-CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA public;
+-- Step 2: Add the `business_id` link to the `customers` table.
+-- This column will be NULL for your existing customers. You must manually populate it.
+ALTER TABLE public.customers
+ADD COLUMN IF NOT EXISTS business_id uuid;
 
--- ----------------------------------------------------------------
--- Function and Trigger for auto-updating "updated_at" timestamps.
--- This helper function automatically sets the `updated_at` column
--- to the current time whenever a row in a table is updated.
--- ----------------------------------------------------------------
-CREATE OR REPLACE FUNCTION public.handle_updated_at()
-RETURNS TRIGGER AS $$
+-- Step 3: Add a foreign key constraint to enforce the link.
+-- This ensures that any `business_id` added must exist in the `businesses` table.
+-- We check if the constraint already exists to make the script re-runnable.
+DO $$
 BEGIN
-  NEW.updated_at = NOW();
-  RETURN NEW;
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conname = 'customers_business_id_fkey' AND conrelid = 'public.customers'::regclass
+  ) THEN
+    ALTER TABLE public.customers
+    ADD CONSTRAINT customers_business_id_fkey
+    FOREIGN KEY (business_id) REFERENCES public.businesses(id) ON DELETE CASCADE;
+  END IF;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 
--- ----------------------------------------------------------------
--- Table `public.businesses`
--- Stores information about business entities that use the loyalty system.
--- Includes credentials and a unique QR token for quick login.
--- ----------------------------------------------------------------
-CREATE TABLE public.businesses (
-    id uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
-    name text NOT NULL,
-    email text NOT NULL UNIQUE,
-    password text NOT NULL,
-    qr_token text NOT NULL UNIQUE,
-    qr_data_url text NOT NULL,
-    created_at timestamptz NOT NULL DEFAULT now(),
-    updated_at timestamptz NOT NULL DEFAULT now()
-);
+-- Step 4: Add the `business_id` link to the `discounts` table.
+-- This column will be NULL for your existing discounts. You must manually populate it.
+ALTER TABLE public.discounts
+ADD COLUMN IF NOT EXISTS business_id uuid;
 
--- Add a comment for security best practices.
-COMMENT ON COLUMN public.businesses.password IS 'For production, this should store a hashed password, not plaintext.';
+-- Step 5: Add a foreign key constraint for discounts.
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conname = 'discounts_business_id_fkey' AND conrelid = 'public.discounts'::regclass
+  ) THEN
+    ALTER TABLE public.discounts
+    ADD CONSTRAINT discounts_business_id_fkey
+    FOREIGN KEY (business_id) REFERENCES public.businesses(id) ON DELETE CASCADE;
+  END IF;
+END;
+$$;
 
--- Add a trigger to the `businesses` table to automatically update the `updated_at` field.
-CREATE TRIGGER on_businesses_updated
-  BEFORE UPDATE ON public.businesses
-  FOR EACH ROW
-  EXECUTE PROCEDURE public.handle_updated_at();
-
-
--- ----------------------------------------------------------------
--- Table `public.customers`
--- Stores core information about loyalty program members (customers).
--- Includes credentials and a unique QR token for their digital card.
--- ----------------------------------------------------------------
-CREATE TABLE public.customers (
-    id uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
-    name text NOT NULL,
-    phone_number text UNIQUE,
-    password text,
-    qr_token text NOT NULL UNIQUE,
-    qr_data_url text NOT NULL,
-    points integer NOT NULL DEFAULT 0,
-    points_updated_at timestamptz,
-    created_at timestamptz NOT NULL DEFAULT now(),
-    updated_at timestamptz NOT NULL DEFAULT now()
-);
-
--- Add a comment for security best practices.
-COMMENT ON COLUMN public.customers.password IS 'For production, this should store a hashed password, not plaintext.';
-
--- Add a trigger to the `customers` table to automatically update the `updated_at` field.
-CREATE TRIGGER on_customers_updated
-  BEFORE UPDATE ON public.customers
-  FOR EACH ROW
-  EXECUTE PROCEDURE public.handle_updated_at();
-
-
--- ----------------------------------------------------------------
--- Table `public.discounts`
--- Stores promotional offers and discounts created by businesses for
--- their loyalty program members.
--- ----------------------------------------------------------------
-CREATE TABLE public.discounts (
-    id uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
-    -- This links a discount to the business that created it.
-    business_id uuid NOT NULL REFERENCES public.businesses(id) ON DELETE CASCADE,
-    name text NOT NULL,
-    description text,
-    image_url text,
-    percentage integer,
-    expiry_date timestamptz,
-    active boolean NOT NULL DEFAULT true,
-    price numeric,
-    price_cutoff numeric,
-    created_at timestamptz NOT NULL DEFAULT now(),
-    updated_at timestamptz NOT NULL DEFAULT now()
-);
-
--- Add an index on business_id for faster lookups of discounts by business.
-CREATE INDEX idx_discounts_business_id ON public.discounts(business_id);
-
--- Add a trigger to the `discounts` table to automatically update the `updated_at` field.
-CREATE TRIGGER on_discounts_updated
-  BEFORE UPDATE ON public.discounts
-  FOR EACH ROW
-  EXECUTE PROCEDURE public.handle_updated_at();
-
--- ----------------------------------------------------------------
--- STANDARD TABLE PRIVILEGES
--- ----------------------------------------------------------------
--- Grant basic table access to the public-facing 'anon' role.
--- RLS policies will act as a secondary filter on top of these.
--- ----------------------------------------------------------------
-GRANT USAGE ON SCHEMA public TO anon;
-GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.businesses TO anon;
-GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.customers TO anon;
-GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.discounts TO anon;
-
--- ----------------------------------------------------------------
--- ROW LEVEL SECURITY (RLS) POLICIES
--- ----------------------------------------------------------------
--- By default, Supabase enables RLS and denies all access.
--- These policies explicitly ALLOW public access (read, write, update, delete)
--- to the tables. For a production app, these should be much stricter.
--- ----------------------------------------------------------------
-
--- Enable RLS for all tables
-ALTER TABLE public.businesses ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.customers ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.discounts ENABLE ROW LEVEL SECURITY;
-
--- Create policies for `businesses` table
-DROP POLICY IF EXISTS "Public can view all businesses." ON public.businesses;
-CREATE POLICY "Public can view all businesses." ON public.businesses FOR SELECT USING (true);
-
-DROP POLICY IF EXISTS "Public can create businesses." ON public.businesses;
-CREATE POLICY "Public can create businesses." ON public.businesses FOR INSERT WITH CHECK (true);
-
-DROP POLICY IF EXISTS "Public can update businesses." ON public.businesses;
-CREATE POLICY "Public can update businesses." ON public.businesses FOR UPDATE USING (true) WITH CHECK (true);
-
-DROP POLICY IF EXISTS "Public can delete businesses." ON public.businesses;
-CREATE POLICY "Public can delete businesses." ON public.businesses FOR DELETE USING (true);
-
-
--- Create policies for `customers` table
-DROP POLICY IF EXISTS "Public can view all customers." ON public.customers;
-CREATE POLICY "Public can view all customers." ON public.customers FOR SELECT USING (true);
-
-DROP POLICY IF EXISTS "Public can create customers." ON public.customers;
-CREATE POLICY "Public can create customers." ON public.customers FOR INSERT WITH CHECK (true);
-
-DROP POLICY IF EXISTS "Public can update customers." ON public.customers;
-CREATE POLICY "Public can update customers." ON public.customers FOR UPDATE USING (true) WITH CHECK (true);
-
-DROP POLICY IF EXISTS "Public can delete customers." ON public.customers;
-CREATE POLICY "Public can delete customers." ON public.customers FOR DELETE USING (true);
-
-
--- Create policies for `discounts` table
-DROP POLICY IF EXISTS "Public can view all discounts." ON public.discounts;
-CREATE POLICY "Public can view all discounts." ON public.discounts FOR SELECT USING (true);
-
-DROP POLICY IF EXISTS "Public can create discounts." ON public.discounts;
-CREATE POLICY "Public can create discounts." ON public.discounts FOR INSERT WITH CHECK (true);
-
-DROP POLICY IF EXISTS "Public can update discounts." ON public.discounts;
-CREATE POLICY "Public can update discounts." ON public.discounts FOR UPDATE USING (true) WITH CHECK (true);
-
-DROP POLICY IF EXISTS "Public can delete discounts." ON public.discounts;
-CREATE POLICY "Public can delete discounts." ON public.discounts FOR DELETE USING (true);
+-- ================================================================
+-- MIGRATION COMPLETE
+-- ================================================================
+-- IMPORTANT: After running this script, you must manually go to your
+-- Supabase Table Editor and fill in the `business_id` for all
+-- existing customers and discounts. New ones will be handled automatically.
+-- ================================================================

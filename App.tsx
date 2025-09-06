@@ -10,6 +10,7 @@ import DiscountsPage from './pages/DiscountsPage';
 import BusinessSignupPage from './pages/BusinessSignupPage';
 import CustomerSignupPage from './pages/CustomerSignupPage';
 import OneSignalSetup from './components/OneSignalSetup';
+import BusinessEditorPage from './pages/BusinessEditorPage';
 
 const App: React.FC = () => {
   const path = window.location.pathname;
@@ -26,6 +27,10 @@ const App: React.FC = () => {
     if (path === '/business/scanner') {
         const isLoggedIn = sessionStorage.getItem('isBusinessLoggedIn') === 'true';
         return isLoggedIn ? <BusinessScannerPage /> : <BusinessLoginPage />;
+    }
+    if (path === '/business/editor') {
+        const isLoggedIn = sessionStorage.getItem('isBusinessLoggedIn') === 'true';
+        return isLoggedIn ? <BusinessEditorPage /> : <BusinessLoginPage />;
     }
     if (path === '/business/login') {
       return <BusinessLoginPage />;

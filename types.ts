@@ -1,6 +1,7 @@
 
 export interface Customer {
   id: string;
+  business_id: string;
   name: string;
   phone_number: string;
   password?: string; // Password is required for creation, but shouldn't be sent to client
@@ -19,6 +20,10 @@ export interface Business {
   qr_token: string;
   qr_data_url: string;
   created_at: string;
+  qr_logo_url?: string | null;
+  qr_color?: string | null;
+  qr_eye_shape?: string | null;
+  qr_dot_style?: string | null;
 }
 
 export interface Discount {

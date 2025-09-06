@@ -51,11 +51,6 @@ const LandingPage: React.FC = () => {
           
           {scanError && <p className="text-red-500 mt-4">{scanError}</p>}
 
-           <div className="mt-8">
-              <a href="/signup/customer" className="text-green-600 hover:text-green-800 font-medium">
-                  {t('customerSignup')} &rarr;
-              </a>
-          </div>
         </div>
 
         <div className="absolute bottom-6 text-center">

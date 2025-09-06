@@ -69,6 +69,18 @@ const translations = {
     phoneNumberExists: 'This phone number is already registered.',
     businessName: 'Business Name',
     signupSuccess: 'Signup successful! Please log in.',
+    // Editor Page
+    qrEditor: 'QR Code Editor',
+    customizeYourQr: 'Customize the appearance of your loyalty QR codes.',
+    logoUrl: 'Logo Image URL',
+    qrColor: 'QR Code Color',
+    eyeShape: 'Eye Shape (Corners)',
+    dotStyle: 'Dot Style (Pixels)',
+    saveAndApply: 'Save & Apply to All Customers',
+    qrEditorDesc: 'Customize QR code colors, logos, and shapes.',
+    saveSuccess: 'Settings saved and all customer QR codes have been updated!',
+    saveErrorCustomers: 'Settings saved, but failed to update customer QR codes.',
+    saveError: 'Failed to save settings.',
   },
   el: {
     scanToLogin: 'Σάρωση για Είσοδο',
@@ -137,6 +149,18 @@ const translations = {
     phoneNumberExists: 'Αυτός ο αριθμός τηλεφώνου είναι ήδη καταχωρημένος.',
     businessName: 'Όνομα Επιχείρησης',
     signupSuccess: 'Η εγγραφή ολοκληρώθηκε! Παρακαλώ συνδεθείτε.',
+    // Editor Page
+    qrEditor: 'Επεξεργαστής Κωδικών QR',
+    customizeYourQr: 'Προσαρμόστε την εμφάνιση των κωδικών QR επιβράβευσης.',
+    logoUrl: 'URL Εικόνας Λογοτύπου',
+    qrColor: 'Χρώμα Κωδικού QR',
+    eyeShape: 'Σχήμα Γωνιών',
+    dotStyle: 'Στυλ Κουκκίδων',
+    saveAndApply: 'Αποθήκευση & Εφαρμογή σε Όλους',
+    qrEditorDesc: 'Προσαρμόστε χρώματα, λογότυπα και σχήματα στους κωδικούς QR.',
+    saveSuccess: 'Οι ρυθμίσεις αποθηκεύτηκαν και όλοι οι κωδικοί QR των πελατών ενημερώθηκαν!',
+    saveErrorCustomers: 'Οι ρυθμίσεις αποθηκεύτηκαν, αλλά απέτυχε η ενημέρωση των κωδικών QR των πελατών.',
+    saveError: 'Αποτυχία αποθήκευσης των ρυθμίσεων.',
   },
 };
 

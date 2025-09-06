@@ -1,11 +1,16 @@
 import { Customer, ScanResult, Business } from '../types';
 import supabase from './supabaseClient';
 import { REWARD_THRESHOLD } from '../constants';
+import { generateQrCode } from './qrGenerator';
 
-export const getAllCustomers = async (): Promise<Customer[]> => {
-  const { data, error } = await supabase.from('customers').select('*');
+export const getCustomersByBusiness = async (businessId: string): Promise<Customer[]> => {
+  const { data, error } = await supabase
+    .from('customers')
+    .select('*')
+    .eq('business_id', businessId);
+
   if (error) {
-    console.error('Error fetching all customers:', error);
+    console.error('Error fetching customers by business:', error);
     return [];
   }
   return data || [];
@@ -93,12 +98,24 @@ export const deleteCustomer = async (id: string): Promise<boolean> => {
     return true;
 };
 
-export const createCustomer = async (name: string): Promise<Customer | null> => {
+export const createCustomer = async (name: string, businessId: string): Promise<Customer | null> => {
+    const { data: business, error: businessError } = await supabase
+      .from('businesses')
+      .select('*')
+      .eq('id', businessId)
+      .single();
+
+    if (businessError || !business) {
+      console.error('Could not fetch business to create customer QR:', businessError);
+      return null;
+    }
+    
     const qr_token = `cust_${Math.random().toString(36).substr(2, 9)}`;
-    const qr_data_url = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${qr_token}`;
+    const qr_data_url = await generateQrCode(qr_token, business);
 
     const newCustomerData = {
         name,
+        business_id: businessId,
         phone_number: null,
         points: 0,
         qr_token,
@@ -168,7 +185,10 @@ export const signupBusiness = async (businessData: Omit<Business, 'id' | 'create
     }
 
     const qr_token = `biz_${Math.random().toString(36).substr(2, 9)}`;
-    const qr_data_url = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${qr_token}`;
+    // Generate QR with default settings for a new business
+    const defaultSettings = { qr_color: '#000000', qr_dot_style: 'square', qr_eye_shape: 'square' };
+    const qr_data_url = await generateQrCode(qr_token, defaultSettings);
+
 
     const { data, error } = await supabase
         .from('businesses')
@@ -177,7 +197,8 @@ export const signupBusiness = async (businessData: Omit<Business, 'id' | 'create
             email: businessData.email,
             password: businessData.password,
             qr_token,
-            qr_data_url
+            qr_data_url,
+            ...defaultSettings
         })
         .select();
     
@@ -191,42 +212,68 @@ export const signupBusiness = async (businessData: Omit<Business, 'id' | 'create
 };
 
 export const signupCustomer = async (phoneNumber: string, password: string): Promise<{ success: boolean; customer?: Customer; message?: string }> => {
-    const { data: existingCustomers, error: checkError } = await supabase
-        .from('customers')
-        .select('id')
-        .eq('phone_number', phoneNumber);
+    // This flow is problematic without a business_id. For now, it won't work correctly.
+    // A proper implementation would require a business context (e.g., signup link from a business)
+    return { success: false, message: 'Generic customer signup is currently disabled.' };
+};
 
-    if (checkError) {
-        console.error('Error during existence check:', checkError);
-        return { success: false, message: 'An error occurred checking for existing customer.' };
-    }
-    
-    if (existingCustomers && existingCustomers.length > 0) {
-        return { success: false, message: 'This phone number is already registered.' };
-    }
-    
-    const qr_token = `cust_${Math.random().toString(36).substr(2, 9)}`;
-    const qr_data_url = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${qr_token}`;
-
-    const newCustomerData = {
-        name: `User ${phoneNumber.slice(-4)}`,
-        phone_number: phoneNumber,
-        password: password,
-        points: 0,
-        qr_token,
-        qr_data_url,
-        points_updated_at: new Date().toISOString(),
-    };
-
+export const updateBusiness = async (id: string, updatedData: Partial<Business>): Promise<Business | null> => {
     const { data, error } = await supabase
-        .from('customers')
-        .insert(newCustomerData)
-        .select();
+        .from('businesses')
+        .update(updatedData)
+        .eq('id', id)
+        .select()
+        .single();
 
-    if (error || !data || data.length === 0) {
-        console.error('Error creating customer:', error);
-        return { success: false, message: 'Failed to create customer account.' };
+    if (error) {
+        console.error(`Error updating business ${id}:`, error);
+        return null;
+    }
+    return data;
+};
+
+export const regenerateAllCustomerQrsForBusiness = async (businessId: string): Promise<{ success: boolean }> => {
+    // 1. Get business to get settings
+    const { data: business, error: businessError } = await supabase.from('businesses').select('*').eq('id', businessId).single();
+    if (businessError || !business) {
+        console.error("Could not find business to regenerate QRs:", businessError);
+        return { success: false };
+    }
+
+    // 2. Get all customers for this business
+    // FIX: `getCustomersByBusiness` returns a processed array, not the raw Supabase response.
+    // The original code was trying to destructure the array, causing the error.
+    // Changed to call Supabase directly to get the `{ data, error }` object as intended.
+    const { data: customers, error: customersError } = await supabase
+        .from('customers')
+        .select('*')
+        .eq('business_id', businessId);
+
+    if (customersError || !customers) {
+        console.error("Could not find customers to regenerate QRs:", customersError);
+        return { success: false };
     }
     
-    return { success: true, customer: data[0] as Customer };
+    if (customers.length === 0) {
+        return { success: true }; // No customers to update
+    }
+
+    // 3. Generate new QR data URLs in parallel
+    const updates = await Promise.all(customers.map(async (customer) => {
+        const newQrDataUrl = await generateQrCode(customer.qr_token, business);
+        return {
+            id: customer.id,
+            qr_data_url: newQrDataUrl
+        };
+    }));
+
+    // 4. Batch update customers
+    const { error: updateError } = await supabase.from('customers').upsert(updates);
+    
+    if (updateError) {
+        console.error("Batch QR update failed:", updateError);
+        return { success: false };
+    }
+
+    return { success: true };
 };
