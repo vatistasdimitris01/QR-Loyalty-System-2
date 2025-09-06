@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '../context/LanguageContext';
-import { Customer, ScanResult, Post, Product } from '../types';
-import { awardPoints, createPost, createProduct } from '../services/api';
+import { Customer, ScanResult, Post } from '../types';
+import { awardPoints, createPost } from '../services/api';
 
 declare const Html5Qrcode: any;
 declare const confetti: any;
@@ -497,6 +497,64 @@ export const DeleteAccountModal: React.FC<{
 
 // --- QUICK ACTION MODALS ---
 
+// FIX: Export MarkdownEditor to be used in other files.
+export const MarkdownEditor: React.FC<{ label: string; name: string; value: string; onChange: (name: string, value: string) => void }> = ({ label, name, value, onChange }) => {
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+    const applyStyle = (style: 'bold' | 'italic' | 'link') => {
+        const textarea = textareaRef.current;
+        if (!textarea) return;
+
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const selectedText = value.substring(start, end);
+        let newText;
+
+        switch (style) {
+            case 'bold':
+                newText = `**${selectedText}**`;
+                break;
+            case 'italic':
+                newText = `*${selectedText}*`;
+                break;
+            case 'link':
+                const url = prompt('Enter the URL:');
+                if (url) {
+                    newText = `[${selectedText}](${url})`;
+                } else {
+                    return;
+                }
+                break;
+        }
+
+        const updatedValue = value.substring(0, start) + newText + value.substring(end);
+        onChange(name, updatedValue);
+    };
+
+    return (
+        <div>
+            <label className="block text-sm font-medium text-gray-700">{label}</label>
+            <div className="mt-1 border border-gray-300 rounded-md shadow-sm">
+                <div className="p-1 bg-gray-50 border-b flex items-center gap-2">
+                    <button type="button" onClick={() => applyStyle('bold')} className="p-1.5 rounded hover:bg-gray-200 font-bold">B</button>
+                    <button type="button" onClick={() => applyStyle('italic')} className="p-1.5 rounded hover:bg-gray-200 italic">I</button>
+                    <button type="button" onClick={() => applyStyle('link')} className="p-1.5 rounded hover:bg-gray-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.596a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
+                    </button>
+                </div>
+                <textarea
+                    ref={textareaRef}
+                    name={name}
+                    value={value}
+                    onChange={(e) => onChange(name, e.target.value)}
+                    rows={5}
+                    className="w-full p-2 border-0 focus:ring-0 sm:text-sm"
+                />
+            </div>
+        </div>
+    );
+};
+
 export const CreatePostModal: React.FC<{
     isOpen: boolean;
     onClose: () => void;
@@ -510,6 +568,10 @@ export const CreatePostModal: React.FC<{
 
     const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         setFormState(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    };
+
+    const handleMarkdownChange = (name: string, value: string) => {
+        setFormState(prev => ({...prev, [name]: value}));
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -531,7 +593,7 @@ export const CreatePostModal: React.FC<{
              <form onSubmit={handleSubmit} className="space-y-4">
                 <InputField label={t('title')} name="title" value={formState.title} onChange={handleFormChange} />
                 <SelectField label={t('postType')} name="post_type" value={formState.post_type} onChange={handleFormChange} options={[ {value: 'standard', label: t('standardPost')}, {value: 'discount', label: t('discountOffer')} ]} />
-                <TextAreaField label={t('content')} name="content" value={formState.content || ''} onChange={handleFormChange} />
+                <MarkdownEditor label={t('content')} name="content" value={formState.content || ''} onChange={handleMarkdownChange} />
                 <InputField label={t('imageUrl')} name="image_url" value={formState.image_url || ''} onChange={handleFormChange} />
                 <InputField label={t('videoUrl')} name="video_url" value={formState.video_url || ''} onChange={handleFormChange} placeholder="https://youtube.com/..." />
                 <InputField label={t('priceOffer')} name="price_text" value={formState.price_text || ''} onChange={handleFormChange} placeholder="e.g., $19.99 or 50% OFF" />
@@ -541,58 +603,6 @@ export const CreatePostModal: React.FC<{
                     <button type="submit" disabled={isSaving} className="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 disabled:bg-blue-400 flex items-center">
                         {isSaving && <Spinner className="h-4 w-4 mr-2" />}
                         {t('createPost')}
-                    </button>
-                </div>
-            </form>
-        </Modal>
-    );
-};
-
-export const CreateProductModal: React.FC<{
-    isOpen: boolean;
-    onClose: () => void;
-    businessId: string;
-    onSuccess: () => void;
-}> = ({ isOpen, onClose, businessId, onSuccess }) => {
-    const { t } = useLanguage();
-    const [formState, setFormState] = useState({ name: '', description: '', price: '', image_url: '', product_url: '' });
-    const [isSaving, setIsSaving] = useState(false);
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        setFormState(prev => ({...prev, [e.target.name]: e.target.value}));
-    };
-    
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsSaving(true);
-        const result = await createProduct({ 
-            ...formState, 
-            business_id: businessId,
-            price: parseFloat(formState.price) || 0
-        });
-        setIsSaving(false);
-        if(result) {
-            onSuccess();
-            onClose();
-            setFormState({ name: '', description: '', price: '', image_url: '', product_url: '' });
-        } else {
-            alert('Failed to create product.');
-        }
-    };
-
-    return (
-        <Modal isOpen={isOpen} onClose={onClose} title={t('newProduct')}>
-            <form onSubmit={handleSubmit} className="space-y-4">
-                <InputField label={t('productName')} name="name" value={formState.name} onChange={handleChange} />
-                <TextAreaField label={t('description')} name="description" value={formState.description} onChange={handleChange} />
-                <InputField label={t('price')} name="price" type="number" value={formState.price} onChange={handleChange} />
-                <InputField label={t('imageUrl')} name="image_url" value={formState.image_url} onChange={handleChange} />
-                <InputField label={t('productUrl')} name="product_url" value={formState.product_url} onChange={handleChange} />
-                <div className="flex justify-end gap-4 pt-4">
-                    <button type="button" onClick={onClose} className="bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300">{t('cancel')}</button>
-                    <button type="submit" disabled={isSaving} className="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 disabled:bg-blue-400 flex items-center">
-                        {isSaving && <Spinner className="h-4 w-4 mr-2" />}
-                        {t('createProduct')}
                     </button>
                 </div>
             </form>

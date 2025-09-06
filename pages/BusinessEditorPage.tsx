@@ -1,16 +1,15 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Business, BusinessQrDesign, QrStyle, Post, Product, Discount } from '../types';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { Business, BusinessQrDesign, QrStyle, Post, Discount } from '../types';
 import { useLanguage } from '../context/LanguageContext';
 import { generateQrCode } from '../services/qrGenerator';
 import { 
     updateBusiness, getBusinessQrDesigns, createBusinessQrDesign, deleteBusinessQrDesign,
     getPostsForBusiness, createPost, updatePost, deletePost,
-    getProductsForBusiness, createProduct, deleteProduct,
     getDiscountsForBusiness, createDiscount, deleteDiscount
 } from '../services/api';
-import { Spinner, InputField, TextAreaField, SelectField, PencilIcon, TrashIcon } from '../components/common';
+import { Spinner, InputField, TextAreaField, SelectField, PencilIcon, TrashIcon, MarkdownEditor } from '../components/common';
 
-type EditorTab = 'profile' | 'branding' | 'loyalty' | 'location' | 'posts' | 'shop' | 'discounts';
+type EditorTab = 'profile' | 'branding' | 'loyalty' | 'location' | 'posts' | 'discounts';
 
 const BusinessEditorPage: React.FC = () => {
     const { t } = useLanguage();
@@ -81,7 +80,6 @@ const BusinessEditorPage: React.FC = () => {
                         <TabButton label={t('loyaltyProgram')} isActive={activeTab === 'loyalty'} onClick={() => setActiveTab('loyalty')} />
                         <TabButton label={t('location')} isActive={activeTab === 'location'} onClick={() => setActiveTab('location')} />
                         <TabButton label={t('managePosts')} isActive={activeTab === 'posts'} onClick={() => setActiveTab('posts')} />
-                        <TabButton label={t('shop')} isActive={activeTab === 'shop'} onClick={() => setActiveTab('shop')} />
                         <TabButton label={t('discounts')} isActive={activeTab === 'discounts'} onClick={() => setActiveTab('discounts')} />
                     </nav>
                 </div>
@@ -92,7 +90,6 @@ const BusinessEditorPage: React.FC = () => {
                     {activeTab === 'loyalty' && <LoyaltySettings formState={formState} setFormState={setFormState} />}
                     {activeTab === 'location' && <LocationSettings formState={formState} setFormState={setFormState} />}
                     {activeTab === 'posts' && <PostsManager business={business} />}
-                    {activeTab === 'shop' && <ShopManager business={business} />}
                     {activeTab === 'discounts' && <DiscountsManager business={business} />}
                 </div>
             </main>
@@ -118,7 +115,6 @@ const ProfileSettings: React.FC<{formState: Partial<Business>, setFormState: Rea
                 onChange={handleChange}
                 options={[
                     { value: 'posts', label: t('posts') },
-                    { value: 'shop', label: t('shop') },
                     { value: 'discounts', label: t('discounts') },
                     { value: 'about', label: t('about') },
                 ]}
@@ -285,6 +281,10 @@ const PostsManager: React.FC<{business: Business}> = ({ business }) => {
     const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         setFormState(prev => ({ ...prev, [e.target.name]: e.target.value }));
     };
+    
+    const handleMarkdownChange = (name: string, value: string) => {
+        setFormState(prev => ({...prev, [name]: value}));
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -317,7 +317,7 @@ const PostsManager: React.FC<{business: Business}> = ({ business }) => {
                 <h3 className="font-semibold text-gray-800">{editingPost ? t('editPost') : t('newPost')}</h3>
                 <InputField label={t('title')} name="title" value={formState.title} onChange={handleFormChange} />
                 <SelectField label={t('postType')} name="post_type" value={formState.post_type} onChange={handleFormChange} options={[ {value: 'standard', label: t('standardPost')}, {value: 'discount', label: t('discountOffer')} ]} />
-                <TextAreaField label={t('content')} name="content" value={formState.content || ''} onChange={handleFormChange} />
+                <MarkdownEditor label={t('content')} name="content" value={formState.content || ''} onChange={handleMarkdownChange} />
                 <InputField label={t('imageUrl')} name="image_url" value={formState.image_url || ''} onChange={handleFormChange} />
                 <InputField label={t('videoUrl')} name="video_url" value={formState.video_url || ''} onChange={handleFormChange} placeholder="https://youtube.com/..." />
                 <InputField label={t('priceOffer')} name="price_text" value={formState.price_text || ''} onChange={handleFormChange} placeholder="e.g., $19.99 or 50% OFF" />
@@ -333,62 +333,6 @@ const PostsManager: React.FC<{business: Business}> = ({ business }) => {
                         {p.image_url && <img src={p.image_url} alt="post preview" className="w-12 h-12 rounded object-cover" />}
                         <p className="flex-grow font-semibold">{p.title}</p>
                         <button onClick={() => setEditingPost(p)} className="text-blue-500 hover:text-blue-700 p-1"><PencilIcon /></button>
-                        <button onClick={() => handleDelete(p.id)} className="text-red-500 hover:text-red-700 p-1"><TrashIcon /></button>
-                    </div>
-                ))}
-            </div>
-        </SettingsCard>
-    )
-};
-
-const ShopManager: React.FC<{business: Business}> = ({ business }) => {
-    const { t } = useLanguage();
-    const [products, setProducts] = useState<Product[]>([]);
-    const [newProduct, setNewProduct] = useState({ name: '', description: '', price: '', image_url: '', product_url: '' });
-
-    const fetchProducts = useCallback(async () => {
-        const data = await getProductsForBusiness(business.id);
-        setProducts(data);
-    }, [business.id]);
-
-    useEffect(() => { fetchProducts(); }, [fetchProducts]);
-
-    const handleCreate = async (e: React.FormEvent) => {
-        e.preventDefault();
-        const result = await createProduct({ 
-            ...newProduct, 
-            business_id: business.id,
-            price: parseFloat(newProduct.price) || 0
-        });
-        if(result) {
-            fetchProducts();
-            setNewProduct({ name: '', description: '', price: '', image_url: '', product_url: '' });
-        }
-    };
-    const handleDelete = async (id: string) => {
-        if(window.confirm('Are you sure?')) {
-            const success = await deleteProduct(id);
-            if(success) fetchProducts();
-        }
-    };
-
-    return (
-        <SettingsCard title={t('manageProducts')} description={t('manageProductsDesc')}>
-            <form onSubmit={handleCreate} className="border p-4 rounded-lg space-y-4 bg-gray-50">
-                <h3 className="font-semibold text-gray-800">{t('newProduct')}</h3>
-                <InputField label={t('productName')} name="name" value={newProduct.name} onChange={(e) => setNewProduct({...newProduct, name: e.target.value})} />
-                <TextAreaField label={t('description')} name="description" value={newProduct.description} onChange={(e) => setNewProduct({...newProduct, description: e.target.value})} />
-                <InputField label={t('price')} name="price" type="number" value={newProduct.price} onChange={(e) => setNewProduct({...newProduct, price: e.target.value})} />
-                <InputField label={t('imageUrl')} name="image_url" value={newProduct.image_url} onChange={(e) => setNewProduct({...newProduct, image_url: e.target.value})} />
-                <InputField label={t('productUrl')} name="product_url" value={newProduct.product_url} onChange={(e) => setNewProduct({...newProduct, product_url: e.target.value})} />
-                <button type="submit" className="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700">{t('createProduct')}</button>
-            </form>
-            <div className="space-y-2 mt-4">
-                {products.length === 0 ? <p className="text-sm text-gray-500">{t('noProducts')}</p> : products.map(p => (
-                    <div key={p.id} className="flex items-center gap-2 p-2 border rounded-lg bg-white">
-                        {p.image_url && <img src={p.image_url} alt="product preview" className="w-12 h-12 rounded object-cover" />}
-                        <p className="flex-grow font-semibold">{p.name}</p>
-                        <span className="font-bold">${p.price}</span>
                         <button onClick={() => handleDelete(p.id)} className="text-red-500 hover:text-red-700 p-1"><TrashIcon /></button>
                     </div>
                 ))}

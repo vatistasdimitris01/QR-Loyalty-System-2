@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Business, Discount, Post, Product } from '../../types';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { Business, Discount, Post } from '../../types';
 import { useLanguage } from '../../context/LanguageContext';
-import { getDiscountsForBusiness, leaveBusiness, getPostsForBusiness, getProductsForBusiness } from '../../services/api';
+import { getDiscountsForBusiness, leaveBusiness, getPostsForBusiness } from '../../services/api';
 import { Spinner, FacebookIcon, InstagramIcon, WebsiteIcon, PhoneIcon } from '../../components/common';
 
 interface BusinessProfilePageProps {
@@ -10,7 +12,7 @@ interface BusinessProfilePageProps {
     onBack: () => void;
     onLeaveSuccess: () => void;
 }
-type ProfileTab = 'posts' | 'shop' | 'discounts' | 'about';
+type ProfileTab = 'posts' | 'discounts' | 'about';
 
 const BusinessProfilePage: React.FC<BusinessProfilePageProps> = ({ business, customerId, onBack, onLeaveSuccess }) => {
     const { t } = useLanguage();
@@ -18,7 +20,7 @@ const BusinessProfilePage: React.FC<BusinessProfilePageProps> = ({ business, cus
     const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
     
     // Responsive Tabs
-    const allTabs: ProfileTab[] = ['posts', 'shop', 'discounts', 'about'];
+    const allTabs: ProfileTab[] = ['posts', 'discounts', 'about'];
     const [visibleTabs, setVisibleTabs] = useState<ProfileTab[]>(allTabs);
     const [dropdownTabs, setDropdownTabs] = useState<ProfileTab[]>([]);
     const tabsRef = useRef<HTMLDivElement>(null);
@@ -57,7 +59,6 @@ const BusinessProfilePage: React.FC<BusinessProfilePageProps> = ({ business, cus
     const renderContent = () => {
         switch(activeTab) {
             case 'posts': return <PostsTab businessId={business.id} />;
-            case 'shop': return <ShopTab businessId={business.id} />;
             case 'discounts': return <DiscountsTab businessId={business.id} />;
             case 'about': return <AboutTab business={business} onLeave={handleLeave} />;
             default: return null;
@@ -181,7 +182,13 @@ const PostsTab: React.FC<{businessId: string}> = ({ businessId }) => {
                         <div className="p-4">
                             <h3 className="text-xl font-bold mb-2">{post.title}</h3>
                             <p className="text-gray-500 text-xs mb-2 uppercase">{new Date(post.created_at).toLocaleString()}</p>
-                            {post.content && <p className="text-gray-700 whitespace-pre-wrap">{post.content}</p>}
+                            {post.content && (
+                                <div className="prose prose-sm max-w-none text-gray-700">
+                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                        {post.content}
+                                    </ReactMarkdown>
+                                </div>
+                            )}
 
                              {(post.price_text || post.external_url) && (
                                 <div className="mt-4 pt-4 border-t flex items-center justify-between gap-4">
@@ -197,42 +204,6 @@ const PostsTab: React.FC<{businessId: string}> = ({ businessId }) => {
                     </div>
                 );
             })}
-        </div>
-    );
-};
-
-const ShopTab: React.FC<{businessId: string}> = ({ businessId }) => {
-    const { t } = useLanguage();
-    const [products, setProducts] = useState<Product[]>([]);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        getProductsForBusiness(businessId).then(data => {
-            setProducts(data);
-            setLoading(false);
-        });
-    }, [businessId]);
-
-    if (loading) return <div className="flex justify-center py-8"><Spinner /></div>;
-    if (products.length === 0) return <p className="text-center text-gray-500 py-8">{t('noBusinessProducts')}</p>;
-
-    return (
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {products.map(product => (
-                <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden flex flex-col">
-                    {product.image_url && <img src={product.image_url} alt={product.name} className="w-full h-32 object-cover" />}
-                    <div className="p-3 flex-grow flex flex-col">
-                        <h3 className="font-bold">{product.name}</h3>
-                        <p className="text-sm text-gray-600 flex-grow">{product.description}</p>
-                        <p className="text-lg font-bold text-blue-600 mt-2">${product.price?.toFixed(2)}</p>
-                    </div>
-                    {product.product_url && (
-                        <a href={product.product_url} target="_blank" rel="noopener noreferrer" className="block bg-blue-50 text-blue-700 text-center font-semibold py-2 text-sm hover:bg-blue-100">
-                           {t('viewOnSite')}
-                        </a>
-                    )}
-                </div>
-            ))}
         </div>
     );
 };

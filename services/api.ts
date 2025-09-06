@@ -1,4 +1,4 @@
-import { Customer, ScanResult, Business, Membership, Discount, QrStyle, BusinessQrDesign, Post, Product, BusinessAnalytics } from '../types';
+import { Customer, ScanResult, Business, Membership, Discount, QrStyle, BusinessQrDesign, Post, BusinessAnalytics } from '../types';
 import supabase from './supabaseClient';
 import { generateQrCode } from './qrGenerator';
 
@@ -477,22 +477,6 @@ export const updatePost = async (postId: string, postData: Partial<Omit<Post, 'i
 export const deletePost = async (postId: string) => {
     const { error } = await supabase.from('posts').delete().eq('id', postId);
     if (error) console.error('Error deleting post:', error);
-    return !error;
-};
-
-export const getProductsForBusiness = async (businessId: string): Promise<Product[]> => {
-    const { data, error } = await supabase.from('products').select('*').eq('business_id', businessId).order('created_at', { ascending: false });
-    if (error) console.error('Error fetching products:', error);
-    return data || [];
-};
-export const createProduct = async (productData: Omit<Product, 'id' | 'created_at'>): Promise<Product | null> => {
-    const { data, error } = await supabase.from('products').insert(productData).select().single();
-    if (error) console.error('Error creating product:', error);
-    return data;
-};
-export const deleteProduct = async (productId: string) => {
-    const { error } = await supabase.from('products').delete().eq('id', productId);
-    if (error) console.error('Error deleting product:', error);
     return !error;
 };
 

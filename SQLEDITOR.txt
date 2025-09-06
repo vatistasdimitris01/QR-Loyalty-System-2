@@ -1,26 +1,67 @@
 -- ================================================================
--- DATABASE MIGRATION SCRIPT (v10) - Profile & UX Enhancements
+-- DATABASE MIGRATION SCRIPT (v11) - PFP Upload Fix & Product Removal
 -- ================================================================
--- This script adds a default profile tab preference for businesses.
+-- This script fixes profile picture uploads by setting up the
+-- storage bucket and its policies. It also removes the deprecated
+-- 'shop'/'products' feature.
 -- ================================================================
 
--- Step 1: Add profile picture URL to the `customers` table.
+-- Step 1: Create the storage bucket for profile pictures if it doesn't exist.
+-- Make it public so anyone can view the images.
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES ('profile-pictures', 'profile-pictures', true, 5242880, ARRAY['image/jpeg', 'image/png', 'image/webp', 'image/gif'])
+ON CONFLICT (id) DO UPDATE SET public = true, file_size_limit = 5242880, allowed_mime_types = ARRAY['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+
+
+-- Step 2: Set up Row Level Security (RLS) policies for the bucket.
+-- These policies allow anyone (anon role) to perform actions on the bucket.
+
+-- Drop existing policies if they exist to ensure a clean slate
+DROP POLICY IF EXISTS "Public Read Access" ON storage.objects;
+DROP POLICY IF EXISTS "Public Insert Access" ON storage.objects;
+DROP POLICY IF EXISTS "Public Update Access" ON storage.objects;
+
+
+-- Allow anyone to view files in the 'profile-pictures' bucket.
+CREATE POLICY "Public Read Access"
+ON storage.objects FOR SELECT
+USING ( bucket_id = 'profile-pictures' );
+
+-- Allow anyone to upload new files into the 'profile-pictures' bucket.
+CREATE POLICY "Public Insert Access"
+ON storage.objects FOR INSERT
+WITH CHECK ( bucket_id = 'profile-pictures' );
+
+-- Allow anyone to update/replace existing files (for the upsert:true option).
+CREATE POLICY "Public Update Access"
+ON storage.objects FOR UPDATE
+USING ( bucket_id = 'profile-pictures' );
+
+
+-- Step 3: Remove 'shop' feature from businesses table.
+-- First, drop the existing constraint
+ALTER TABLE public.businesses
+DROP CONSTRAINT IF EXISTS businesses_default_profile_tab_check;
+
+-- Then, add the new constraint without 'shop'
+ALTER TABLE public.businesses
+ADD CONSTRAINT businesses_default_profile_tab_check
+CHECK (default_profile_tab IN ('posts', 'discounts', 'about'));
+
+-- Finally, drop the products table
+DROP TABLE IF EXISTS public.products;
+
+
+-- Step 4: Ensure previous migration changes are present for completeness.
 ALTER TABLE public.customers
 ADD COLUMN IF NOT EXISTS profile_picture_url text;
 
--- Step 2: Enhance the `posts` table for richer content.
 ALTER TABLE public.posts
-ADD COLUMN IF NOT EXISTS post_type text NOT NULL DEFAULT 'standard', -- 'standard' or 'discount'
+ADD COLUMN IF NOT EXISTS post_type text NOT NULL DEFAULT 'standard',
 ADD COLUMN IF NOT EXISTS video_url text,
-ADD COLUMN IF NOT EXISTS price_text text, -- Flexible for things like "$19.99" or "50% OFF"
+ADD COLUMN IF NOT EXISTS price_text text,
 ADD COLUMN IF NOT EXISTS external_url text;
 
--- Step 3: Add a default tab preference for businesses
-ALTER TABLE public.businesses
-ADD COLUMN IF NOT EXISTS default_profile_tab TEXT CHECK (default_profile_tab IN ('posts', 'shop', 'discounts', 'about'));
-
-
--- Step 4: Create a function for advanced member search.
 CREATE OR REPLACE FUNCTION search_memberships_for_business(business_id_param uuid, search_term_param text)
 RETURNS SETOF memberships AS $$
 BEGIN

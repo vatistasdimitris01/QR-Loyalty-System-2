@@ -41,7 +41,7 @@ export interface Business {
   facebook_url?: string | null;
   instagram_url?: string | null;
   public_phone_number?: string | null;
-  default_profile_tab?: 'posts' | 'shop' | 'discounts' | 'about' | null;
+  default_profile_tab?: 'posts' | 'discounts' | 'about' | null;
 
   // Loyalty Program
   points_per_scan?: number;
@@ -95,17 +95,6 @@ export interface Post {
     video_url?: string | null;
     price_text?: string | null;
     external_url?: string | null;
-}
-
-export interface Product {
-    id: string;
-    business_id: string;
-    name: string;
-    description?: string;
-    price?: number;
-    image_url?: string;
-    product_url?: string;
-    created_at: string;
 }
 
 export interface ScanResult {
