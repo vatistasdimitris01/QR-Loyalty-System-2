@@ -3,6 +3,12 @@ import { useLanguage } from '../context/LanguageContext';
 import { QRScannerModal, Spinner } from '../components/common';
 import { loginBusinessWithQrToken } from '../services/api';
 
+declare global {
+  interface Window {
+    $crisp: any[];
+  }
+}
+
 const FeatureCard: React.FC<{ title: string; description: string; icon: React.ReactNode }> = ({ title, description, icon }) => (
     <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
         <div className="flex justify-center items-center mb-4 text-white bg-blue-600 w-12 h-12 rounded-full">
@@ -34,6 +40,13 @@ const LandingPage: React.FC = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isScannerOpen, setIsScannerOpen] = useState(false);
     const [loginStatus, setLoginStatus] = useState<{ loading: boolean; error: string }>({ loading: false, error: '' });
+
+    const handleContactClick = (e: React.MouseEvent) => {
+        e.preventDefault();
+        if (window.$crisp) {
+            window.$crisp.push(['do', 'chat:open']);
+        }
+    };
 
     const handleLoginWithToken = async (token: string) => {
         setLoginStatus({ loading: true, error: '' });
@@ -125,9 +138,9 @@ const LandingPage: React.FC = () => {
                     </div>
                     <div className="hidden md:flex items-center gap-6">
                         {navLinks}
-                        <a href="mailto:contact@qroyal.com" className="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
+                        <button onClick={handleContactClick} className="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
                             {t('landingCtaBusiness')}
-                        </a>
+                        </button>
                     </div>
                     <div className="md:hidden">
                         <button onClick={() => setIsMenuOpen(!isMenuOpen)}>
@@ -139,9 +152,9 @@ const LandingPage: React.FC = () => {
                     <div className="md:hidden bg-white shadow-lg">
                         <div className="flex flex-col items-center gap-4 py-4">
                             {navLinks}
-                            <a href="mailto:contact@qroyal.com" className="w-11/12 text-center bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
+                            <button onClick={handleContactClick} className="w-11/12 text-center bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
                                 {t('landingCtaBusiness')}
-                            </a>
+                            </button>
                         </div>
                     </div>
                 )}
@@ -155,9 +168,9 @@ const LandingPage: React.FC = () => {
                         <a href="/signup/customer" className="bg-blue-600 text-white font-bold py-3 px-8 rounded-full text-lg shadow-md hover:bg-blue-700 transition-transform transform hover:scale-105">
                             {t('landingCtaCustomer')}
                         </a>
-                        <a href="mailto:contact@qroyal.com" className="bg-white text-blue-600 border-2 border-blue-600 font-bold py-3 px-8 rounded-full text-lg shadow-md hover:bg-blue-50 transition-transform transform hover:scale-105">
+                        <button onClick={handleContactClick} className="bg-white text-blue-600 border-2 border-blue-600 font-bold py-3 px-8 rounded-full text-lg shadow-md hover:bg-blue-50 transition-transform transform hover:scale-105">
                             {t('landingForBusinesses')}
-                        </a>
+                        </button>
                     </div>
                 </section>
 
@@ -204,9 +217,9 @@ const LandingPage: React.FC = () => {
                     <img src="https://i.postimg.cc/bJwnZhs9/Chat-GPT-Image-Aug-31-2025-06-45-18-AM.png" alt="QRoyal Logo" className="w-12 h-12 mx-auto mb-4" />
                     <h3 className="text-2xl font-bold mb-2">Ready to Build Your Loyalty?</h3>
                     <p className="text-gray-400 mb-8">Join hundreds of businesses growing with QRoyal.</p>
-                    <a href="mailto:contact@qroyal.com" className="bg-blue-600 text-white font-bold py-3 px-8 rounded-full text-lg shadow-md hover:bg-blue-700 transition-transform transform hover:scale-105">
+                    <button onClick={handleContactClick} className="bg-blue-600 text-white font-bold py-3 px-8 rounded-full text-lg shadow-md hover:bg-blue-700 transition-transform transform hover:scale-105">
                         {t('landingCtaBusiness')}
-                    </a>
+                    </button>
                     <p className="mt-10 text-gray-500 text-sm">&copy; {new Date().getFullYear()} QRoyal. All rights reserved.</p>
                 </div>
             </footer>
