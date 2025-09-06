@@ -46,13 +46,6 @@ const LandingPage: React.FC = () => {
         }
     };
 
-    const handleBusinessSignupClick = (e: React.MouseEvent) => {
-        e.preventDefault();
-        if (window.tidioChatApi) {
-            window.tidioChatApi.open();
-        }
-    };
-
     const handleLoginWithToken = async (token: string) => {
         setLoginStatus({ loading: true, error: '' });
         try {
@@ -132,9 +125,9 @@ const LandingPage: React.FC = () => {
                     </a>
                     <div className="hidden md:flex items-center gap-8">
                         {navLinks}
-                        <button onClick={handleBusinessSignupClick} className="bg-blue-600 text-white font-semibold py-2 px-5 rounded-lg hover:bg-blue-700 transition-all shadow-sm hover:shadow-md">
+                        <a href="/signup/business" className="bg-blue-600 text-white font-semibold py-2 px-5 rounded-lg hover:bg-blue-700 transition-all shadow-sm hover:shadow-md">
                             {t('landingCtaBusiness')}
-                        </button>
+                        </a>
                     </div>
                     <div className="md:hidden">
                         <button onClick={() => setIsMenuOpen(!isMenuOpen)} aria-label="Open menu">
@@ -144,7 +137,7 @@ const LandingPage: React.FC = () => {
                 </nav>
                 {isMenuOpen && (
                     <div className="md:hidden bg-white shadow-lg"><div className="flex flex-col items-center gap-4 py-4">{navLinks}
-                        <button onClick={handleBusinessSignupClick} className="w-11/12 text-center bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">{t('landingCtaBusiness')}</button>
+                        <a href="/signup/business" className="w-11/12 text-center bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">{t('landingCtaBusiness')}</a>
                     </div></div>
                 )}
             </header>
@@ -159,9 +152,9 @@ const LandingPage: React.FC = () => {
                                 <a href="/signup/customer" className="bg-blue-600 text-white font-bold py-3 px-8 rounded-full text-lg shadow-md hover:bg-blue-700 transition-transform transform hover:scale-105">
                                     {t('landingCtaCustomer')}
                                 </a>
-                                <button onClick={handleBusinessSignupClick} className="bg-white text-blue-600 border-2 border-blue-200 font-bold py-3 px-8 rounded-full text-lg shadow-sm hover:bg-blue-50 transition-transform transform hover:scale-105">
+                                <a href="/signup/business" className="bg-white text-blue-600 border-2 border-blue-200 font-bold py-3 px-8 rounded-full text-lg shadow-sm hover:bg-blue-50 transition-transform transform hover:scale-105">
                                     {t('landingForBusinesses')}
-                                </button>
+                                </a>
                             </div>
                         </div>
                         <div className="relative h-96 flex justify-center items-center">
@@ -228,9 +221,9 @@ const LandingPage: React.FC = () => {
                     <div className="container mx-auto py-20 px-6 text-center text-white">
                         <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Build Your Loyalty?</h2>
                         <p className="text-blue-200 text-lg mb-8 max-w-2xl mx-auto">Join hundreds of businesses growing with QRoyal. Get started today for free.</p>
-                        <button onClick={handleBusinessSignupClick} className="bg-white text-blue-600 font-bold py-3 px-8 rounded-full text-lg shadow-md hover:bg-blue-100 transition-transform transform hover:scale-105">
+                        <a href="/signup/business" className="bg-white text-blue-600 font-bold py-3 px-8 rounded-full text-lg shadow-md hover:bg-blue-100 transition-transform transform hover:scale-105">
                             {t('landingCtaBusiness')}
-                        </button>
+                        </a>
                     </div>
                 </section>
             </main>
