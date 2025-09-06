@@ -12,7 +12,7 @@ export const getAllCustomers = async (): Promise<Customer[]> => {
 };
 
 export const getCustomerByQrToken = async (qrToken: string): Promise<Customer | null> => {
-  const { data, error } = await supabase.from('customers').select('*').eq('qrToken', qrToken).single();
+  const { data, error } = await supabase.from('customers').select('*').eq('qr_token', qrToken).single();
   if (error) {
     console.error(`Error fetching customer by token ${qrToken}:`, error);
     return null;
@@ -25,7 +25,7 @@ export const awardPoints = async (qrToken: string): Promise<ScanResult> => {
     const { data: customerRecord, error: customerError } = await supabase
       .from('customers')
       .select('*')
-      .eq('qrToken', qrToken)
+      .eq('qr_token', qrToken)
       .single();
 
     if (customerError || !customerRecord) {
@@ -94,15 +94,15 @@ export const deleteCustomer = async (id: string): Promise<boolean> => {
 };
 
 export const createCustomer = async (name: string): Promise<Customer | null> => {
-    const qrToken = `cust_${Math.random().toString(36).substr(2, 9)}`;
-    const qrDataUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${qrToken}`;
+    const qr_token = `cust_${Math.random().toString(36).substr(2, 9)}`;
+    const qr_data_url = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${qr_token}`;
 
     const newCustomerData = {
         name,
         phone_number: null,
         points: 0,
-        qrToken,
-        qrDataUrl,
+        qr_token,
+        qr_data_url,
         points_updated_at: new Date().toISOString(),
     };
 
@@ -141,7 +141,7 @@ export const loginBusinessWithQrToken = async (qrToken: string): Promise<{ succe
     const { data, error } = await supabase
         .from('businesses')
         .select('*')
-        .eq('qrToken', qrToken)
+        .eq('qr_token', qrToken)
         .single();
 
     if (error || !data) {
@@ -152,7 +152,7 @@ export const loginBusinessWithQrToken = async (qrToken: string): Promise<{ succe
     return { success: true, business: businessData as Business };
 }
 
-export const signupBusiness = async (businessData: Omit<Business, 'id' | 'created_at' | 'qrToken' | 'qrDataUrl'>): Promise<{ success: boolean; business?: Business; message?: string }> => {
+export const signupBusiness = async (businessData: Omit<Business, 'id' | 'created_at' | 'qr_token' | 'qr_data_url'>): Promise<{ success: boolean; business?: Business; message?: string }> => {
     const { data: existingBusinesses, error: checkError } = await supabase
         .from('businesses')
         .select('id')
@@ -167,8 +167,8 @@ export const signupBusiness = async (businessData: Omit<Business, 'id' | 'create
         return { success: false, message: 'A business with this email already exists.' };
     }
 
-    const qrToken = `biz_${Math.random().toString(36).substr(2, 9)}`;
-    const qrDataUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${qrToken}`;
+    const qr_token = `biz_${Math.random().toString(36).substr(2, 9)}`;
+    const qr_data_url = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${qr_token}`;
 
     const { data, error } = await supabase
         .from('businesses')
@@ -176,8 +176,8 @@ export const signupBusiness = async (businessData: Omit<Business, 'id' | 'create
             name: businessData.name,
             email: businessData.email,
             password: businessData.password,
-            qrToken,
-            qrDataUrl
+            qr_token,
+            qr_data_url
         })
         .select();
     
@@ -205,16 +205,16 @@ export const signupCustomer = async (phoneNumber: string, password: string): Pro
         return { success: false, message: 'This phone number is already registered.' };
     }
     
-    const qrToken = `cust_${Math.random().toString(36).substr(2, 9)}`;
-    const qrDataUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${qrToken}`;
+    const qr_token = `cust_${Math.random().toString(36).substr(2, 9)}`;
+    const qr_data_url = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${qr_token}`;
 
     const newCustomerData = {
         name: `User ${phoneNumber.slice(-4)}`,
         phone_number: phoneNumber,
         password: password,
         points: 0,
-        qrToken,
-        qrDataUrl,
+        qr_token,
+        qr_data_url,
         points_updated_at: new Date().toISOString(),
     };
 

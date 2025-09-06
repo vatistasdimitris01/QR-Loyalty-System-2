@@ -5,8 +5,8 @@ export interface Customer {
   phone_number: string;
   password?: string; // Password is required for creation, but shouldn't be sent to client
   points: number;
-  qrToken: string;
-  qrDataUrl: string;
+  qr_token: string;
+  qr_data_url: string;
   created_at: string;
   points_updated_at: string;
 }
@@ -16,8 +16,8 @@ export interface Business {
   name: string;
   email: string;
   password?: string;
-  qrToken: string;
-  qrDataUrl: string;
+  qr_token: string;
+  qr_data_url: string;
   created_at: string;
 }
 

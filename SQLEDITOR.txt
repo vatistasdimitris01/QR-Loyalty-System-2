@@ -42,8 +42,8 @@ CREATE TABLE public.businesses (
     name text NOT NULL,
     email text NOT NULL UNIQUE,
     password text NOT NULL,
-    qrToken text NOT NULL UNIQUE,
-    qrDataUrl text NOT NULL,
+    qr_token text NOT NULL UNIQUE,
+    qr_data_url text NOT NULL,
     created_at timestamptz NOT NULL DEFAULT now(),
     updated_at timestamptz NOT NULL DEFAULT now()
 );
@@ -68,8 +68,8 @@ CREATE TABLE public.customers (
     name text NOT NULL,
     phone_number text UNIQUE,
     password text,
-    qrToken text NOT NULL UNIQUE,
-    qrDataUrl text NOT NULL,
+    qr_token text NOT NULL UNIQUE,
+    qr_data_url text NOT NULL,
     points integer NOT NULL DEFAULT 0,
     points_updated_at timestamptz,
     created_at timestamptz NOT NULL DEFAULT now(),

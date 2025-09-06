@@ -101,7 +101,7 @@ const BusinessPage: React.FC = () => {
                 <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center" onClick={() => setNewCustomerQR(null)}>
                     <div className="bg-white p-8 rounded-lg text-center" onClick={e => e.stopPropagation()}>
                         <h3 className="text-xl font-bold mb-4">New QR Code for {newCustomerQR.name}</h3>
-                        <img src={newCustomerQR.qrDataUrl} alt="New Customer QR Code" className="w-64 h-64 mx-auto" />
+                        <img src={newCustomerQR.qr_data_url} alt="New Customer QR Code" className="w-64 h-64 mx-auto" />
                         <p className="mt-4 text-gray-600">Share this with the new customer.</p>
                         <button onClick={() => setNewCustomerQR(null)} className="mt-6 bg-blue-600 text-white font-bold py-2 px-6 rounded-lg">Close</button>
                     </div>
@@ -117,10 +117,10 @@ const BusinessPage: React.FC = () => {
                 <StatCard title={t('totalCustomers')} value={stats.totalCustomers} icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.653-.122-1.28-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.653.122-1.28.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>} />
                 <StatCard title={t('totalPoints')} value={stats.totalPoints} icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4M17 3v4m-2 2h4M17 17v4m2-2h-4M12 5v14m-4-7h8" /></svg>} />
                 <StatCard title={t('avgPoints')} value={stats.avgPoints} icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" /></svg>} />
-                {business?.qrDataUrl && (
+                {business?.qr_data_url && (
                      <div className="bg-white p-4 rounded-lg shadow-md flex flex-col items-center justify-center gap-2">
                         <h3 className="font-bold text-gray-800">Your Business QR</h3>
-                        <img src={business.qrDataUrl} alt="Business QR Code" className="w-24 h-24" />
+                        <img src={business.qr_data_url} alt="Business QR Code" className="w-24 h-24" />
                         <p className="text-xs text-gray-500 text-center">Scan this for quick login</p>
                     </div>
                 )}
@@ -158,7 +158,7 @@ const BusinessPage: React.FC = () => {
                                     <td className="p-3">{customer.name}</td>
                                     <td className="p-3">{customer.phone_number || 'N/A'}</td>
                                     <td className="p-3">{customer.points}</td>
-                                    <td className="p-3"><img src={customer.qrDataUrl} alt="QR Code" className="w-12 h-12 cursor-pointer" onClick={() => setNewCustomerQR(customer)} /></td>
+                                    <td className="p-3"><img src={customer.qr_data_url} alt="QR Code" className="w-12 h-12 cursor-pointer" onClick={() => setNewCustomerQR(customer)} /></td>
                                     <td className="p-3 flex gap-2">
                                         <button onClick={() => setEditingCustomer(customer)} className="text-blue-600 hover:text-blue-800">{t('edit')}</button>
                                         <button onClick={() => setDeletingCustomer(customer)} className="text-red-600 hover:text-red-800">{t('delete')}</button>

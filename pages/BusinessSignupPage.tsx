@@ -37,7 +37,7 @@ const BusinessSignupPage: React.FC = () => {
                 <div className="bg-white p-8 rounded-lg shadow-md max-w-sm w-full">
                     <h1 className="text-2xl font-bold text-gray-800 mb-4">{t('signupSuccess')}</h1>
                     <p className="text-gray-600 mb-6">Here is your business QR code for quick logins.</p>
-                    <img src={newBusiness.qrDataUrl} alt="Your Business QR Code" className="w-48 h-48 mx-auto" />
+                    <img src={newBusiness.qr_data_url} alt="Your Business QR Code" className="w-48 h-48 mx-auto" />
                     <a href={`/business/login`} className="mt-8 inline-block bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors">
                         Go to Login
                     </a>

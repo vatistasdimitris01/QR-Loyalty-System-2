@@ -37,8 +37,8 @@ const CustomerSignupPage: React.FC = () => {
                 <div className="bg-white p-8 rounded-lg shadow-md max-w-sm w-full">
                     <h1 className="text-2xl font-bold text-gray-800 mb-4">{t('yourQRCodeIsReady')}</h1>
                     <p className="text-gray-600 mb-6">{t('scanThisToLogin')}</p>
-                    <img src={newCustomer.qrDataUrl} alt="Your QR Code" className="w-48 h-48 mx-auto" />
-                    <a href={`/customer?token=${newCustomer.qrToken}`} className="mt-8 inline-block bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors">
+                    <img src={newCustomer.qr_data_url} alt="Your QR Code" className="w-48 h-48 mx-auto" />
+                    <a href={`/customer?token=${newCustomer.qr_token}`} className="mt-8 inline-block bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors">
                         {t('goToMyCard')}
                     </a>
                 </div>

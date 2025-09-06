@@ -175,9 +175,9 @@ const CustomerPage: React.FC<CustomerPageProps> = ({ qrToken }) => {
                 </button>
               </div>
             )}
-            {customer.qrDataUrl && (
+            {customer.qr_data_url && (
               <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-8 flex justify-center">
-                <img src={customer.qrDataUrl} alt="Your QR Code" className="w-48 h-48" />
+                <img src={customer.qr_data_url} alt="Your QR Code" className="w-48 h-48" />
               </div>
             )}
             
