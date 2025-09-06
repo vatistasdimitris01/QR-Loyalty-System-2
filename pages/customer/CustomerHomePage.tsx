@@ -50,7 +50,7 @@ const CustomerHomePage: React.FC<CustomerHomePageProps> = ({ customer, membershi
                         >
                             <div className="flex items-center gap-4">
                                 <img 
-                                    src={membership.businesses.logo_url || 'https://via.placeholder.com/150'} 
+                                    src={membership.businesses.logo_url || 'https://i.postimg.cc/8zRZt9pM/user.png'} 
                                     alt={`${membership.businesses.public_name} logo`}
                                     className="w-12 h-12 rounded-full object-cover bg-gray-200"
                                 />

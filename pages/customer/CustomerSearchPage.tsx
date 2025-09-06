@@ -192,7 +192,7 @@ const BusinessList: React.FC<{loading: boolean, businesses: Business[], joinedBu
                 <div key={business.id} className="bg-white p-4 rounded-lg shadow-sm flex items-center justify-between">
                     <div className="flex items-center gap-4 flex-grow min-w-0">
                         <img 
-                            src={business.logo_url || 'https://via.placeholder.com/150'} 
+                            src={business.logo_url || 'https://i.postimg.cc/8zRZt9pM/user.png'} 
                             alt={`${business.public_name} logo`}
                             className="w-12 h-12 rounded-full object-cover bg-gray-200 flex-shrink-0"
                         />

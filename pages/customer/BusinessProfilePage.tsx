@@ -85,7 +85,7 @@ const BusinessProfilePage: React.FC<BusinessProfilePageProps> = ({ business, cus
                 <div className="relative bg-gray-300 h-40 sm:h-56">
                     {business.cover_photo_url && <img src={business.cover_photo_url} alt="Cover" className="w-full h-full object-cover" />}
                     <div className="absolute -bottom-12 left-1/2 -translate-x-1/2">
-                        <img src={business.logo_url || 'https://via.placeholder.com/150'} alt="Logo" className="w-24 h-24 rounded-full object-cover bg-gray-200 border-4 border-white shadow-md" />
+                        <img src={business.logo_url || 'https://i.postimg.cc/8zRZt9pM/user.png'} alt="Logo" className="w-24 h-24 rounded-full object-cover bg-gray-200 border-4 border-white shadow-md" />
                     </div>
                 </div>
 
