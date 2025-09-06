@@ -153,13 +153,17 @@ export const loginBusinessWithQrToken = async (qrToken: string): Promise<{ succe
 }
 
 export const signupBusiness = async (businessData: Omit<Business, 'id' | 'created_at' | 'qrToken' | 'qrDataUrl'>): Promise<{ success: boolean; business?: Business; message?: string }> => {
-    const { data: existingBusiness } = await supabase
+    const { data: existingBusinesses, error: checkError } = await supabase
         .from('businesses')
         .select('id')
-        .eq('email', businessData.email)
-        .single();
+        .eq('email', businessData.email);
 
-    if (existingBusiness) {
+    if (checkError) {
+        console.error('Error during existence check:', checkError);
+        return { success: false, message: 'An error occurred checking for existing business.' };
+    }
+
+    if (existingBusinesses && existingBusinesses.length > 0) {
         return { success: false, message: 'A business with this email already exists.' };
     }
 
@@ -178,6 +182,7 @@ export const signupBusiness = async (businessData: Omit<Business, 'id' | 'create
         .select();
     
     if (error || !data || data.length === 0) {
+        console.error('Error creating business:', error);
         return { success: false, message: 'Failed to create business.' };
     }
     
@@ -186,13 +191,17 @@ export const signupBusiness = async (businessData: Omit<Business, 'id' | 'create
 };
 
 export const signupCustomer = async (phoneNumber: string, password: string): Promise<{ success: boolean; customer?: Customer; message?: string }> => {
-    const { data: existingCustomer } = await supabase
+    const { data: existingCustomers, error: checkError } = await supabase
         .from('customers')
         .select('id')
-        .eq('phone_number', phoneNumber)
-        .single();
+        .eq('phone_number', phoneNumber);
+
+    if (checkError) {
+        console.error('Error during existence check:', checkError);
+        return { success: false, message: 'An error occurred checking for existing customer.' };
+    }
     
-    if (existingCustomer) {
+    if (existingCustomers && existingCustomers.length > 0) {
         return { success: false, message: 'This phone number is already registered.' };
     }
     
