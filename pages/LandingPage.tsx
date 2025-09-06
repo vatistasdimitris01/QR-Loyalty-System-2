@@ -185,20 +185,20 @@ const LandingPage: React.FC = () => {
 
             <main>
                 <section className="relative bg-gradient-to-br from-blue-50 via-white to-cyan-50 overflow-hidden">
-                    <div className="container mx-auto px-6 py-16 md:py-24 grid md:grid-cols-2 items-center gap-12">
+                    <div className="container mx-auto px-6 py-20 md:py-24 grid md:grid-cols-2 items-center gap-12">
                         <div className="text-center md:text-left">
                             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-gray-900 mb-4 leading-tight">{t('landingTitle')}</h1>
                             <p className="text-lg md:text-xl text-gray-600 max-w-xl mx-auto md:mx-0 mb-10">{t('landingSubtitle')}</p>
-                            <div className="flex flex-col items-center sm:flex-row gap-4 justify-center md:justify-start">
-                                <a href="/signup/customer" className="w-full sm:w-auto bg-blue-600 text-white font-bold py-3 px-8 rounded-full text-lg shadow-md hover:bg-blue-700 transition-transform transform hover:scale-105">
+                            <div className="flex flex-col md:flex-row items-center gap-4 justify-center md:justify-start">
+                                <a href="/signup/customer" className="w-full md:w-auto bg-blue-600 text-white font-bold py-3 px-8 rounded-full text-lg shadow-md hover:bg-blue-700 transition-transform transform hover:scale-105">
                                     {t('landingCtaCustomer')}
                                 </a>
-                                <a href="/business/login" className="w-full sm:w-auto bg-white text-blue-600 border-2 border-blue-200 font-bold py-3 px-8 rounded-full text-lg shadow-sm hover:bg-blue-50 transition-transform transform hover:scale-105">
+                                <a href="/business/login" className="w-full md:w-auto bg-white text-blue-600 border-2 border-blue-200 font-bold py-3 px-8 rounded-full text-lg shadow-sm hover:bg-blue-50 transition-transform transform hover:scale-105">
                                     {t('landingForBusinesses')}
                                 </a>
                             </div>
                         </div>
-                        <div className="relative mt-12 md:mt-0 h-80 sm:h-96 flex justify-center items-center">
+                        <div className="relative mt-16 md:mt-0 h-[34rem] md:h-full flex justify-center items-center">
                             <div className="absolute w-64 h-[512px] bg-gray-800 rounded-[48px] border-[14px] border-black shadow-2xl"></div>
                             <div className="absolute w-[232px] h-[484px] bg-white rounded-[34px] overflow-hidden flex flex-col items-center justify-center p-4 space-y-4">
                                <img src="https://i.postimg.cc/KjFxM2bz/Chat-GPT-Image-Apr-27-2025-05-14-20-PM.png" alt="Profile" className="w-24 h-24 rounded-full border-4 border-gray-100 object-cover" />
