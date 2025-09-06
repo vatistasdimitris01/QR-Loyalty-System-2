@@ -184,21 +184,21 @@ const LandingPage: React.FC = () => {
             </header>
 
             <main>
-                <section className="relative bg-gradient-to-br from-blue-50 via-white to-cyan-50">
-                    <div className="container mx-auto px-6 py-20 md:py-32 grid md:grid-cols-2 items-center gap-12">
+                <section className="relative bg-gradient-to-br from-blue-50 via-white to-cyan-50 overflow-hidden">
+                    <div className="container mx-auto px-6 py-16 md:py-24 grid md:grid-cols-2 items-center gap-12">
                         <div className="text-center md:text-left">
-                            <h1 className="text-4xl md:text-6xl font-extrabold text-gray-900 mb-4 leading-tight">{t('landingTitle')}</h1>
+                            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-gray-900 mb-4 leading-tight">{t('landingTitle')}</h1>
                             <p className="text-lg md:text-xl text-gray-600 max-w-xl mx-auto md:mx-0 mb-10">{t('landingSubtitle')}</p>
-                            <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
-                                <a href="/signup/customer" className="bg-blue-600 text-white font-bold py-3 px-8 rounded-full text-lg shadow-md hover:bg-blue-700 transition-transform transform hover:scale-105">
+                            <div className="flex flex-col items-center sm:flex-row gap-4 justify-center md:justify-start">
+                                <a href="/signup/customer" className="w-full sm:w-auto bg-blue-600 text-white font-bold py-3 px-8 rounded-full text-lg shadow-md hover:bg-blue-700 transition-transform transform hover:scale-105">
                                     {t('landingCtaCustomer')}
                                 </a>
-                                <a href="/business/login" className="bg-white text-blue-600 border-2 border-blue-200 font-bold py-3 px-8 rounded-full text-lg shadow-sm hover:bg-blue-50 transition-transform transform hover:scale-105">
+                                <a href="/business/login" className="w-full sm:w-auto bg-white text-blue-600 border-2 border-blue-200 font-bold py-3 px-8 rounded-full text-lg shadow-sm hover:bg-blue-50 transition-transform transform hover:scale-105">
                                     {t('landingForBusinesses')}
                                 </a>
                             </div>
                         </div>
-                        <div className="relative h-96 flex justify-center items-center">
+                        <div className="relative mt-12 md:mt-0 h-80 sm:h-96 flex justify-center items-center">
                             <div className="absolute w-64 h-[512px] bg-gray-800 rounded-[48px] border-[14px] border-black shadow-2xl"></div>
                             <div className="absolute w-[232px] h-[484px] bg-white rounded-[34px] overflow-hidden flex flex-col items-center justify-center p-4 space-y-4">
                                <img src="https://i.postimg.cc/KjFxM2bz/Chat-GPT-Image-Apr-27-2025-05-14-20-PM.png" alt="Profile" className="w-24 h-24 rounded-full border-4 border-gray-100 object-cover" />
@@ -227,7 +227,7 @@ const LandingPage: React.FC = () => {
                     <div className="container mx-auto text-center">
                         <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">{t('customerFeaturesTitle')}</h2>
                         <p className="text-lg text-gray-500 mb-16 max-w-3xl mx-auto">{t('customerFeaturesSubtitle')}</p>
-                        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 text-left">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 text-left">
                             <div className="bg-gray-50 p-6 rounded-xl border border-gray-100"><div className="flex items-center justify-center bg-blue-100 text-blue-600 w-12 h-12 rounded-lg mb-4"><CustomerFeatureIcon1 /></div><h3 className="text-xl font-bold mb-2">{t('customerFeature1Title')}</h3><p className="text-gray-600">{t('customerFeature1Desc')}</p></div>
                             <div className="bg-gray-50 p-6 rounded-xl border border-gray-100"><div className="flex items-center justify-center bg-blue-100 text-blue-600 w-12 h-12 rounded-lg mb-4"><CustomerFeatureIcon2 /></div><h3 className="text-xl font-bold mb-2">{t('customerFeature2Title')}</h3><p className="text-gray-600">{t('customerFeature2Desc')}</p></div>
                             <div className="bg-gray-50 p-6 rounded-xl border border-gray-100"><div className="flex items-center justify-center bg-blue-100 text-blue-600 w-12 h-12 rounded-lg mb-4"><CustomerFeatureIcon3 /></div><h3 className="text-xl font-bold mb-2">{t('customerFeature3Title')}</h3><p className="text-gray-600">{t('customerFeature3Desc')}</p></div>
@@ -242,7 +242,7 @@ const LandingPage: React.FC = () => {
                         <div className="text-center lg:text-left">
                             <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">{t('businessFeaturesTitle')}</h2>
                             <p className="text-lg text-gray-500 mb-12 max-w-xl mx-auto lg:mx-0">{t('businessFeaturesSubtitle')}</p>
-                            <div className="grid sm:grid-cols-2 gap-8 text-left">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 text-left">
                                 <div className="space-y-1"><div className="flex items-center justify-center bg-blue-200 text-blue-700 w-10 h-10 rounded-lg mb-3"><BusinessFeatureIcon1 /></div><h3 className="text-lg font-bold">{t('businessFeature1Title')}</h3><p className="text-gray-600 text-sm">{t('businessFeature1Desc')}</p></div>
                                 <div className="space-y-1"><div className="flex items-center justify-center bg-blue-200 text-blue-700 w-10 h-10 rounded-lg mb-3"><BusinessFeatureIcon2 /></div><h3 className="text-lg font-bold">{t('businessFeature2Title')}</h3><p className="text-gray-600 text-sm">{t('businessFeature2Desc')}</p></div>
                                 <div className="space-y-1"><div className="flex items-center justify-center bg-blue-200 text-blue-700 w-10 h-10 rounded-lg mb-3"><BusinessFeatureIcon3 /></div><h3 className="text-lg font-bold">{t('businessFeature3Title')}</h3><p className="text-gray-600 text-sm">{t('businessFeature3Desc')}</p></div>
@@ -262,7 +262,7 @@ const LandingPage: React.FC = () => {
                 <section className="py-20 md:py-28 px-6 bg-gray-50">
                     <div className="container mx-auto text-center">
                          <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-12">Loved by Businesses Like Yours</h2>
-                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 text-left">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 text-left">
                             <figure className="bg-white p-8 rounded-lg shadow-sm relative"><QuoteIcon /><blockquote className="mt-4 text-gray-600 italic">"{'QRoyal revolutionized how we interact with our customers. It\'s simple, effective, and our regulars love it!'}"</blockquote><figcaption className="mt-6"><div className="font-bold text-gray-800">Maria P.</div><div className="text-sm text-gray-500">Owner, The Daily Grind Cafe</div></figcaption></figure>
                             <figure className="bg-white p-8 rounded-lg shadow-sm relative"><QuoteIcon /><blockquote className="mt-4 text-gray-600 italic">"{'We saw a 20% increase in repeat customers within three months. The analytics dashboard is a game-changer.'}"</blockquote><figcaption className="mt-6"><div className="font-bold text-gray-800">John A.</div><div className="text-sm text-gray-500">Manager, Book Haven</div></figcaption></figure>
                             <figure className="bg-white p-8 rounded-lg shadow-sm relative"><QuoteIcon /><blockquote className="mt-4 text-gray-600 italic">"{'Finally, a loyalty solution that doesn\'t require an app! Our customers signed up instantly. The support has been fantastic too.'}"</blockquote><figcaption className="mt-6"><div className="font-bold text-gray-800">Elena V.</div><div className="text-sm text-gray-500">Stylist, Chic Boutique</div></figcaption></figure>
@@ -283,15 +283,15 @@ const LandingPage: React.FC = () => {
 
             <footer className="bg-gray-900 text-gray-400">
                 <div className="container mx-auto py-12 px-6">
-                    <div className="flex flex-col md:flex-row justify-between items-center gap-8">
+                    <div className="flex flex-col md:flex-row justify-between items-center md:items-start gap-8 text-center md:text-left">
                         <div>
-                            <a href="/" className="flex items-center gap-2 mb-4">
+                            <a href="/" className="flex items-center justify-center md:justify-start gap-2 mb-4">
                                 <img src="https://i.postimg.cc/bJwnZhs9/Chat-GPT-Image-Aug-31-2025-06-45-18-AM.png" alt="QRoyal Logo" className="w-10 h-10" />
                                 <span className="font-bold text-2xl text-white">QRoyal</span>
                             </a>
                             <p className="text-sm max-w-xs">The Smartest Loyalty Program for Local Businesses.</p>
                         </div>
-                        <div className="flex gap-10 text-sm">
+                        <div className="flex flex-col sm:flex-row gap-8 sm:gap-16 text-sm">
                            <div>
                              <h4 className="font-bold text-white mb-3">Product</h4>
                              <ul className="space-y-2">
