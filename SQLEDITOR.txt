@@ -1,14 +1,132 @@
 -- ================================================================
--- DATABASE MIGRATION SCRIPT (v6) - Google Maps Integration
+-- DATABASE MIGRATION SCRIPT (v7) - Nearby & Popular Search
+-- ================================================================
+-- This script re-introduces location columns and adds functions
+-- to enable searching for businesses by popularity and proximity.
+-- ================================================================
+
+-- Step 1: Add latitude and longitude columns back to the `businesses` table.
+ALTER TABLE public.businesses
+ADD COLUMN IF NOT EXISTS latitude double precision,
+ADD COLUMN IF NOT EXISTS longitude double precision;
+
+-- Step 2: Create a function to get the most popular businesses (most members).
+CREATE OR REPLACE FUNCTION get_popular_businesses()
+RETURNS TABLE (
+    id uuid,
+    name text,
+    email text,
+    qr_token text,
+    qr_data_url text,
+    created_at timestamptz,
+    qr_logo_url text,
+    qr_color text,
+    qr_eye_shape text,
+    qr_dot_style text,
+    public_name text,
+    logo_url text,
+    bio text,
+    website_url text,
+    facebook_url text,
+    instagram_url text,
+    public_phone_number text,
+    points_per_scan integer,
+    reward_threshold integer,
+    reward_message text,
+    address_text text,
+    latitude double precision,
+    longitude double precision,
+    membership_count bigint
+)
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        b.*,
+        COUNT(m.id) as membership_count
+    FROM
+        public.businesses b
+    JOIN
+        public.memberships m ON b.id = m.business_id
+    GROUP BY
+        b.id
+    ORDER BY
+        membership_count DESC
+    LIMIT 20;
+END;
+$$ LANGUAGE plpgsql;
+
+
+-- Step 3: Create a function to get nearby businesses using Haversine distance formula.
+CREATE OR REPLACE FUNCTION get_nearby_businesses(user_lat double precision, user_lon double precision)
+RETURNS TABLE (
+    id uuid,
+    name text,
+    email text,
+    qr_token text,
+    qr_data_url text,
+    created_at timestamptz,
+    qr_logo_url text,
+    qr_color text,
+    qr_eye_shape text,
+    qr_dot_style text,
+    public_name text,
+    logo_url text,
+    bio text,
+    website_url text,
+    facebook_url text,
+    instagram_url text,
+    public_phone_number text,
+    points_per_scan integer,
+    reward_threshold integer,
+    reward_message text,
+    address_text text,
+    latitude double precision,
+    longitude double precision,
+    dist_meters double precision
+)
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        b.*,
+        -- Haversine formula to calculate distance in meters
+        6371000 * 2 * ASIN(
+            SQRT(
+                POWER(SIN(RADIANS(b.latitude - user_lat) / 2), 2) +
+                COS(RADIANS(user_lat)) * COS(RADIANS(b.latitude)) *
+                POWER(SIN(RADIANS(b.longitude - user_lon) / 2), 2)
+            )
+        ) AS dist_meters
+    FROM
+        public.businesses b
+    WHERE
+        b.latitude IS NOT NULL AND b.longitude IS NOT NULL
+    ORDER BY
+        dist_meters ASC
+    LIMIT 20;
+END;
+$$ LANGUAGE plpgsql;
+
+
+-- ================================================================
+-- MIGRATION COMPLETE
+-- ================================================================
+-- All necessary database changes for the popular and nearby
+-- search features have been applied.
+-- ================================================================
+
+-- ================================================================
+-- PREVIOUS MIGRATION SCRIPT (v6) - Included for completeness
 -- ================================================================
 -- This script simplifies the location data by removing latitude/longitude,
 -- as they are no longer needed for the Google Maps iframe embed.
 -- ================================================================
 
 -- Step 1: Remove latitude and longitude columns from the `businesses` table.
-ALTER TABLE public.businesses
-DROP COLUMN IF EXISTS latitude,
-DROP COLUMN IF EXISTS longitude;
+-- ALTER TABLE public.businesses
+-- DROP COLUMN IF EXISTS latitude,
+-- DROP COLUMN IF EXISTS longitude;
 
 
 -- ================================================================
@@ -16,8 +134,8 @@ DROP COLUMN IF EXISTS longitude;
 -- ================================================================
 
 -- Step 1: Add location column to the `businesses` table.
-ALTER TABLE public.businesses
-ADD COLUMN IF NOT EXISTS address_text text;
+-- ALTER TABLE public.businesses
+-- ADD COLUMN IF NOT EXISTS address_text text;
 
 
 -- ================================================================
@@ -25,51 +143,44 @@ ADD COLUMN IF NOT EXISTS address_text text;
 -- ================================================================
 
 -- Step 1: Add customizable loyalty program columns to `businesses` table.
-ALTER TABLE public.businesses
-ADD COLUMN IF NOT EXISTS points_per_scan integer NOT NULL DEFAULT 1,
-ADD COLUMN IF NOT EXISTS reward_threshold integer NOT NULL DEFAULT 5,
-ADD COLUMN IF NOT EXISTS reward_message text;
+-- ALTER TABLE public.businesses
+-- ADD COLUMN IF NOT EXISTS points_per_scan integer NOT NULL DEFAULT 1,
+-- ADD COLUMN IF NOT EXISTS reward_threshold integer NOT NULL DEFAULT 5,
+-- ADD COLUMN IF NOT EXISTS reward_message text;
 
 -- Step 2: Add QR style preference column to `customers` table.
-ALTER TABLE public.customers
-ADD COLUMN IF NOT EXISTS qr_style_preferences jsonb;
+-- ALTER TABLE public.customers
+-- ADD COLUMN IF NOT EXISTS qr_style_preferences jsonb;
 
 -- Step 3: Create the new 'business_qr_designs' table.
-CREATE TABLE IF NOT EXISTS public.business_qr_designs (
-    id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
-    business_id uuid NOT NULL,
-    qr_logo_url text,
-    qr_color text,
-    qr_eye_shape text,
-    qr_dot_style text,
-    created_at timestamp with time zone DEFAULT now() NOT NULL,
-    CONSTRAINT business_qr_designs_business_id_fkey FOREIGN KEY (business_id) REFERENCES public.businesses(id) ON DELETE CASCADE
-);
+-- CREATE TABLE IF NOT EXISTS public.business_qr_designs (
+--     id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+--     business_id uuid NOT NULL,
+--     qr_logo_url text,
+--     qr_color text,
+--     qr_eye_shape text,
+--     qr_dot_style text,
+--     created_at timestamp with time zone DEFAULT now() NOT NULL,
+--     CONSTRAINT business_qr_designs_business_id_fkey FOREIGN KEY (business_id) REFERENCES public.businesses(id) ON DELETE CASCADE
+-- );
 
 -- Step 4: Setup Row Level Security (RLS) for the new 'business_qr_designs' table.
-ALTER TABLE public.business_qr_designs ENABLE ROW LEVEL SECURITY;
+-- ALTER TABLE public.business_qr_designs ENABLE ROW LEVEL SECURITY;
 
-DROP POLICY IF EXISTS "Public can view designs." ON public.business_qr_designs;
-CREATE POLICY "Public can view designs." ON public.business_qr_designs
-FOR SELECT USING (true);
+-- DROP POLICY IF EXISTS "Public can view designs." ON public.business_qr_designs;
+-- CREATE POLICY "Public can view designs." ON public.business_qr_designs
+-- FOR SELECT USING (true);
 
-DROP POLICY IF EXISTS "Businesses can manage their own designs." ON public.business_qr_designs;
-CREATE POLICY "Businesses can manage their own designs." ON public.business_qr_designs
-FOR ALL USING (
-    (SELECT id FROM public.businesses WHERE id = business_id) IS NOT NULL -- A simple check, can be enhanced with auth.uid()
-);
+-- DROP POLICY IF EXISTS "Businesses can manage their own designs." ON public.business_qr_designs;
+-- CREATE POLICY "Businesses can manage their own designs." ON public.business_qr_designs
+-- FOR ALL USING (
+--     (SELECT id FROM public.businesses WHERE id = business_id) IS NOT NULL -- A simple check, can be enhanced with auth.uid()
+-- );
 
 -- Step 5: Grant permissions to the anon role for the new table.
-GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.business_qr_designs TO anon;
+-- GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.business_qr_designs TO anon;
 
 -- Step 6: Update existing business reward messages with a default value
-UPDATE public.businesses
-SET reward_message = 'Congratulations! You have earned a free gift!'
-WHERE reward_message IS NULL;
-
--- ================================================================
--- MIGRATION COMPLETE
--- ================================================================
--- All necessary database changes for the customizable features
--- have been applied.
--- ================================================================
+-- UPDATE public.businesses
+-- SET reward_message = 'Congratulations! You have earned a free gift!'
+-- WHERE reward_message IS NULL;

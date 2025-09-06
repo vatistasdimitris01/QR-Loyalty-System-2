@@ -48,6 +48,12 @@ export interface Business {
 
   // Location
   address_text?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+
+  // Properties from RPC calls
+  membership_count?: number;
+  dist_meters?: number;
 }
 
 export interface Membership {

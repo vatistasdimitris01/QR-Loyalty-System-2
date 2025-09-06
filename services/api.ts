@@ -90,6 +90,27 @@ export const searchBusinesses = async (searchTerm: string): Promise<Business[]> 
     return data || [];
 }
 
+export const getPopularBusinesses = async (): Promise<Business[]> => {
+    const { data, error } = await supabase.rpc('get_popular_businesses');
+    if (error) {
+        console.error('Error fetching popular businesses:', error);
+        return [];
+    }
+    return data || [];
+};
+
+export const getNearbyBusinesses = async (latitude: number, longitude: number): Promise<Business[]> => {
+    const { data, error } = await supabase.rpc('get_nearby_businesses', {
+        user_lat: latitude,
+        user_lon: longitude
+    });
+    if (error) {
+        console.error('Error fetching nearby businesses:', error);
+        return [];
+    }
+    return data || [];
+};
+
 export const joinBusiness = async(customerId: string, businessId: string): Promise<{membership: Membership, business: Business} | null> => {
     // Check if membership already exists
     const { data: existing, error: checkError } = await supabase
@@ -388,6 +409,25 @@ export const updateBusiness = async (id: string, updatedData: Partial<Business>)
         if(currentBusiness) {
             const newQrSettings = { ...currentBusiness, ...updatedData };
             updatedData.qr_data_url = await generateQrCode(currentBusiness.qr_token, newQrSettings);
+        }
+    }
+
+    // If address is updated, geocode it
+    if ('address_text' in updatedData) {
+        try {
+            const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(updatedData.address_text || '')}&format=json&limit=1`);
+            const geoData = await response.json();
+            if (geoData && geoData.length > 0) {
+                updatedData.latitude = parseFloat(geoData[0].lat);
+                updatedData.longitude = parseFloat(geoData[0].lon);
+            } else {
+                 updatedData.latitude = null;
+                 updatedData.longitude = null;
+            }
+        } catch (error) {
+            console.error("Geocoding failed:", error);
+            updatedData.latitude = null;
+            updatedData.longitude = null;
         }
     }
     
