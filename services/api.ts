@@ -43,6 +43,35 @@ export const uploadProfilePicture = async (customerId: string, file: File): Prom
     return data.publicUrl;
 };
 
+export const uploadBusinessAsset = async (businessId: string, file: File, assetType: 'logo' | 'cover'): Promise<string | null> => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${assetType}-${businessId}-${Date.now()}.${fileExt}`;
+    const filePath = `${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+        .from('business-assets')
+        .upload(filePath, file, {
+            cacheControl: '3600',
+            upsert: true,
+        });
+
+    if (uploadError) {
+        console.error(`Error uploading ${assetType}:`, uploadError);
+        return null;
+    }
+
+    const { data } = supabase.storage
+        .from('business-assets')
+        .getPublicUrl(filePath);
+
+    if (!data.publicUrl) {
+        console.error(`Error getting public URL for ${assetType}`);
+        return null;
+    }
+    
+    return data.publicUrl;
+};
+
 
 export const updateCustomer = async (id: string, updatedData: Partial<Pick<Customer, 'name' | 'phone_number' | 'qr_style_preferences' | 'profile_picture_url'>>): Promise<Customer | null> => {
     // If QR style is being updated, regenerate the QR code data URL

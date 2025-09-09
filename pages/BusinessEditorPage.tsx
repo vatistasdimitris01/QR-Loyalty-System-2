@@ -3,20 +3,91 @@ import { Business, BusinessQrDesign, QrStyle } from '../types';
 import { useLanguage } from '../context/LanguageContext';
 import { generateQrCode } from '../services/qrGenerator';
 import { 
-    updateBusiness, getBusinessQrDesigns, createBusinessQrDesign, deleteBusinessQrDesign
+    updateBusiness, getBusinessQrDesigns, createBusinessQrDesign, deleteBusinessQrDesign,
+    uploadBusinessAsset
 } from '../services/api';
 import { Spinner, InputField, TextAreaField, SelectField, TrashIcon } from '../components/common';
 
 type EditorTab = 'profile' | 'branding' | 'location';
+type SaveStatus = 'idle' | 'typing' | 'saving' | 'saved' | 'error';
+
+
+// --- Custom Hooks & Helper Components ---
+
+const useDebounce = <T,>(value: T, delay: number): T => {
+    const [debouncedValue, setDebouncedValue] = useState<T>(value);
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedValue(value);
+        }, delay);
+        return () => {
+            clearTimeout(handler);
+        };
+    }, [value, delay]);
+    return debouncedValue;
+};
+
+const SaveStatusIndicator: React.FC<{ status: SaveStatus }> = ({ status }) => {
+    switch (status) {
+        case 'saving': return <div className="flex items-center gap-2 text-sm text-gray-500"><Spinner className="h-4 w-4" /> Saving...</div>;
+        case 'saved': return <div className="text-sm text-green-600 font-semibold">All changes saved</div>;
+        case 'error': return <div className="text-sm text-red-600 font-semibold">Save failed. Please try again.</div>;
+        case 'typing': return <div className="text-sm text-gray-500">Unsaved changes...</div>;
+        default: return <div className="h-5"></div>; // Placeholder to prevent layout shift
+    }
+};
+
+const ImageUploader: React.FC<{
+    label: string;
+    currentImageUrl?: string | null;
+    previewUrl?: string;
+    onFileSelect: (file: File) => void;
+}> = ({ label, currentImageUrl, previewUrl, onFileSelect }) => {
+    const { t } = useLanguage();
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const displayUrl = previewUrl || currentImageUrl;
+
+    return (
+        <div>
+            <label className="block text-sm font-medium text-gray-700">{label}</label>
+            <div className="mt-2 flex items-center gap-4">
+                <img
+                    src={displayUrl || 'https://via.placeholder.com/150'}
+                    alt="Preview"
+                    className="h-16 w-16 rounded-md object-cover bg-gray-200"
+                />
+                <input type="file" accept="image/*" onChange={(e) => e.target.files && onFileSelect(e.target.files[0])} ref={fileInputRef} className="hidden" />
+                <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="bg-white py-2 px-3 border border-gray-300 rounded-md shadow-sm text-sm leading-4 font-medium text-gray-700 hover:bg-gray-50"
+                >
+                    {t('uploadImage')}
+                </button>
+            </div>
+        </div>
+    );
+};
+
+
+// --- Main Component ---
 
 const BusinessEditorPage: React.FC = () => {
     const { t } = useLanguage();
     const [business, setBusiness] = useState<Business | null>(null);
     const [formState, setFormState] = useState<Partial<Business>>({});
     const [loading, setLoading] = useState(true);
-    const [isSaving, setIsSaving] = useState(false);
-    const [saveMessage, setSaveMessage] = useState('');
     const [activeTab, setActiveTab] = useState<EditorTab>('profile');
+
+    // State for image uploads and auto-save
+    const [stagedFiles, setStagedFiles] = useState<{ logo?: File, cover?: File }>({});
+    const [previews, setPreviews] = useState<{ logo?: string, cover?: string }>({});
+    const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
+    const isSavingRef = useRef(false);
+
+    // Debounce state for auto-saving
+    const debouncedFormState = useDebounce(formState, 1500);
+    const debouncedStagedFiles = useDebounce(stagedFiles, 1500);
 
     useEffect(() => {
         setLoading(true);
@@ -29,29 +100,82 @@ const BusinessEditorPage: React.FC = () => {
         setLoading(false);
     }, []);
 
-    const handleSave = async () => {
+    // Effect to update previews when files are staged
+    useEffect(() => {
+        const newPreviews: { logo?: string, cover?: string } = {};
+        if (stagedFiles.logo) newPreviews.logo = URL.createObjectURL(stagedFiles.logo);
+        if (stagedFiles.cover) newPreviews.cover = URL.createObjectURL(stagedFiles.cover);
+        
+        if (Object.keys(newPreviews).length > 0) {
+            setPreviews(prev => ({...prev, ...newPreviews}));
+        }
+        
+        return () => {
+            if (newPreviews.logo) URL.revokeObjectURL(newPreviews.logo);
+            if (newPreviews.cover) URL.revokeObjectURL(newPreviews.cover);
+        };
+    }, [stagedFiles]);
+    
+    // Effect to detect user typing
+    useEffect(() => {
+        if (isSavingRef.current || loading) return;
+         // Check if there are actual changes
+        const hasFormChanges = JSON.stringify(formState) !== JSON.stringify(business);
+        const hasFileChanges = Object.keys(stagedFiles).length > 0;
+        if (hasFormChanges || hasFileChanges) {
+            setSaveStatus('typing');
+        }
+    }, [formState, stagedFiles, business, loading]);
+
+
+    const performSave = useCallback(async () => {
         if (!business) return;
-        setIsSaving(true);
-        setSaveMessage('');
+        
+        isSavingRef.current = true;
+        setSaveStatus('saving');
+        
+        let dataToUpdate = { ...formState };
+
         try {
-            const updatedBusiness = await updateBusiness(business.id, formState);
+            if (stagedFiles.logo) {
+                const newLogoUrl = await uploadBusinessAsset(business.id, stagedFiles.logo, 'logo');
+                if (newLogoUrl) dataToUpdate.logo_url = newLogoUrl;
+                else throw new Error('Logo upload failed');
+            }
+
+            if (stagedFiles.cover) {
+                const newCoverUrl = await uploadBusinessAsset(business.id, stagedFiles.cover, 'cover');
+                if (newCoverUrl) dataToUpdate.cover_photo_url = newCoverUrl;
+                else throw new Error('Cover photo upload failed');
+            }
+            
+            const updatedBusiness = await updateBusiness(business.id, dataToUpdate);
+
             if (updatedBusiness) {
                 const newBusinessState = { ...business, ...updatedBusiness };
                 sessionStorage.setItem('business', JSON.stringify(newBusinessState));
                 setBusiness(newBusinessState);
                 setFormState(newBusinessState);
-                setSaveMessage(t('saveSuccess'));
+                setStagedFiles({});
+                setSaveStatus('saved');
+                setTimeout(() => setSaveStatus('idle'), 2000);
             } else {
-                setSaveMessage(t('saveError'));
+                throw new Error('Business update failed');
             }
         } catch (error) {
             console.error('Failed to save settings:', error);
-            setSaveMessage(t('saveError'));
+            setSaveStatus('error');
         } finally {
-            setIsSaving(false);
-            setTimeout(() => setSaveMessage(''), 4000);
+            isSavingRef.current = false;
         }
-    };
+    }, [business, formState, stagedFiles]);
+    
+    // Trigger save on debounced changes
+    useEffect(() => {
+        if (saveStatus === 'typing' && !isSavingRef.current) {
+            performSave();
+        }
+    }, [debouncedFormState, debouncedStagedFiles, saveStatus, performSave]);
     
     if (loading) return <div className="flex justify-center items-center h-screen"><Spinner /></div>;
     if (!business) return null;
@@ -61,13 +185,9 @@ const BusinessEditorPage: React.FC = () => {
             <header className="sticky top-0 z-10 bg-white shadow-sm p-4">
                 <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
                     <h1 className="text-xl md:text-2xl font-bold text-gray-800 text-center sm:text-left">{t('businessSettings')}</h1>
-                    <div className="flex items-center justify-center sm:justify-end gap-2 flex-wrap">
-                        {saveMessage && <p className={`text-sm font-semibold ${saveMessage === t('saveSuccess') ? 'text-green-600' : 'text-red-600'} w-full sm:w-auto text-center order-first sm:order-none`}>{saveMessage}</p>}
+                    <div className="flex items-center justify-center sm:justify-end gap-4 flex-wrap">
+                        <SaveStatusIndicator status={saveStatus} />
                         <a href="/business" className="bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300 text-sm md:text-base">&larr; {t('back')}</a>
-                        <button onClick={handleSave} disabled={isSaving} className="bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-blue-400 flex items-center gap-2 text-sm md:text-base">
-                            {isSaving ? <Spinner className="h-5 w-5 text-white" /> : null}
-                            {isSaving ? 'Saving...' : t('saveSettings')}
-                        </button>
                     </div>
                 </div>
             </header>
@@ -82,7 +202,13 @@ const BusinessEditorPage: React.FC = () => {
                 </div>
 
                 <div className="max-w-4xl mx-auto">
-                    {activeTab === 'profile' && <ProfileSettings formState={formState} setFormState={setFormState} />}
+                    {activeTab === 'profile' && 
+                        <ProfileSettings 
+                            formState={formState} 
+                            setFormState={setFormState}
+                            previews={previews}
+                            onFileSelect={(type, file) => setStagedFiles(prev => ({...prev, [type]: file}))}
+                        />}
                     {activeTab === 'branding' && <BrandingSettings formState={formState} setFormState={setFormState} business={business} />}
                     {activeTab === 'location' && <LocationSettings formState={formState} setFormState={setFormState} />}
                 </div>
@@ -93,15 +219,30 @@ const BusinessEditorPage: React.FC = () => {
 
 // --- Child Components for Tabs ---
 
-const ProfileSettings: React.FC<{formState: Partial<Business>, setFormState: React.Dispatch<React.SetStateAction<Partial<Business>>>}> = ({ formState, setFormState }) => {
+const ProfileSettings: React.FC<{
+    formState: Partial<Business>, 
+    setFormState: React.Dispatch<React.SetStateAction<Partial<Business>>>,
+    previews: { logo?: string, cover?: string },
+    onFileSelect: (type: 'logo' | 'cover', file: File) => void
+}> = ({ formState, setFormState, previews, onFileSelect }) => {
     const { t } = useLanguage();
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => setFormState(prev => ({...prev, [e.target.name]: e.target.value }));
     
     return (
         <SettingsCard title={t('publicProfile')} description={t('publicProfileDesc')}>
             <InputField label={t('publicBusinessName')} name="public_name" value={formState.public_name || ''} onChange={handleChange} />
-            <InputField label={t('logoUrl')} name="logo_url" value={formState.logo_url || ''} onChange={handleChange} placeholder="https://..." />
-            <InputField label={t('coverPhotoUrl')} name="cover_photo_url" value={formState.cover_photo_url || ''} onChange={handleChange} placeholder="https://..." />
+            <ImageUploader 
+                label={t('logoUrl')} 
+                currentImageUrl={formState.logo_url}
+                previewUrl={previews.logo}
+                onFileSelect={(file) => onFileSelect('logo', file)} 
+            />
+            <ImageUploader 
+                label={t('coverPhotoUrl')} 
+                currentImageUrl={formState.cover_photo_url}
+                previewUrl={previews.cover}
+                onFileSelect={(file) => onFileSelect('cover', file)} 
+            />
             <SelectField
                 label={t('defaultProfileTab')}
                 name="default_profile_tab"
