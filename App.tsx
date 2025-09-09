@@ -9,6 +9,7 @@ import BusinessSignupPage from './pages/BusinessSignupPage';
 import CustomerSignupPage from './pages/CustomerSignupPage';
 import BusinessEditorPage from './pages/BusinessEditorPage';
 import AdminPage from './pages/AdminPage';
+import BusinessScannerPage from './pages/BusinessScannerPage';
 
 const App: React.FC = () => {
   const path = window.location.pathname;
@@ -28,6 +29,10 @@ const App: React.FC = () => {
     if (path === '/business/editor') {
         const isLoggedIn = sessionStorage.getItem('isBusinessLoggedIn') === 'true';
         return isLoggedIn ? <BusinessEditorPage /> : <BusinessLoginPage />;
+    }
+    if (path === '/business/scanner') {
+        const isLoggedIn = sessionStorage.getItem('isBusinessLoggedIn') === 'true';
+        return isLoggedIn ? <BusinessScannerPage /> : <BusinessLoginPage />;
     }
     if (path === '/business/login') {
       return <BusinessLoginPage />;

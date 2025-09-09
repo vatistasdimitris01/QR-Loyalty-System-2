@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { getCustomerByQrToken, updateCustomer, joinBusiness, getMembershipsForCustomer } from '../services/api';
 import { Customer, Membership, Business } from '../types';
 import { Spinner, CustomerSetupModal, HomeIcon, SearchIcon, UserIcon } from '../components/common';
@@ -9,6 +9,11 @@ import CustomerSearchPage from './customer/CustomerSearchPage';
 import CustomerProfilePage from './customer/CustomerProfilePage';
 import BusinessProfilePage from './customer/BusinessProfilePage';
 
+declare global {
+  interface Window {
+    tidioChatApi: any;
+  }
+}
 
 interface CustomerPageProps {
   qrToken: string;
@@ -27,6 +32,7 @@ const CustomerPage: React.FC<CustomerPageProps> = ({ qrToken }) => {
   const [activeTab, setActiveTab] = useState<ActiveTab>('home');
   const [joinMessage, setJoinMessage] = useState('');
   const [viewingBusiness, setViewingBusiness] = useState<Business | null>(null);
+  const tidioHideTimer = useRef<number | null>(null);
 
   const fetchCustomerAndMemberships = useCallback(async (isInitialLoad = false) => {
     if (isInitialLoad) setLoading(true);
@@ -65,6 +71,48 @@ const CustomerPage: React.FC<CustomerPageProps> = ({ qrToken }) => {
         setMemberships(membershipData);
     }
   };
+
+    const handleTidioVisibility = useCallback(() => {
+        if (!window.tidioChatApi) return;
+
+        const resetTimer = () => {
+            if (tidioHideTimer.current) {
+                clearTimeout(tidioHideTimer.current);
+                tidioHideTimer.current = null;
+            }
+        };
+
+        const startTimer = () => {
+            resetTimer();
+            tidioHideTimer.current = window.setTimeout(() => {
+                window.tidioChatApi.hide();
+            }, 30000);
+        };
+
+        window.tidioChatApi.hide();
+        window.tidioChatApi.on('open', startTimer);
+        window.tidioChatApi.on('chat:message_sent_by_visitor', resetTimer);
+        window.tidioChatApi.on('chat:focused', resetTimer);
+    }, [tidioHideTimer]);
+
+    useEffect(() => {
+        if (window.tidioChatApi) {
+            handleTidioVisibility();
+        } else {
+            document.addEventListener('tidioChat-ready', handleTidioVisibility, { once: true });
+        }
+        
+        return () => {
+            document.removeEventListener('tidioChat-ready', handleTidioVisibility);
+            if (window.tidioChatApi) {
+                window.tidioChatApi.off('open');
+                window.tidioChatApi.off('chat:message_sent_by_visitor');
+                window.tidioChatApi.off('chat:focused');
+                window.tidioChatApi.show();
+            }
+        };
+    }, [handleTidioVisibility]);
+
 
   useEffect(() => {
     const handleAutoJoin = async () => {
@@ -136,7 +184,7 @@ const CustomerPage: React.FC<CustomerPageProps> = ({ qrToken }) => {
           case 'search':
               return <CustomerSearchPage customer={customer} onJoinSuccess={handleJoinSuccess} />;
           case 'profile':
-              return <CustomerProfilePage customer={customer} onUpdate={setCustomer} />;
+              return <CustomerProfilePage customer={customer} onUpdate={setCustomer} onContactUs={() => window.tidioChatApi?.open()} />;
           default:
               return <CustomerHomePage customer={customer} memberships={memberships} onViewBusiness={setViewingBusiness} />;
       }

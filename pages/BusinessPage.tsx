@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useDeferredValue, useRef } from 'react';
 import { useLanguage } from '../context/LanguageContext';
-import { Membership, Business, Customer, Post, Discount, DailyAnalyticsData, BusinessAnalytics } from '../types';
+import { Membership, Business, Customer, Post, Discount, DailyAnalyticsData, BusinessAnalytics, ScanResult } from '../types';
 import { 
     searchMembershipsForBusiness, removeMembership, getBusinessAnalytics, getDailyAnalytics,
     updateBusiness, getPostsForBusiness, createPost, updatePost, deletePost,
@@ -9,6 +9,10 @@ import {
 import { Spinner, CustomerQRModal, BusinessScannerModal, CameraIcon, QRScannerModal, PencilIcon, TrashIcon, MarkdownEditor, InputField, TextAreaField, SelectField } from '../components/common';
 
 type DashboardTab = 'analytics' | 'customers' | 'posts' | 'discounts';
+
+const ScreensaverIcon: React.FC<{ className?: string }> = ({ className }) => (
+    <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+);
 
 // Main Page Component
 const BusinessPage: React.FC = () => {
@@ -23,6 +27,15 @@ const BusinessPage: React.FC = () => {
         const storedBusiness = sessionStorage.getItem('business');
         if (storedBusiness) {
             setBusiness(JSON.parse(storedBusiness));
+
+            const isTablet = window.innerWidth >= 768 && window.innerWidth <= 1024;
+            const hasBeenToScanner = sessionStorage.getItem('scanner_auto_opened');
+
+            if (isTablet && !hasBeenToScanner) {
+                sessionStorage.setItem('scanner_auto_opened', 'true');
+                window.location.href = '/business/scanner';
+            }
+
         } else {
              window.location.href = '/business/login';
         }
@@ -124,6 +137,7 @@ const AnalyticsDashboard: React.FC<{business: Business, onBusinessUpdate: (b: Bu
         TOTAL_CUSTOMERS: 'totalCustomers',
         LOYALTY_SETTINGS: 'loyaltySettings',
         SCAN_QR: 'scanQr',
+        KIOSK_MODE: 'kioskMode',
         LOGIN_QR: 'loginQr',
     };
     
@@ -211,6 +225,7 @@ const AnalyticsDashboard: React.FC<{business: Business, onBusinessUpdate: (b: Bu
         [componentKeys.TOTAL_CUSTOMERS]: <StatCard title={t('totalCustomers')} value={analytics?.total_customers ?? '...'} />,
         [componentKeys.LOYALTY_SETTINGS]: <LoyaltySettingsEditor business={business} onUpdate={onBusinessUpdate} />,
         [componentKeys.SCAN_QR]: <QuickActionCard title={t('scanCustomerQR')} description="Award points to a customer." onClick={() => setIsScannerModalOpen(true)} icon={<CameraIcon className="h-6 w-6"/>} />,
+        [componentKeys.KIOSK_MODE]: <QuickActionCard title={t('kioskMode')} description={t('kioskModeDesc')} href="/business/scanner" icon={<ScreensaverIcon className="h-6 w-6" />} />,
         [componentKeys.LOGIN_QR]: (
             <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm text-center">
                 <h3 className="font-bold text-lg mb-2">Business Login QR</h3>
@@ -222,7 +237,7 @@ const AnalyticsDashboard: React.FC<{business: Business, onBusinessUpdate: (b: Bu
     
     return (
         <>
-            <BusinessScannerModal isOpen={isScannerModalOpen} onClose={() => setIsScannerModalOpen(false)} businessId={business.id} onScanSuccess={fetchData} />
+            <BusinessScannerModal isOpen={isScannerModalOpen} onClose={() => setIsScannerModalOpen(false)} businessId={business.id} onScanSuccess={(result: ScanResult) => { if (result.success) fetchData(); }} />
             <div className="flex justify-end mb-4 gap-2">
                 {isEditMode ? (
                     <>

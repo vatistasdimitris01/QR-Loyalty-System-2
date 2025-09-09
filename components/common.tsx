@@ -336,7 +336,7 @@ export const BusinessScannerModal: React.FC<{
     isOpen: boolean;
     onClose: () => void;
     businessId: string;
-    onScanSuccess: () => void;
+    onScanSuccess: (result: ScanResult) => void;
 }> = ({ isOpen, onClose, businessId, onScanSuccess }) => {
     const { t } = useLanguage();
     const scannerId = "business-qr-scanner";
@@ -372,12 +372,10 @@ export const BusinessScannerModal: React.FC<{
                                 if (token.startsWith('cust_')) {
                                    const result = await awardPoints(token, businessId);
                                    setScanResult(result);
-                                   if (result.success) {
-                                       onScanSuccess(); 
-                                       if (result.rewardWon) {
-                                           setRewardMessage(result.rewardMessage || t('giftWonMessage'));
-                                           setIsRewardModalOpen(true);
-                                       }
+                                   onScanSuccess(result);
+                                   if (result.success && result.rewardWon) {
+                                       setRewardMessage(result.rewardMessage || t('giftWonMessage'));
+                                       setIsRewardModalOpen(true);
                                    }
                                 } else {
                                     setError('Not a valid customer QR code.');

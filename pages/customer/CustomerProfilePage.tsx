@@ -7,9 +7,10 @@ import { Spinner, DeleteAccountModal } from '../../components/common';
 interface CustomerProfilePageProps {
     customer: Customer;
     onUpdate: (updatedCustomer: Customer) => void;
+    onContactUs: () => void;
 }
 
-const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ customer, onUpdate }) => {
+const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ customer, onUpdate, onContactUs }) => {
     const { t } = useLanguage();
     const [name, setName] = useState(customer.name);
     const [phone, setPhone] = useState(customer.phone_number);
@@ -141,6 +142,12 @@ const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ customer, onU
                 </div>
 
                 <div className="mt-8 border-t pt-6 space-y-4">
+                     <button
+                        onClick={onContactUs}
+                        className="w-full bg-blue-50 text-blue-700 font-bold py-3 rounded-lg hover:bg-blue-100"
+                     >
+                         {t('contactUs')}
+                     </button>
                      <button
                         onClick={() => setIsDeleteModalOpen(true)}
                         className="w-full bg-red-50 text-red-700 font-bold py-3 rounded-lg hover:bg-red-100"

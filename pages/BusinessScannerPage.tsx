@@ -1,19 +1,18 @@
-
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
-import { awardPoints } from '../services/api';
-import { ScanResult, Business } from '../types';
-import { RewardModal } from '../components/common';
-
-declare const Html5Qrcode: any;
+import { Business, ScanResult } from '../types';
+import { BusinessScannerModal, CreateCustomerModal, Spinner } from '../components/common';
+import { provisionCustomerForBusiness } from '../services/api';
 
 const BusinessScannerPage: React.FC = () => {
-    const { t } = useLanguage();
-    const [scanResult, setScanResult] = useState<ScanResult | null>(null);
-    const [error, setError] = useState<string | null>(null);
+    const { t, language } = useLanguage();
     const [business, setBusiness] = useState<Business | null>(null);
-    const [isRewardModalOpen, setIsRewardModalOpen] = useState(false);
-    const [rewardMessage, setRewardMessage] = useState('');
+    const [currentTime, setCurrentTime] = useState(new Date());
+    
+    const [isScannerOpen, setIsScannerOpen] = useState(false);
+    const [isCreateQrOpen, setIsCreateQrOpen] = useState(false);
+    const [newCustomerQr, setNewCustomerQr] = useState('');
+    const [lastScanResult, setLastScanResult] = useState<ScanResult | null>(null);
 
     useEffect(() => {
         const storedBusiness = sessionStorage.getItem('business');
@@ -22,104 +21,119 @@ const BusinessScannerPage: React.FC = () => {
         } else {
             window.location.href = '/business/login';
         }
+
+        const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+        return () => clearInterval(timer);
     }, []);
 
-    useEffect(() => {
-        if (!business) return;
-
-        const qrScanner = new Html5Qrcode("qr-reader");
-
-        const startScanner = () => {
-            qrScanner.start(
-                { facingMode: "user" },
-                {
-                    fps: 10,
-                    qrbox: { width: 250, height: 250 }
-                },
-                async (decodedText: string) => {
-                    qrScanner.pause();
-                    setScanResult(null);
-                    setError(null);
-                    try {
-                        let token = decodedText;
-                         try {
-                            const url = new URL(decodedText);
-                            if (url.pathname === '/customer' && url.searchParams.has('token')) {
-                                token = url.searchParams.get('token')!;
-                            }
-                        } catch (e) {}
-
-                        if (token.startsWith('cust_')) {
-                           const result = await awardPoints(token, business.id);
-                           setScanResult(result);
-                           if (result.success && result.rewardWon) {
-                               setRewardMessage(result.rewardMessage || t('giftWonMessage'));
-                               setIsRewardModalOpen(true);
-                           }
-                        } else {
-                            setError('Not a valid customer QR code.');
-                        }
-
-                    } catch (e) {
-                        setError(t('errorUnexpected'));
-                    } finally {
-                        setTimeout(() => {
-                           if(qrScanner.getState() === 2) { // 2 = PAUSED
-                                qrScanner.resume();
-                           }
-                        }, 3000);
-                    }
-                },
-                (errorMessage: string) => {}
-            ).catch((err: any) => {
-                console.error("Unable to start scanning.", err);
-                setError("Could not start camera. Please grant permission and refresh.");
-            });
-        };
-        
-        startScanner();
-
-        return () => {
-            if (qrScanner && qrScanner.isScanning) {
-                qrScanner.stop().catch((err: any) => console.error("Failed to stop scanner", err));
+    const handleCreateQr = async () => {
+        if (business) {
+            setNewCustomerQr(''); // clear previous
+            setIsCreateQrOpen(true);
+            const customer = await provisionCustomerForBusiness(business.id);
+            if (customer) {
+                setNewCustomerQr(customer.qr_data_url);
             }
-        };
-    }, [t, business]);
+        }
+    };
+    
+    const handleScanSuccess = (result: ScanResult) => {
+        setIsScannerOpen(false);
+        setLastScanResult(result);
+        setTimeout(() => {
+            setLastScanResult(null);
+        }, 5000);
+    };
 
-    const resultColor = scanResult?.success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+    const dateFormatter = new Intl.DateTimeFormat(language === 'el' ? 'el-GR' : 'en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+    });
+
+    const formatTime = (date: Date) => {
+        if (language === 'el') {
+            let hours = date.getHours();
+            const minutes = date.getMinutes().toString().padStart(2, '0');
+            const period = hours >= 12 ? 'μ.μ.' : 'π.μ.';
+            hours = hours % 12;
+            hours = hours ? hours : 12;
+            const paddedHours = hours.toString().padStart(2, '0');
+            return `${paddedHours}:${minutes} ${period}`;
+        }
+        return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+    };
+
+    if (!business) return <div className="min-h-screen bg-gray-100 flex justify-center items-center"><Spinner /></div>;
 
     return (
-        <>
-            <RewardModal 
-                isOpen={isRewardModalOpen}
-                onClose={() => setIsRewardModalOpen(false)}
-                rewardMessage={rewardMessage}
-            />
-            <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center p-4">
-                <header className="w-full max-w-lg flex items-center mb-4">
-                    <a href="/business" className="text-blue-400 hover:text-blue-300">&larr; {t('back')}</a>
-                    <h1 className="text-2xl font-bold flex-grow text-center">{t('pointScanner')}</h1>
-                </header>
-                
-                <div id="qr-reader" className="w-full max-w-lg rounded-lg overflow-hidden border-4 border-gray-600"></div>
+        <div className="min-h-screen bg-gray-100 flex flex-col justify-center items-center p-4">
+            <a href="/business" className="absolute top-4 left-4 bg-white text-gray-700 font-semibold py-2 px-4 rounded-lg shadow hover:bg-gray-200 z-10">
+                &larr; {t('exitKiosk')}
+            </a>
+            
+            <div className="text-center w-full max-w-md">
+                <p className="text-xl md:text-2xl text-gray-600">{dateFormatter.format(currentTime)}</p>
+                <p className="text-6xl md:text-7xl font-bold my-4">{formatTime(currentTime)}</p>
 
-                <div className="mt-6 w-full max-w-lg">
-                    <h2 className="text-xl font-semibold mb-2">{t('scanResult')}</h2>
-                    <div className={`p-4 rounded-lg text-center font-medium ${!scanResult && !error ? 'bg-gray-700' : ''} ${scanResult ? resultColor : ''} ${error ? 'bg-red-100 text-red-800' : ''}`}>
-                        {scanResult ? (
+                <img 
+                    src={business.logo_url || 'https://i.postimg.cc/bJwnZhs9/Chat-GPT-Image-Aug-31-2025-06-45-18-AM.png'} 
+                    alt="Business Logo"
+                    className="w-24 h-24 md:w-32 md:h-32 rounded-full mx-auto my-8 border-4 border-white shadow-lg"
+                />
+
+                <div className="bg-white p-6 rounded-lg shadow-md mb-6 min-h-[110px] flex flex-col justify-center transition-all duration-300">
+                    {lastScanResult ? (
+                        lastScanResult.success ? (
                             <div>
-                                <p>{scanResult.message}</p>
-                                {scanResult.customer && <p>Total Points: {scanResult.newPointsTotal}</p>}
+                                <p className="text-lg text-gray-600">{t('welcome')},</p>
+                                <p className="text-2xl font-bold text-green-600">{lastScanResult.customer?.name}</p>
+                                <p className="font-bold text-2xl text-blue-600 mt-1">{lastScanResult.newPointsTotal} {t('points')}</p>
                             </div>
-                        ) : error ? (
-                            <p>{error}</p>
                         ) : (
-                            <p>Scanning...</p>
-                        )}
-                    </div>
+                            <div>
+                                <p className="text-xl font-semibold text-red-600">{t('error')}</p>
+                                <p className="text-gray-600">{lastScanResult.message}</p>
+                            </div>
+                        )
+                    ) : (
+                        <div>
+                            <p className="text-lg text-gray-600">{t('hello')},</p>
+                            <p className="text-2xl font-semibold text-gray-800">{business.public_name}</p>
+                        </div>
+                    )}
+                </div>
+                
+                <div className="space-y-4">
+                    <button 
+                        onClick={() => setIsScannerOpen(true)}
+                        className="w-full bg-blue-600 text-white font-bold py-4 px-6 rounded-lg text-xl shadow-md hover:bg-blue-700 transition-transform transform hover:scale-105"
+                    >
+                        {t('scanQr')}
+                    </button>
+                    <button 
+                        onClick={handleCreateQr}
+                        className="w-full bg-gray-700 text-white font-bold py-4 px-6 rounded-lg text-xl shadow-md hover:bg-gray-800 transition-transform transform hover:scale-105"
+                    >
+                        {t('createQr')}
+                    </button>
                 </div>
             </div>
-        </>
+            
+            <BusinessScannerModal 
+                isOpen={isScannerOpen}
+                onClose={() => setIsScannerOpen(false)}
+                businessId={business.id}
+                onScanSuccess={handleScanSuccess}
+            />
+            
+            <CreateCustomerModal
+                isOpen={isCreateQrOpen}
+                onClose={() => setIsCreateQrOpen(false)}
+                qrDataUrl={newCustomerQr}
+            />
+        </div>
     );
 };
 

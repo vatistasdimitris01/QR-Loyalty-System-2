@@ -229,6 +229,14 @@ const translations = {
     deleteAccountPrompt: 'To confirm, please type your full phone number:',
     deleteAccountError: 'Failed to delete account. Please try again.',
     deleteSuccess: 'Account deleted successfully.',
+    // Kiosk Mode
+    kioskMode: 'Kiosk Mode',
+    kioskModeDesc: 'Open full-screen scanner.',
+    exitKiosk: 'Exit Kiosk Mode',
+    scanQr: 'Scan QR',
+    createQr: 'Create QR',
+    hello: 'Hello',
+    contactUs: 'Contact Us',
   },
   el: {
     landingTitle: 'Το Εξυπνότερο Πρόγραμμα Πιστότητας',
@@ -444,6 +452,14 @@ const translations = {
     deleteAccountPrompt: 'Για επιβεβαίωση, πληκτρολογήστε τον πλήρη αριθμό τηλεφώνου σας:',
     deleteAccountError: 'Αποτυχία διαγραφής λογαριασμού. Παρακαλώ δοκιμάστε ξανά.',
     deleteSuccess: 'Ο λογαριασμός διαγράφηκε επιτυχώς.',
+    // Kiosk Mode
+    kioskMode: 'Λειτουργία Kiosk',
+    kioskModeDesc: 'Άνοιγμα σαρωτή πλήρους οθόνης.',
+    exitKiosk: 'Έξοδος Kiosk',
+    scanQr: 'Σάρωση QR',
+    createQr: 'Δημιουργία QR',
+    hello: 'Γειά σου',
+    contactUs: 'Επικοινωνία',
   },
 };
 
