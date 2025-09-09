@@ -437,24 +437,53 @@ export const signupBusiness = async (businessData: Omit<Business, 'id' | 'create
 
 
 export const updateBusiness = async (id: string, updatedData: Partial<Business>): Promise<Business | null> => {
-    if ('qr_color' in updatedData || 'qr_dot_style' in updatedData || 'qr_eye_shape' in updatedData || 'qr_logo_url' in updatedData) {
-        const { data: currentBusiness } = await supabase.from('businesses').select('qr_token, qr_logo_url, qr_color, qr_eye_shape, qr_dot_style').eq('id', id).single();
-        if(currentBusiness) {
-            const newQrSettings = { ...currentBusiness, ...updatedData };
-            updatedData.qr_data_url = await generateQrCode(currentBusiness.qr_token, newQrSettings);
-        }
+    // Fetch the current state of the business to compare against for expensive operations
+    const { data: currentBusiness, error: fetchError } = await supabase
+        .from('businesses')
+        .select('qr_token, qr_logo_url, qr_color, qr_eye_shape, qr_dot_style, address_text')
+        .eq('id', id)
+        .single();
+
+    if (fetchError) {
+        console.error('Error fetching current business state for comparison:', fetchError);
+        return null; // Cannot proceed without knowing the current state
     }
 
-    if ('address_text' in updatedData) {
+    // Check if QR-related properties have actually changed to avoid regenerating on every save
+    const qrSettingsChanged = 
+        ('qr_color' in updatedData && updatedData.qr_color !== currentBusiness.qr_color) ||
+        ('qr_dot_style' in updatedData && updatedData.qr_dot_style !== currentBusiness.qr_dot_style) ||
+        ('qr_eye_shape' in updatedData && updatedData.qr_eye_shape !== currentBusiness.qr_eye_shape) ||
+        ('qr_logo_url' in updatedData && updatedData.qr_logo_url !== currentBusiness.qr_logo_url);
+
+    if (qrSettingsChanged) {
+        const newQrSettings = {
+            qr_logo_url: updatedData.qr_logo_url ?? currentBusiness.qr_logo_url,
+            qr_color: updatedData.qr_color ?? currentBusiness.qr_color,
+            qr_eye_shape: updatedData.qr_eye_shape ?? currentBusiness.qr_eye_shape,
+            qr_dot_style: updatedData.qr_dot_style ?? currentBusiness.qr_dot_style,
+        };
+        updatedData.qr_data_url = await generateQrCode(currentBusiness.qr_token, newQrSettings);
+    }
+
+    // Check if address has actually changed to avoid geocoding on every save
+    const addressChanged = 'address_text' in updatedData && updatedData.address_text !== currentBusiness.address_text;
+    
+    if (addressChanged) {
         try {
-            const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(updatedData.address_text || '')}&format=json&limit=1`);
-            const geoData = await response.json();
-            if (geoData && geoData.length > 0) {
-                updatedData.latitude = parseFloat(geoData[0].lat);
-                updatedData.longitude = parseFloat(geoData[0].lon);
+            if (updatedData.address_text) {
+                const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(updatedData.address_text)}&format=json&limit=1`);
+                const geoData = await response.json();
+                if (geoData && geoData.length > 0) {
+                    updatedData.latitude = parseFloat(geoData[0].lat);
+                    updatedData.longitude = parseFloat(geoData[0].lon);
+                } else {
+                     updatedData.latitude = null;
+                     updatedData.longitude = null;
+                }
             } else {
-                 updatedData.latitude = null;
-                 updatedData.longitude = null;
+                updatedData.latitude = null;
+                updatedData.longitude = null;
             }
         } catch (error) {
             console.error("Geocoding failed:", error);
@@ -463,6 +492,7 @@ export const updateBusiness = async (id: string, updatedData: Partial<Business>)
         }
     }
     
+    // Perform the final update to the database
     const { data, error } = await supabase
         .from('businesses')
         .update(updatedData)
