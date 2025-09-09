@@ -287,7 +287,8 @@ export const QRScannerModal: React.FC<{
     isOpen: boolean;
     onClose: () => void;
     onScan: (scannedText: string) => void;
-}> = ({ isOpen, onClose, onScan }) => {
+    facingMode?: 'user' | 'environment';
+}> = ({ isOpen, onClose, onScan, facingMode = 'environment' }) => {
     const { t } = useLanguage();
     const scannerId = "qr-scanner-modal";
     const qrScannerRef = useRef<any>(null);
@@ -300,7 +301,7 @@ export const QRScannerModal: React.FC<{
                 qrScannerRef.current = scanner;
 
                 scanner.start(
-                    { facingMode: "environment" },
+                    { facingMode },
                     { fps: 10, qrbox: { width: 250, height: 250 } },
                     (decodedText: string) => {
                         onScan(decodedText);
@@ -321,7 +322,7 @@ export const QRScannerModal: React.FC<{
                 }
             };
         }
-    }, [isOpen, onScan]);
+    }, [isOpen, onScan, facingMode]);
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={t('scanQRCode')}>
@@ -352,7 +353,7 @@ export const BusinessScannerModal: React.FC<{
                 
                 const startScanner = () => {
                     qrScannerRef.current.start(
-                        { facingMode: "environment" },
+                        { facingMode: "user" },
                         { fps: 10, qrbox: { width: 250, height: 250 } },
                         async (decodedText: string) => {
                             qrScannerRef.current.pause();

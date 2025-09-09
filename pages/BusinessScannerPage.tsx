@@ -31,7 +31,7 @@ const BusinessScannerPage: React.FC = () => {
 
         const startScanner = () => {
             qrScanner.start(
-                { facingMode: "environment" },
+                { facingMode: "user" },
                 {
                     fps: 10,
                     qrbox: { width: 250, height: 250 }

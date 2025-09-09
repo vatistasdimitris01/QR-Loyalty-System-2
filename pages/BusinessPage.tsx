@@ -311,7 +311,7 @@ const CustomersList: React.FC<{business: Business}> = ({ business }) => {
     return (
         <>
             <CustomerQRModal isOpen={isQrModalOpen} onClose={() => setIsQrModalOpen(false)} customer={selectedCustomer} />
-            <QRScannerModal isOpen={isSearchScannerOpen} onClose={() => setIsSearchScannerOpen(false)} onScan={handleSearchScan} />
+            <QRScannerModal isOpen={isSearchScannerOpen} onClose={() => setIsSearchScannerOpen(false)} onScan={handleSearchScan} facingMode="user" />
             <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm">
                 <div className="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
                     <h2 className="text-xl font-bold text-gray-800">{t('customerList')}</h2>
