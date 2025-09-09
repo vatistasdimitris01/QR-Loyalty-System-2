@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Customer, Membership, Business } from '../../types';
 import { useLanguage } from '../../context/LanguageContext';
@@ -38,33 +39,37 @@ const CustomerHomePage: React.FC<CustomerHomePageProps> = ({ customer, membershi
                 </div>
             ) : (
                 <div className="space-y-4">
-                    {memberships.map(membership => (
-                        <div 
-                            key={membership.id} 
-                            // FIX: Cast partial business object to a full Business, as the API returns all fields.
-                            onClick={() => onViewBusiness(membership.businesses as Business)}
-                            className="bg-white p-4 rounded-lg shadow-sm flex items-center justify-between cursor-pointer hover:bg-gray-50 active:scale-95 transition-all"
-                            role="button"
-                            tabIndex={0}
-                            aria-label={`View profile for ${membership.businesses.public_name}`}
-                        >
-                            <div className="flex items-center gap-4">
-                                <img 
-                                    src={membership.businesses.logo_url || 'https://i.postimg.cc/8zRZt9pM/user.png'} 
-                                    alt={`${membership.businesses.public_name} logo`}
-                                    className="w-12 h-12 rounded-full object-cover bg-gray-200"
-                                />
-                                <div>
-                                    <p className="font-bold text-gray-800">{membership.businesses.public_name}</p>
-                                    <p className="text-sm text-gray-500">Joined on {new Date(membership.created_at).toLocaleDateString()}</p>
+                    {memberships.map(membership => {
+                        // Add null check to prevent crash if business data is missing
+                        if (!membership.businesses) return null;
+
+                        return (
+                            <div 
+                                key={membership.id} 
+                                onClick={() => onViewBusiness(membership.businesses as Business)}
+                                className="bg-white p-4 rounded-lg shadow-sm flex items-center justify-between cursor-pointer hover:bg-gray-50 active:scale-95 transition-all"
+                                role="button"
+                                tabIndex={0}
+                                aria-label={`View profile for ${membership.businesses.public_name}`}
+                            >
+                                <div className="flex items-center gap-4">
+                                    <img 
+                                        src={membership.businesses.logo_url || 'https://i.postimg.cc/8zRZt9pM/user.png'} 
+                                        alt={`${membership.businesses.public_name || 'Business'} logo`}
+                                        className="w-12 h-12 rounded-full object-cover bg-gray-200"
+                                    />
+                                    <div>
+                                        <p className="font-bold text-gray-800">{membership.businesses.public_name}</p>
+                                        <p className="text-sm text-gray-500">Joined on {new Date(membership.created_at).toLocaleDateString()}</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2 text-amber-500">
+                                    <StarIcon className="h-6 w-6" />
+                                    <span className="font-bold text-lg">{membership.points}</span>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-2 text-amber-500">
-                                <StarIcon className="h-6 w-6" />
-                                <span className="font-bold text-lg">{membership.points}</span>
-                            </div>
-                        </div>
-                    ))}
+                        )
+                    })}
                 </div>
             )}
         </div>

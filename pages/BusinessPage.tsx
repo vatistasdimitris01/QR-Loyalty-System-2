@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useDeferredValue, useRef } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { Membership, Business, Customer, Post, Discount, DailyAnalyticsData, BusinessAnalytics, ScanResult } from '../types';
@@ -12,6 +13,10 @@ type DashboardTab = 'analytics' | 'customers' | 'posts' | 'discounts';
 
 const ScreensaverIcon: React.FC<{ className?: string }> = ({ className }) => (
     <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+);
+
+const HideIcon: React.FC<{ className?: string }> = ({ className }) => (
+    <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" /></svg>
 );
 
 // Main Page Component
@@ -127,31 +132,46 @@ const AnalyticsDashboard: React.FC<{business: Business, onBusinessUpdate: (b: Bu
     const [analytics, setAnalytics] = useState<BusinessAnalytics | null>(null);
     const [dailyData, setDailyData] = useState<DailyAnalyticsData[]>([]);
     const [isScannerModalOpen, setIsScannerModalOpen] = useState(false);
-
     const [isEditMode, setIsEditMode] = useState(false);
-    const layoutStorageKey = `qroyal-dashboard-layout-${business.id}`;
+    const [isRestoreMenuOpen, setIsRestoreMenuOpen] = useState(false);
+    const layoutStorageKey = `qroyal-dashboard-layout-v2-${business.id}`;
     
     const componentKeys = {
         NEW_MEMBERS: 'newMembers',
         POINTS_AWARDED: 'pointsAwarded',
         TOTAL_CUSTOMERS: 'totalCustomers',
         LOYALTY_SETTINGS: 'loyaltySettings',
-        SCAN_QR: 'scanQr',
-        KIOSK_MODE: 'kioskMode',
+        QUICK_ACTIONS: 'quickActions',
         LOGIN_QR: 'loginQr',
     };
     
     const [componentOrder, setComponentOrder] = useState<string[]>(Object.values(componentKeys));
+    const [hiddenComponents, setHiddenComponents] = useState<Set<string>>(new Set());
+
+    const componentTitles: Record<string, string> = {
+        [componentKeys.NEW_MEMBERS]: 'New Members',
+        [componentKeys.POINTS_AWARDED]: 'Points Awarded',
+        [componentKeys.TOTAL_CUSTOMERS]: t('totalCustomers'),
+        [componentKeys.QUICK_ACTIONS]: 'Quick Actions',
+        [componentKeys.LOYALTY_SETTINGS]: t('loyaltyProgram'),
+        [componentKeys.LOGIN_QR]: 'Business Login QR',
+    };
 
     useEffect(() => {
         const savedLayout = localStorage.getItem(layoutStorageKey);
         if (savedLayout) {
             try {
                 const parsedLayout = JSON.parse(savedLayout);
-                if (Array.isArray(parsedLayout) && parsedLayout.every(key => Object.values(componentKeys).includes(key)) && parsedLayout.length === Object.values(componentKeys).length) {
-                   setComponentOrder(parsedLayout);
+                const currentKeys = new Set(Object.values(componentKeys));
+                const allSavedKeys = new Set([...(parsedLayout.order || []), ...(parsedLayout.hidden || [])]);
+                const isValid = parsedLayout.order && Array.isArray(parsedLayout.order) &&
+                                allSavedKeys.size === currentKeys.size &&
+                                [...allSavedKeys].every(key => currentKeys.has(key));
+                
+                if (isValid) {
+                   setComponentOrder(parsedLayout.order);
+                   setHiddenComponents(new Set(parsedLayout.hidden || []));
                 } else {
-                   // Clean up corrupted layout from storage
                    localStorage.removeItem(layoutStorageKey);
                 }
             } catch (e) { 
@@ -162,33 +182,47 @@ const AnalyticsDashboard: React.FC<{business: Business, onBusinessUpdate: (b: Bu
     }, [layoutStorageKey]);
 
     const handleSaveLayout = () => {
-        localStorage.setItem(layoutStorageKey, JSON.stringify(componentOrder));
+        const layoutToSave = {
+            order: componentOrder,
+            hidden: Array.from(hiddenComponents)
+        };
+        localStorage.setItem(layoutStorageKey, JSON.stringify(layoutToSave));
         setIsEditMode(false);
+    };
+
+    const handleHideComponent = (key: string) => {
+        setHiddenComponents(prev => new Set(prev).add(key));
+    };
+
+    const handleUnhideComponent = (key: string) => {
+        setHiddenComponents(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(key);
+            return newSet;
+        });
     };
 
     const dragItem = useRef<number | null>(null);
     const dragOverItem = useRef<number | null>(null);
 
-    const handleDragStart = (index: number) => {
+    const handleDragStart = (e: React.DragEvent<HTMLDivElement>, index: number) => {
         dragItem.current = index;
+        e.dataTransfer.effectAllowed = 'move';
     };
-
-    const handleDragEnter = (index: number) => {
-        dragOverItem.current = index;
-    };
-
+    const handleDragEnter = (index: number) => { dragOverItem.current = index; };
     const handleDrop = () => {
-        if (dragItem.current === null || dragOverItem.current === null || dragItem.current === dragOverItem.current) {
-            return;
-        }
-        const newOrder = [...componentOrder];
-        const draggedItemContent = newOrder.splice(dragItem.current, 1)[0];
-        newOrder.splice(dragOverItem.current, 0, draggedItemContent);
-        setComponentOrder(newOrder);
+        if (dragItem.current === null || dragOverItem.current === null || dragItem.current === dragOverItem.current) return;
+        
+        const visibleOrder = componentOrder.filter(key => !hiddenComponents.has(key));
+        const draggedItemContent = visibleOrder.splice(dragItem.current, 1)[0];
+        visibleOrder.splice(dragOverItem.current, 0, draggedItemContent);
+        
+        const newFullOrder = [...visibleOrder, ...Array.from(hiddenComponents)];
+        setComponentOrder(newFullOrder);
+
         dragItem.current = null;
         dragOverItem.current = null;
     };
-
 
     const fetchData = useCallback(async () => {
         const [analyticsData, dailyAnalyticsData] = await Promise.all([
@@ -204,30 +238,21 @@ const AnalyticsDashboard: React.FC<{business: Business, onBusinessUpdate: (b: Bu
     }, [fetchData]);
     
     const componentsMap: Record<string, React.ReactNode> = {
-        [componentKeys.NEW_MEMBERS]: (
-            <AnalyticsAreaChartCard 
-                title="New Members"
-                total={analytics?.new_members_7d}
-                data={dailyData}
-                dataKey="new_members_count"
-                color="#3b82f6"
-            />
-        ),
-        [componentKeys.POINTS_AWARDED]: (
-            <AnalyticsAreaChartCard 
-                title="Points Awarded"
-                total={analytics?.points_awarded_7d}
-                data={dailyData}
-                dataKey="points_awarded_sum"
-                color="#10b981"
-            />
-        ),
+        [componentKeys.NEW_MEMBERS]: <AnalyticsAreaChartCard title="New Members" total={analytics?.new_members_7d} data={dailyData} dataKey="new_members_count" color="#3b82f6" />,
+        [componentKeys.POINTS_AWARDED]: <AnalyticsAreaChartCard title="Points Awarded" total={analytics?.points_awarded_7d} data={dailyData} dataKey="points_awarded_sum" color="#10b981" />,
         [componentKeys.TOTAL_CUSTOMERS]: <StatCard title={t('totalCustomers')} value={analytics?.total_customers ?? '...'} />,
         [componentKeys.LOYALTY_SETTINGS]: <LoyaltySettingsEditor business={business} onUpdate={onBusinessUpdate} />,
-        [componentKeys.SCAN_QR]: <QuickActionCard title={t('scanCustomerQR')} description="Award points to a customer." onClick={() => setIsScannerModalOpen(true)} icon={<CameraIcon className="h-6 w-6"/>} />,
-        [componentKeys.KIOSK_MODE]: <QuickActionCard title={t('kioskMode')} description={t('kioskModeDesc')} href="/business/scanner" icon={<ScreensaverIcon className="h-6 w-6" />} />,
+        [componentKeys.QUICK_ACTIONS]: (
+            <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm h-full">
+                <h3 className="font-bold text-lg mb-4 text-gray-800">Quick Actions</h3>
+                <div className="space-y-3">
+                    <QuickActionButton title={t('scanCustomerQR')} onClick={() => setIsScannerModalOpen(true)} icon={<CameraIcon className="h-5 w-5"/>} />
+                    <QuickActionButton title={t('kioskMode')} href="/business/scanner" icon={<ScreensaverIcon className="h-5 w-5" />} />
+                </div>
+            </div>
+        ),
         [componentKeys.LOGIN_QR]: (
-            <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm text-center">
+            <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm text-center h-full">
                 <h3 className="font-bold text-lg mb-2">Business Login QR</h3>
                 <img src={business.qr_data_url} alt="Business Login QR Code" className="w-40 h-40 mx-auto rounded-lg" />
                 <p className="text-xs text-gray-500 mt-2">Scan this to log in quickly from any device.</p>
@@ -235,12 +260,27 @@ const AnalyticsDashboard: React.FC<{business: Business, onBusinessUpdate: (b: Bu
         )
     };
     
+    const visibleComponents = componentOrder.filter(key => !hiddenComponents.has(key));
+    const hiddenComponentKeys = componentOrder.filter(key => hiddenComponents.has(key));
+
     return (
         <>
             <BusinessScannerModal isOpen={isScannerModalOpen} onClose={() => setIsScannerModalOpen(false)} businessId={business.id} onScanSuccess={(result: ScanResult) => { if (result.success) fetchData(); }} />
-            <div className="flex justify-end mb-4 gap-2">
+            <div className="flex justify-end mb-4 gap-2 items-center">
                 {isEditMode ? (
                     <>
+                        {hiddenComponentKeys.length > 0 && (
+                            <div className="relative">
+                                <button onClick={() => setIsRestoreMenuOpen(prev => !prev)} className="bg-white text-gray-700 font-semibold py-2 px-4 rounded-lg hover:bg-gray-100 border text-sm">Restore</button>
+                                {isRestoreMenuOpen && (
+                                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-30 border">
+                                        {hiddenComponentKeys.map(key => (
+                                            <button key={key} onClick={() => handleUnhideComponent(key)} className="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">{componentTitles[key]}</button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
                         <button onClick={() => setIsEditMode(false)} className="bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300 text-sm">Cancel</button>
                         <button onClick={handleSaveLayout} className="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 text-sm">Save Layout</button>
                     </>
@@ -252,18 +292,18 @@ const AnalyticsDashboard: React.FC<{business: Business, onBusinessUpdate: (b: Bu
                 )}
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {componentOrder.map((key, index) => (
+                {visibleComponents.map((key, index) => (
                     <div
                         key={key}
                         draggable={isEditMode}
-                        onDragStart={() => handleDragStart(index)}
+                        onDragStart={(e) => handleDragStart(e, index)}
                         onDragEnter={() => handleDragEnter(index)}
                         onDragEnd={handleDrop}
                         onDragOver={(e) => e.preventDefault()}
-                        className={isEditMode ? 'rounded-xl' : ''}
                     >
                         <div className={`relative h-full transition-all duration-300 ${isEditMode ? 'cursor-move ring-2 ring-blue-500 ring-dashed ring-offset-2 rounded-xl bg-white p-1' : ''}`}>
                              {isEditMode && <DragHandleIcon />}
+                             {isEditMode && <HideButtonIcon onClick={() => handleHideComponent(key)} />}
                              {componentsMap[key]}
                         </div>
                     </div>
@@ -338,26 +378,27 @@ const CustomersList: React.FC<{business: Business}> = ({ business }) => {
                 <div className="space-y-3">
                      {loadingMemberships ? (
                         <div className="text-center p-6"><Spinner /></div>
-                    ) : memberships.length > 0 ? memberships.map(membership => (
-                        <div key={membership.id} className="bg-gray-50 p-3 rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                            <div className="flex items-center gap-3">
-                                <img src={membership.customers.profile_picture_url || 'https://i.postimg.cc/8zRZt9pM/user.png'} alt={membership.customers.name} className="w-12 h-12 rounded-full object-cover bg-gray-200" />
-                                <div>
-                                    <p className="font-semibold text-gray-800">{membership.customers.name}</p>
-                                    <p className="text-sm text-gray-500">{membership.customers.phone_number || 'No phone'}</p>
+                    ) : memberships.length > 0 ? memberships.map(membership => {
+                        if (!membership.customers) return null; // Add null check
+                        return (
+                            <div key={membership.id} className="bg-gray-50 p-3 rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                                <div className="flex items-center gap-3">
+                                    <img src={membership.customers.profile_picture_url || 'https://i.postimg.cc/8zRZt9pM/user.png'} alt={membership.customers.name || 'Customer'} className="w-12 h-12 rounded-full object-cover bg-gray-200" />
+                                    <div>
+                                        <p className="font-semibold text-gray-800">{membership.customers.name}</p>
+                                        <p className="text-sm text-gray-500">{membership.customers.phone_number || 'No phone'}</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center justify-between w-full sm:w-auto">
+                                    <p className="font-bold text-lg text-blue-600 sm:mx-4">{membership.points} <span className="text-sm font-medium text-gray-500">{t('points')}</span></p>
+                                    <div className="flex items-center gap-2">
+                                        <button onClick={() => handleViewQr(membership.customers as Customer)} className="bg-gray-200 text-gray-700 font-semibold py-1 px-3 rounded-md text-sm hover:bg-gray-300">View</button>
+                                        <button onClick={() => membership.customers.id && handleRemoveCustomer(membership.customers.id)} className="bg-red-100 text-red-700 font-semibold py-1 px-3 rounded-md text-sm hover:bg-red-200">{t('remove')}</button>
+                                    </div>
                                 </div>
                             </div>
-                            <div className="flex items-center justify-between w-full sm:w-auto">
-                                <p className="font-bold text-lg text-blue-600 sm:mx-4">{membership.points} <span className="text-sm font-medium text-gray-500">{t('points')}</span></p>
-                                <div className="flex items-center gap-2">
-                                    {/* FIX: Cast partial customer to full Customer type, as the API returns all fields. */}
-                                    <button onClick={() => handleViewQr(membership.customers as Customer)} className="bg-gray-200 text-gray-700 font-semibold py-1 px-3 rounded-md text-sm hover:bg-gray-300">View</button>
-                                    {/* FIX: Ensure customer ID exists before attempting to remove a customer, as it's optional on the partial type. */}
-                                    <button onClick={() => membership.customers.id && handleRemoveCustomer(membership.customers.id)} className="bg-red-100 text-red-700 font-semibold py-1 px-3 rounded-md text-sm hover:bg-red-200">{t('remove')}</button>
-                                </div>
-                            </div>
-                        </div>
-                    )) : (
+                        )
+                    }) : (
                         <div className="text-center p-6 text-gray-500">No customers found.</div>
                     )}
                 </div>
@@ -498,10 +539,16 @@ const DiscountsManager: React.FC<{business: Business}> = ({ business }) => {
 
 // UI & HELPER COMPONENTS
 
+const HideButtonIcon: React.FC<{ onClick: () => void }> = ({ onClick }) => (
+    <button onClick={onClick} className="absolute top-2 right-12 z-10 p-1.5 bg-white/70 rounded-full hover:bg-white transition-colors" title="Hide Widget">
+        <HideIcon className="h-5 w-5 text-gray-500" />
+    </button>
+);
+
 const DragHandleIcon: React.FC = () => (
     <div className="absolute top-2 right-2 z-10 p-1.5 bg-white/70 rounded-full cursor-grab active:cursor-grabbing hover:bg-white transition-colors">
         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
         </svg>
     </div>
 );
@@ -519,11 +566,17 @@ const StatCard: React.FC<{ title: string; value: string | number; }> = ({ title,
     </div>
 );
 
-const QuickActionCard: React.FC<{ title: string; description: string; href?: string; onClick?: () => void; icon: React.ReactNode }> = ({ title, description, href, onClick, icon }) => {
-    const content = ( <div className="bg-white p-4 rounded-xl shadow-sm flex items-center gap-4 hover:bg-gray-50 transition-colors cursor-pointer h-full"> <div className="bg-gray-100 text-gray-600 p-3 rounded-full">{icon}</div> <div> <p className="font-bold text-gray-800">{title}</p> <p className="text-sm text-gray-500">{description}</p> </div> </div> );
+const QuickActionButton: React.FC<{ title: string; href?: string; onClick?: () => void; icon: React.ReactNode }> = ({ title, href, onClick, icon }) => {
+    const content = (
+        <div className="p-3 rounded-lg flex items-center gap-3 hover:bg-gray-100 transition-colors cursor-pointer border border-gray-200">
+            <div className="text-gray-600">{icon}</div>
+            <p className="font-semibold text-gray-800 text-sm">{title}</p>
+        </div>
+    );
     if (href) { return <a href={href}>{content}</a>; }
-    return <div onClick={onClick}>{content}</div>;
+    return <button onClick={onClick} className="w-full text-left">{content}</button>;
 };
+
 
 const getSvgPath = (points: {x: number, y: number}[], tension: number): string => {
     if (points.length < 2) return "";
