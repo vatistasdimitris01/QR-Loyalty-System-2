@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { Customer, ScanResult, Post } from '../types';
 import { awardPoints, createPost } from '../services/api';
@@ -342,85 +342,91 @@ export const BusinessScannerModal: React.FC<{
     onScanSuccess: (result: ScanResult) => void;
 }> = ({ isOpen, onClose, businessId, onScanSuccess }) => {
     const { t } = useLanguage();
-    const scannerId = "business-qr-scanner";
+    const scannerContainerId = "business-qr-scanner";
     const [scanResult, setScanResult] = useState<ScanResult | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [isRewardModalOpen, setIsRewardModalOpen] = useState(false);
     const [rewardMessage, setRewardMessage] = useState('');
     const qrScannerRef = useRef<any>(null);
 
-    useEffect(() => {
-        if (isOpen) {
-            setTimeout(() => {
-                qrScannerRef.current = new Html5Qrcode(scannerId);
-                
-                const startScanner = () => {
-                    qrScannerRef.current.start(
-                        { facingMode: "user" },
-                        { fps: 10, qrbox: { width: 250, height: 250 } },
-                        async (decodedText: string) => {
-                            qrScannerRef.current.pause();
-                            setScanResult(null);
-                            setError(null);
-                            
-                            try {
-                                let token = decodedText;
-                                try {
-                                    const url = new URL(decodedText);
-                                    if (url.pathname === '/customer' && url.searchParams.has('token')) {
-                                        token = url.searchParams.get('token')!;
-                                    }
-                                } catch (e) {}
-
-                                if (token.startsWith('cust_')) {
-                                   const result = await awardPoints(token, businessId);
-                                   setScanResult(result);
-                                   onScanSuccess(result);
-                                   if (result.success && result.rewardWon) {
-                                       setRewardMessage(result.rewardMessage || t('giftWonMessage'));
-                                       setIsRewardModalOpen(true);
-                                   }
-                                } else {
-                                    setError('Not a valid customer QR code.');
-                                }
-                            } catch (e) {
-                                setError(t('errorUnexpected'));
-                            }
-                        },
-                        (errorMessage: string) => {}
-                    ).catch((err: any) => {
-                        console.error("Unable to start scanning.", err);
-                        setError("Could not start camera. Please grant permission.");
-                    });
-                };
-                
-                startScanner();
-            }, 100);
-
-            return () => {
-                if (qrScannerRef.current && qrScannerRef.current.isScanning) {
-                    qrScannerRef.current.stop().catch((err: any) => console.error("Failed to stop scanner", err));
-                }
-            };
+    const startScanner = useCallback(() => {
+        if (!qrScannerRef.current) {
+            qrScannerRef.current = new Html5Qrcode(scannerContainerId);
         }
-    }, [isOpen, businessId, onScanSuccess, t]);
-    
-    const handleScanNext = () => {
+        
+        const html5Qrcode = qrScannerRef.current;
+        
+        if (html5Qrcode.isScanning) {
+            return;
+        }
+
         setScanResult(null);
         setError(null);
-        if (qrScannerRef.current) {
-            try {
-                // HACK: Sometimes getState() is not available on the object, so check for resume method.
-                if (typeof qrScannerRef.current.resume === 'function') {
-                    qrScannerRef.current.resume();
+
+        html5Qrcode.start(
+            { facingMode: "user" },
+            { fps: 10, qrbox: { width: 250, height: 250 } },
+            async (decodedText: string) => {
+                if (html5Qrcode.isScanning) {
+                    try {
+                        await html5Qrcode.stop();
+                    } catch (e) {
+                        console.warn("Error stopping scanner after scan:", e);
+                    }
                 }
-            } catch (e) {
-                console.error("Could not resume scanner", e);
+                
+                try {
+                    let token = decodedText;
+                    try {
+                        const url = new URL(decodedText);
+                        if (url.pathname === '/customer' && url.searchParams.has('token')) {
+                            token = url.searchParams.get('token')!;
+                        }
+                    } catch (e) { /* Not a URL */ }
+
+                    if (token.startsWith('cust_')) {
+                       const result = await awardPoints(token, businessId);
+                       setScanResult(result);
+                       onScanSuccess(result);
+                       if (result.success && result.rewardWon) {
+                           setRewardMessage(result.rewardMessage || t('giftWonMessage'));
+                           setIsRewardModalOpen(true);
+                       }
+                    } else {
+                        setError('Not a valid customer QR code.');
+                    }
+                } catch (e) {
+                    setError(t('errorUnexpected'));
+                }
+            },
+            (errorMessage: string) => {}
+        ).catch((err: any) => {
+            console.error("Unable to start scanning.", err);
+            setError("Could not start camera. Please grant permission.");
+        });
+    }, [businessId, onScanSuccess, t]);
+
+    useEffect(() => {
+        if (isOpen) {
+            const timer = setTimeout(startScanner, 300);
+            return () => clearTimeout(timer);
+        } else {
+            if (qrScannerRef.current?.isScanning) {
+                qrScannerRef.current.stop().catch((err: any) => {
+                    console.warn("QR Scanner stop failed on modal close.", err);
+                });
             }
+            setScanResult(null);
+            setError(null);
         }
+    }, [isOpen, startScanner]);
+
+    const handleScanNext = () => {
+        startScanner();
     };
 
     const resultColor = scanResult?.success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+    const showScannerView = !scanResult && !error;
 
     return (
         <>
@@ -430,11 +436,16 @@ export const BusinessScannerModal: React.FC<{
                 rewardMessage={rewardMessage}
             />
             <Modal isOpen={isOpen} onClose={onClose} title={t('scanQRCode')}>
-                <div id={scannerId} className="w-full" />
+                <div style={{ display: showScannerView ? 'block' : 'none' }}>
+                    <div id={scannerContainerId} className="w-full" />
+                </div>
+                
                 <div className="mt-4 w-full">
                     <h2 className="text-lg font-semibold mb-2">{t('scanResult')}</h2>
-                    <div className={`p-3 rounded-lg text-center font-medium min-h-[100px] flex flex-col justify-center ${!scanResult && !error ? 'bg-gray-100' : ''} ${scanResult ? resultColor : ''} ${error ? 'bg-red-100 text-red-800' : ''}`}>
-                        {scanResult || error ? (
+                    <div className={`p-3 rounded-lg text-center font-medium min-h-[100px] flex flex-col justify-center ${showScannerView ? 'bg-gray-100' : ''} ${scanResult ? resultColor : ''} ${error ? 'bg-red-100 text-red-800' : ''}`}>
+                        {showScannerView ? (
+                             <p className="text-gray-500">Scanning...</p>
+                        ) : (
                             <div>
                                 {scanResult ? (
                                     <div>
@@ -449,8 +460,6 @@ export const BusinessScannerModal: React.FC<{
                                     {t('scanNext')}
                                 </button>
                             </div>
-                        ) : (
-                            <p className="text-gray-500">Scanning...</p>
                         )}
                     </div>
                 </div>
