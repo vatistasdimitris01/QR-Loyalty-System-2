@@ -32,7 +32,6 @@ const CustomerPage: React.FC<CustomerPageProps> = ({ qrToken }) => {
   const [activeTab, setActiveTab] = useState<ActiveTab>('home');
   const [joinMessage, setJoinMessage] = useState('');
   const [viewingBusiness, setViewingBusiness] = useState<Business | null>(null);
-  const tidioHideTimer = useRef<number | null>(null);
 
   const fetchCustomerAndMemberships = useCallback(async (isInitialLoad = false) => {
     if (isInitialLoad) setLoading(true);
@@ -72,46 +71,27 @@ const CustomerPage: React.FC<CustomerPageProps> = ({ qrToken }) => {
     }
   };
 
-    const handleTidioVisibility = useCallback(() => {
-        if (!window.tidioChatApi) return;
-
-        const resetTimer = () => {
-            if (tidioHideTimer.current) {
-                clearTimeout(tidioHideTimer.current);
-                tidioHideTimer.current = null;
+    useEffect(() => {
+        const hideChat = () => {
+            if (window.tidioChatApi) {
+                window.tidioChatApi.hide();
             }
         };
 
-        const startTimer = () => {
-            resetTimer();
-            tidioHideTimer.current = window.setTimeout(() => {
-                window.tidioChatApi.hide();
-            }, 30000);
-        };
-
-        window.tidioChatApi.hide();
-        window.tidioChatApi.on('open', startTimer);
-        window.tidioChatApi.on('chat:message_sent_by_visitor', resetTimer);
-        window.tidioChatApi.on('chat:focused', resetTimer);
-    }, [tidioHideTimer]);
-
-    useEffect(() => {
         if (window.tidioChatApi) {
-            handleTidioVisibility();
+            hideChat();
         } else {
-            document.addEventListener('tidioChat-ready', handleTidioVisibility, { once: true });
+            document.addEventListener('tidioChat-ready', hideChat, { once: true });
         }
         
         return () => {
-            document.removeEventListener('tidioChat-ready', handleTidioVisibility);
+            document.removeEventListener('tidioChat-ready', hideChat);
+            // Make sure chat is visible when leaving customer page, for other parts of the site
             if (window.tidioChatApi) {
-                window.tidioChatApi.off('open');
-                window.tidioChatApi.off('chat:message_sent_by_visitor');
-                window.tidioChatApi.off('chat:focused');
                 window.tidioChatApi.show();
             }
         };
-    }, [handleTidioVisibility]);
+    }, []);
 
 
   useEffect(() => {

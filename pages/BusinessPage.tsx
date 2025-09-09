@@ -87,9 +87,14 @@ const BusinessPage: React.FC = () => {
         <div className="min-h-screen bg-gray-100 font-sans">
             <header className="sticky top-0 z-20 bg-white border-b border-gray-200">
                 <div className="p-4 flex justify-between items-center max-w-7xl mx-auto">
-                    <div>
-                        <h1 className="text-xl md:text-2xl font-bold text-gray-900">{business.public_name || t('businessDashboard')}</h1>
-                        <p className="text-sm text-gray-500">{t('welcome')}, {business.name}!</p>
+                    <div className="flex items-center gap-4">
+                        <a href="/business/scanner" title={t('kioskMode')} className="bg-gray-100 text-gray-700 p-3 rounded-full hover:bg-gray-200 transition-colors">
+                           <ScreensaverIcon className="h-6 w-6" />
+                        </a>
+                        <div>
+                            <h1 className="text-xl md:text-2xl font-bold text-gray-900">{business.public_name || t('businessDashboard')}</h1>
+                            <p className="text-sm text-gray-500">{t('welcome')}, {business.name}!</p>
+                        </div>
                     </div>
                     <div className="relative" ref={profileMenuRef}>
                         <button onClick={() => setIsProfileMenuOpen(prev => !prev)} className="w-10 h-10 rounded-full overflow-hidden border-2 border-gray-300 hover:border-blue-500 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
@@ -205,24 +210,43 @@ const AnalyticsDashboard: React.FC<{business: Business, onBusinessUpdate: (b: Bu
     const dragItem = useRef<number | null>(null);
     const dragOverItem = useRef<number | null>(null);
 
-    const handleDragStart = (e: React.DragEvent<HTMLDivElement>, index: number) => {
-        dragItem.current = index;
-        e.dataTransfer.effectAllowed = 'move';
-    };
-    const handleDragEnter = (index: number) => { dragOverItem.current = index; };
     const handleDrop = () => {
-        if (dragItem.current === null || dragOverItem.current === null || dragItem.current === dragOverItem.current) return;
+        if (dragItem.current === null || dragOverItem.current === null || dragItem.current === dragOverItem.current) {
+             dragItem.current = null;
+             dragOverItem.current = null;
+            return;
+        };
         
         const visibleOrder = componentOrder.filter(key => !hiddenComponents.has(key));
         const draggedItemContent = visibleOrder.splice(dragItem.current, 1)[0];
         visibleOrder.splice(dragOverItem.current, 0, draggedItemContent);
         
-        const newFullOrder = [...visibleOrder, ...Array.from(hiddenComponents)];
-        setComponentOrder(newFullOrder);
+        const hiddenOrder = componentOrder.filter(key => hiddenComponents.has(key));
+        setComponentOrder([...visibleOrder, ...hiddenOrder]);
 
         dragItem.current = null;
         dragOverItem.current = null;
     };
+
+    // Mouse Events
+    const handleDragStart = (e: React.DragEvent<HTMLDivElement>, index: number) => { dragItem.current = index; };
+    const handleDragEnter = (index: number) => { dragOverItem.current = index; };
+
+    // Touch Events for Tablets
+    const handleTouchStart = (index: number) => { dragItem.current = index; };
+    const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+        const touch = e.touches[0];
+        const element = document.elementFromPoint(touch.clientX, touch.clientY);
+        const container = element?.closest('[data-drag-index]');
+        if (container) {
+            const index = parseInt(container.getAttribute('data-drag-index')!, 10);
+            if (!isNaN(index)) {
+                dragOverItem.current = index;
+            }
+        }
+    };
+    const handleTouchEnd = () => { handleDrop(); };
+
 
     const fetchData = useCallback(async () => {
         const [analyticsData, dailyAnalyticsData] = await Promise.all([
@@ -295,11 +319,15 @@ const AnalyticsDashboard: React.FC<{business: Business, onBusinessUpdate: (b: Bu
                 {visibleComponents.map((key, index) => (
                     <div
                         key={key}
+                        data-drag-index={index}
                         draggable={isEditMode}
                         onDragStart={(e) => handleDragStart(e, index)}
                         onDragEnter={() => handleDragEnter(index)}
                         onDragEnd={handleDrop}
                         onDragOver={(e) => e.preventDefault()}
+                        onTouchStart={() => handleTouchStart(index)}
+                        onTouchMove={handleTouchMove}
+                        onTouchEnd={handleTouchEnd}
                     >
                         <div className={`relative h-full transition-all duration-300 ${isEditMode ? 'cursor-move ring-2 ring-blue-500 ring-dashed ring-offset-2 rounded-xl bg-white p-1' : ''}`}>
                              {isEditMode && <DragHandleIcon />}

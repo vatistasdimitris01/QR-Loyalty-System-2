@@ -15,6 +15,9 @@ export const Spinner: React.FC<{ className?: string }> = ({ className = 'h-8 w-8
 );
 
 // --- Icons ---
+export const DashboardIcon: React.FC<{ className?: string }> = ({ className }) => (
+    <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h6v6H4zm0 10h6v6H4zm10-10h6v6h-6zm0 10h6v6h-6z"></path></svg>
+);
 export const FacebookIcon: React.FC<{ className?: string }> = ({ className }) => (
     <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z"></path></svg>
 );
@@ -382,12 +385,6 @@ export const BusinessScannerModal: React.FC<{
                                 }
                             } catch (e) {
                                 setError(t('errorUnexpected'));
-                            } finally {
-                                setTimeout(() => {
-                                   if (qrScannerRef.current && qrScannerRef.current.getState() === 2) { // 2 = PAUSED
-                                        qrScannerRef.current.resume();
-                                   }
-                                }, 3000);
                             }
                         },
                         (errorMessage: string) => {}
@@ -408,6 +405,21 @@ export const BusinessScannerModal: React.FC<{
         }
     }, [isOpen, businessId, onScanSuccess, t]);
     
+    const handleScanNext = () => {
+        setScanResult(null);
+        setError(null);
+        if (qrScannerRef.current) {
+            try {
+                // HACK: Sometimes getState() is not available on the object, so check for resume method.
+                if (typeof qrScannerRef.current.resume === 'function') {
+                    qrScannerRef.current.resume();
+                }
+            } catch (e) {
+                console.error("Could not resume scanner", e);
+            }
+        }
+    };
+
     const resultColor = scanResult?.success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
 
     return (
@@ -421,14 +433,22 @@ export const BusinessScannerModal: React.FC<{
                 <div id={scannerId} className="w-full" />
                 <div className="mt-4 w-full">
                     <h2 className="text-lg font-semibold mb-2">{t('scanResult')}</h2>
-                    <div className={`p-3 rounded-lg text-center font-medium ${!scanResult && !error ? 'bg-gray-100' : ''} ${scanResult ? resultColor : ''} ${error ? 'bg-red-100 text-red-800' : ''}`}>
-                        {scanResult ? (
+                    <div className={`p-3 rounded-lg text-center font-medium min-h-[100px] flex flex-col justify-center ${!scanResult && !error ? 'bg-gray-100' : ''} ${scanResult ? resultColor : ''} ${error ? 'bg-red-100 text-red-800' : ''}`}>
+                        {scanResult || error ? (
                             <div>
-                                <p>{scanResult.message}</p>
-                                {scanResult.customer && <p>Total Points: {scanResult.newPointsTotal}</p>}
+                                {scanResult ? (
+                                    <div>
+                                        <p>{scanResult.message}</p>
+                                        {scanResult.customer && <p>Total Points: {scanResult.newPointsTotal}</p>}
+                                    </div>
+                                ) : (<p>{error}</p>)}
+                                <button
+                                    onClick={handleScanNext}
+                                    className="mt-4 w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700"
+                                >
+                                    {t('scanNext')}
+                                </button>
                             </div>
-                        ) : error ? (
-                            <p>{error}</p>
                         ) : (
                             <p className="text-gray-500">Scanning...</p>
                         )}

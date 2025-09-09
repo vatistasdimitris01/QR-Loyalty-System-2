@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { Business, ScanResult } from '../types';
-import { BusinessScannerModal, CreateCustomerModal, Spinner } from '../components/common';
+import { BusinessScannerModal, CreateCustomerModal, Spinner, DashboardIcon } from '../components/common';
 import { provisionCustomerForBusiness } from '../services/api';
 
 const BusinessScannerPage: React.FC = () => {
@@ -38,7 +38,8 @@ const BusinessScannerPage: React.FC = () => {
     };
     
     const handleScanSuccess = (result: ScanResult) => {
-        setIsScannerOpen(false);
+        // The modal now handles its own state. This page just needs to know the result.
+        // It's a kiosk, so we don't close the modal automatically.
         setLastScanResult(result);
         setTimeout(() => {
             setLastScanResult(null);
@@ -69,21 +70,21 @@ const BusinessScannerPage: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-gray-100 flex flex-col justify-center items-center p-4">
-            <a href="/business" className="absolute top-4 left-4 bg-white text-gray-700 font-semibold py-2 px-4 rounded-lg shadow hover:bg-gray-200 z-10">
-                &larr; {t('exitKiosk')}
+             <a href="/business" title={t('businessDashboard')} className="absolute top-4 left-4 bg-white/80 backdrop-blur-sm text-gray-800 p-3 rounded-full shadow-md hover:bg-white transition-colors z-10">
+                <DashboardIcon className="h-6 w-6" />
             </a>
             
-            <div className="text-center w-full max-w-md">
-                <p className="text-xl md:text-2xl text-gray-600">{dateFormatter.format(currentTime)}</p>
-                <p className="text-6xl md:text-7xl font-bold my-4">{formatTime(currentTime)}</p>
+            <div className="text-center w-full max-w-sm">
+                <p className="text-lg md:text-xl text-gray-600">{dateFormatter.format(currentTime)}</p>
+                <p className="text-5xl md:text-6xl font-bold my-2">{formatTime(currentTime)}</p>
 
                 <img 
                     src={business.logo_url || 'https://i.postimg.cc/bJwnZhs9/Chat-GPT-Image-Aug-31-2025-06-45-18-AM.png'} 
                     alt="Business Logo"
-                    className="w-24 h-24 md:w-32 md:h-32 rounded-full mx-auto my-8 border-4 border-white shadow-lg"
+                    className="w-20 h-20 md:w-24 md:h-24 rounded-full mx-auto my-6 border-4 border-white shadow-lg"
                 />
 
-                <div className="bg-white p-6 rounded-lg shadow-md mb-6 min-h-[110px] flex flex-col justify-center transition-all duration-300">
+                <div className="bg-white p-6 rounded-lg shadow-md mb-6 min-h-[100px] flex flex-col justify-center transition-all duration-300">
                     {lastScanResult ? (
                         lastScanResult.success ? (
                             <div>
@@ -105,16 +106,16 @@ const BusinessScannerPage: React.FC = () => {
                     )}
                 </div>
                 
-                <div className="space-y-4">
+                <div className="space-y-3">
                     <button 
                         onClick={() => setIsScannerOpen(true)}
-                        className="w-full bg-blue-600 text-white font-bold py-4 px-6 rounded-lg text-xl shadow-md hover:bg-blue-700 transition-transform transform hover:scale-105"
+                        className="w-full bg-blue-600 text-white font-bold py-3 px-6 rounded-lg text-lg shadow-md hover:bg-blue-700 transition-transform transform hover:scale-105"
                     >
                         {t('scanQr')}
                     </button>
                     <button 
                         onClick={handleCreateQr}
-                        className="w-full bg-gray-700 text-white font-bold py-4 px-6 rounded-lg text-xl shadow-md hover:bg-gray-800 transition-transform transform hover:scale-105"
+                        className="w-full bg-gray-700 text-white font-bold py-3 px-6 rounded-lg text-lg shadow-md hover:bg-gray-800 transition-transform transform hover:scale-105"
                     >
                         {t('createQr')}
                     </button>
