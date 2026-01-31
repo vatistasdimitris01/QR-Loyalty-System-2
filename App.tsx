@@ -15,13 +15,37 @@ const App: React.FC = () => {
   const path = window.location.pathname;
   const searchParams = new URLSearchParams(window.location.search);
 
+  // Helper to determine if we are on a "Business" path
+  const isBusinessPath = path.startsWith('/business') || path.startsWith('/signup/business');
+  const isCustomerPath = path.startsWith('/customer') || path.startsWith('/signup/customer');
+
   const renderPage = () => {
+    // Admin route
     if (path === '/admin') {
       return <AdminPage />;
     }
+
+    // Customer routes (Mobile-focused)
     if (path === '/customer' && searchParams.has('token')) {
-      return <CustomerPage qrToken={searchParams.get('token')!} />;
+      return (
+        <div className="flex justify-center bg-slate-50 min-h-screen">
+          <div className="w-full max-w-md bg-white shadow-2xl min-h-screen relative overflow-hidden">
+             <CustomerPage qrToken={searchParams.get('token')!} />
+          </div>
+        </div>
+      );
     }
+    if (path === '/signup/customer') {
+      return (
+        <div className="flex justify-center bg-slate-50 min-h-screen">
+          <div className="w-full max-w-md bg-white shadow-2xl min-h-screen">
+            <CustomerSignupPage />
+          </div>
+        </div>
+      );
+    }
+
+    // Business routes (PC-focused)
     if (path === '/business') {
         const isLoggedIn = sessionStorage.getItem('isBusinessLoggedIn') === 'true';
         return isLoggedIn ? <BusinessPage /> : <BusinessLoginPage />;
@@ -37,19 +61,19 @@ const App: React.FC = () => {
     if (path === '/business/login') {
       return <BusinessLoginPage />;
     }
-    if (path === '/signup/customer') {
-        return <CustomerSignupPage />;
-    }
     if (path === '/signup/business') {
         return <BusinessSignupPage />;
     }
 
+    // Root/Landing
     return <LandingPage />;
   };
 
   return (
     <LanguageProvider>
-      {renderPage()}
+      <div className="antialiased selection:bg-blue-100">
+        {renderPage()}
+      </div>
     </LanguageProvider>
   );
 };

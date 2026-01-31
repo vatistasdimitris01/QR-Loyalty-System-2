@@ -1,0 +1,66 @@
+# DESIGN SPECIFICATION: QROYAL - Enterprise Loyalty Infrastructure
+
+## Brand Identity & Aesthetic
+**Core Concept:** "Royal-Grade B2B Loyalty." The design must bridge the gap between high-end luxury and functional enterprise software. It should feel like a premium banking app combined with a modern lifestyle platform.
+**Visual Style:** 
+- **Minimalism:** Use high white space to create a sense of breathability and clarity.
+- **Glassmorphism:** Sublte backdrop-blurs on sticky headers and modals.
+- **Elevation:** Layered components with soft, large-radius shadows (e.g., shadow-2xl with low opacity).
+- **Rounding:** Extreme corner radii (rounded-[2.5rem] for cards, rounded-2xl for buttons) to create a friendly yet modern tech feel.
+
+## Color Palette
+- **Primary Blue:** #135bec (Deep, energetic blue for trust and action).
+- **Accent Gold:** #C5A059 (Used for rewards, achievements, and premium highlights).
+- **Surface:** #f6f6f8 (Light mode background), #ffffff (Card background).
+- **Dark Mode:** #101622 (Deep navy-black for high-contrast professional environments).
+
+## Typography
+- **Headers:** Manrope/Inter, font-weight 800-900. Bold, tight tracking (-0.05em) for an impactful, authoritative look.
+- **Body:** Inter, font-weight 400-600. Clean, highly legible.
+- **Micro-copy:** All-caps with high letter-spacing (0.2em-0.3em) for section labels and metadata.
+
+---
+
+## Page-Specific Design Guidelines
+
+### 1. Customer Home (The Mobile Wallet)
+- **Header:** Large personalized greeting ("Good morning, John.") in black, contrast with a tiny uppercase date label.
+- **The "Crown" Card:** The top loyalty card should be a hero element. Use a clean progress bar (2px height) that fills with solid black or gold. 
+- **Universal QR FAB:** A floating, circular button at the bottom center. Black background with a white QR icon.
+- **Navigation:** Bottom navigation bar with thin icons and tiny labels. Use active-state scaling (button grows slightly when selected).
+
+### 2. Business Dashboard (Analytics Hub)
+- **Layout:** Bento-box style grid. Cards should have different sizes based on data priority.
+- **Data Viz:** Line charts for "New Members" using the Primary Blue with a subtle gradient fill underneath.
+- **Interaction:** Cards should have a "drag handle" affordance (six-dot icon) in edit mode.
+- **Buttons:** 
+  - *Primary:* Solid #135bec with a shadow of the same color but lower opacity.
+  - *Secondary:* White background, thin border-slate-200, black text.
+  - *Kiosk Mode:* Large, prominent icon-only button with a high-contrast background.
+
+### 3. Kiosk/Scanner Interface
+- **Mode:** Full-screen immersive UI. Large, high-legibility clock in the center.
+- **Feedback:** When a scan is successful, use a full-screen semi-transparent green overlay with an "award" animation (confetti effect).
+- **Call to Action:** Two massive side-by-side buttons at the bottom: "Scan Guest" and "Create New Member."
+
+### 4. Content & Profile Editors
+- **Form Fields:** Inputs should be `bg-slate-50` with a `border-slate-200`. On focus, the border changes to #135bec with a subtle outer ring (glow).
+- **Markdown Editor:** A custom toolbar for text styling (Bold, Italic, Link) that matches the rounded button style of the rest of the app.
+- **Image Uploaders:** "Empty" states should use dashed borders and a "plus" icon. Post-upload, show a high-quality preview with a "Change" button overlay.
+
+### 5. Business Profile (Public View)
+- **Cover Area:** Full-width high-resolution imagery with a bottom-to-top dark gradient overlay.
+- **Logo Placement:** The logo should break the "boundary" between the cover photo and the content area (half-on, half-off).
+- **Sticky Tab-nav:** A pill-shaped toggle bar (Posts | Discounts | About) that follows the user as they scroll.
+
+---
+
+## Interactive Elements & State Design
+- **Hover:** All buttons should lift slightly (translate-y-[-2px]) and increase shadow depth.
+- **Active (Click):** Scale down to 95% (transform scale-95) for tactile feedback.
+- **Loading:** Use a minimalist circular spinner ( Primary Blue) with a soft pulsing background behind it.
+- **Success:** Use "Accent Gold" for celebratory moments (rewards, point milestones).
+
+## Imagery Direction
+- **Photography:** Use "lifestyle enterprise" imagery. Clean offices, modern coffee shops, high-end retail environments with bright lighting and soft focus backgrounds.
+- **Icons:** Material Symbols Outlined, weight 300-400 for a precise, "techy" look.
