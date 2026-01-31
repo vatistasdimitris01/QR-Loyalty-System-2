@@ -25,7 +25,7 @@ export const BackButton: React.FC<{ onClick?: () => void; className?: string }> 
     return (
         <button 
             onClick={handleBack} 
-            className={`group flex items-center gap-2 px-5 py-2.5 bg-white/80 backdrop-blur-md border border-slate-200 rounded-2xl text-slate-800 font-bold text-sm hover:bg-white hover:border-slate-300 hover:shadow-lg transition-all active:scale-95 ${className}`}
+            className={`group flex items-center gap-2 px-5 py-2.5 bg-white/80 backdrop-blur-md border border-slate-200 rounded-2xl text-slate-800 font-bold text-sm hover:bg-white hover:border-slate-300 hover:shadow-xl transition-all active:scale-95 ${className}`}
         >
             <span className="material-symbols-outlined text-[20px] transition-transform group-hover:-translate-x-1">arrow_back</span>
             {t('back')}
@@ -50,7 +50,7 @@ export const DeviceGuard: React.FC<{ children: React.ReactNode; target: 'mobile'
             <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-50 p-6 font-sans">
                 <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, #135bec 1px, transparent 0)', backgroundSize: '32px 32px' }}></div>
                 <div className="w-full max-w-md bg-white rounded-[3rem] shadow-2xl border border-slate-100 p-10 text-center space-y-8 animate-in zoom-in-95 duration-500">
-                    <div className="size-24 bg-indigo-50 text-primary rounded-[2rem] flex items-center justify-center mx-auto mb-6">
+                    <div className="size-24 bg-indigo-50 text-primary rounded-[2.5rem] flex items-center justify-center mx-auto mb-6">
                         <span className="material-symbols-outlined text-[48px]">{target === 'pc' ? 'desktop_windows' : 'smartphone'}</span>
                     </div>
                     <div className="space-y-3">
@@ -117,7 +117,7 @@ export const PencilIcon: React.FC = () => <svg xmlns="http://www.w3.org/2000/svg
 // --- UI & Helper Components ---
 export const InputField: React.FC<{label: string, name: string, value: string, onChange: any, placeholder?: string, type?: string}> = ({label, name, value, onChange, placeholder, type = 'text'}) => (
     <div className="group">
-        <label htmlFor={name} className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1 group-focus-within:text-indigo-600 transition-colors">{label}</label>
+        <label htmlFor={name} className="block text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-2 group-focus-within:text-primary transition-colors">{label}</label>
         <input 
           id={name} 
           name={name} 
@@ -125,37 +125,40 @@ export const InputField: React.FC<{label: string, name: string, value: string, o
           value={value} 
           onChange={onChange} 
           placeholder={placeholder} 
-          className="mt-1 block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-900 placeholder:text-slate-400" 
+          className="mt-1 block w-full px-5 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl shadow-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all text-slate-900 placeholder:text-slate-300 font-medium" 
         />
     </div>
 );
 
 export const TextAreaField: React.FC<{label: string, name: string, value: string, onChange: any}> = ({label, name, value, onChange}) => (
     <div className="group">
-        <label htmlFor={name} className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1 group-focus-within:text-indigo-600 transition-colors">{label}</label>
+        <label htmlFor={name} className="block text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-2 group-focus-within:text-primary transition-colors">{label}</label>
         <textarea 
           id={name} 
           name={name} 
           value={value} 
           onChange={onChange} 
           rows={3} 
-          className="mt-1 block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-900 placeholder:text-slate-400"
+          className="mt-1 block w-full px-5 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl shadow-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all text-slate-900 placeholder:text-slate-300 font-medium"
         ></textarea>
     </div>
 );
 
 export const SelectField: React.FC<{label: string, name: string, value: string, onChange: any, options: {value: string, label: string}[]}> = ({label, name, value, onChange, options}) => (
     <div className="group">
-        <label htmlFor={name} className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1 group-focus-within:text-indigo-600 transition-colors">{label}</label>
-        <select 
-          id={name} 
-          name={name} 
-          value={value} 
-          onChange={onChange} 
-          className="mt-1 block w-full pl-4 pr-10 py-3 bg-slate-50 border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-900 rounded-xl appearance-none"
-        >
-            {options.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-        </select>
+        <label htmlFor={name} className="block text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-2 group-focus-within:text-primary transition-colors">{label}</label>
+        <div className="relative">
+            <select 
+                id={name} 
+                name={name} 
+                value={value} 
+                onChange={onChange} 
+                className="mt-1 block w-full pl-5 pr-12 py-4 bg-slate-50/50 border border-slate-200 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all text-slate-900 rounded-2xl appearance-none font-bold"
+            >
+                {options.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+            </select>
+            <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">expand_more</span>
+        </div>
     </div>
 );
 
@@ -172,15 +175,15 @@ interface ModalProps {
 const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, title }) => {
   if (!isOpen) return null;
   return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex justify-center items-center p-4 animate-in fade-in duration-200">
-      <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-md animate-in zoom-in-95 duration-200 overflow-hidden border border-slate-100">
-        <div className="flex justify-between items-center p-6 border-b border-slate-50 bg-slate-50/50">
-          <h3 className="text-xl font-bold text-slate-900">{title}</h3>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 p-2 rounded-full hover:bg-white transition-all">
-             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[100] flex justify-center items-center p-4 animate-in fade-in duration-300">
+      <div className="bg-white rounded-[3rem] shadow-2xl w-full max-w-md animate-in zoom-in-95 slide-in-from-bottom-10 duration-400 overflow-hidden border border-white/20">
+        <div className="flex justify-between items-center p-8 border-b border-slate-50">
+          <h3 className="text-2xl font-black text-slate-900 tracking-tighter">{title}</h3>
+          <button onClick={onClose} className="text-slate-300 hover:text-slate-900 p-2 rounded-full hover:bg-slate-50 transition-all active:scale-90">
+             <span className="material-symbols-outlined text-[28px]">close</span>
           </button>
         </div>
-        <div className="p-8 max-h-[80vh] overflow-y-auto">
+        <div className="p-10 max-h-[80vh] overflow-y-auto custom-scrollbar">
           {children}
         </div>
       </div>
@@ -196,16 +199,19 @@ export const CreateCustomerModal: React.FC<{
     const { t } = useLanguage();
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={t('newCustomerQrModalTitle')}>
-            <div className="text-center">
-                <p className="text-slate-600 mb-6">{t('newCustomerQrModalDesc')}</p>
-                <div className="bg-white p-4 rounded-3xl border shadow-inner inline-block mx-auto">
+            <div className="text-center space-y-8">
+                <p className="text-slate-500 font-medium leading-relaxed">{t('newCustomerQrModalDesc')}</p>
+                <div className="bg-white p-6 rounded-[2.5rem] border-2 border-slate-50 shadow-inner inline-block mx-auto">
                   {qrDataUrl ? (
-                      <img src={qrDataUrl} alt="New Customer QR Code" className="w-64 h-64 mx-auto rounded-xl" />
+                      <img src={qrDataUrl} alt="New Customer QR Code" className="w-64 h-64 mx-auto rounded-2xl shadow-xl border-4 border-white" />
                   ) : (
                       <div className="flex justify-center items-center h-64 w-64">
                           <Spinner />
                       </div>
                   )}
+                </div>
+                <div className="pt-4">
+                    <button onClick={onClose} className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest active:scale-95 transition-all">{t('close')}</button>
                 </div>
             </div>
         </Modal>
@@ -230,19 +236,19 @@ export const CustomerSetupModal: React.FC<{
 
     return (
       <Modal isOpen={isOpen} onClose={handleClose} title={t('customerSetup')}>
-        <div className="space-y-6">
-            <p className="text-slate-600 leading-relaxed">{t('customerSetupPrompt')}</p>
+        <div className="space-y-8">
+            <p className="text-slate-500 font-medium leading-relaxed">{t('customerSetupPrompt')}</p>
             <InputField label={t('name')} name="setup-name" value={name} onChange={(e: any) => setName(e.target.value)} placeholder="e.g. John Doe" />
             <InputField label={t('phoneNumber')} name="setup-phone" type="tel" value={phone} onChange={(e: any) => setPhone(e.target.value)} placeholder="e.g. +30 69..." />
-        </div>
-        <div className="mt-8">
-          <button 
-            onClick={handleSave} 
-            disabled={!name.trim() || !phone.trim()}
-            className="w-full bg-indigo-600 text-white font-bold py-4 px-6 rounded-2xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 active:scale-95 disabled:bg-slate-300 disabled:shadow-none disabled:cursor-not-allowed"
-          >
-            {t('save')}
-          </button>
+            <div className="pt-4">
+              <button 
+                onClick={handleSave} 
+                disabled={!name.trim() || !phone.trim()}
+                className="w-full bg-primary text-white font-black py-4 px-6 rounded-2xl hover:bg-blue-700 transition-all shadow-xl shadow-primary/20 active:scale-95 disabled:bg-slate-200 disabled:shadow-none disabled:cursor-not-allowed"
+              >
+                {t('save')}
+              </button>
+            </div>
         </div>
       </Modal>
     );
@@ -265,9 +271,9 @@ export const CustomerQRModal: React.FC<{
                         <title>Print QR for ${customer.name}</title>
                         <style>
                             body { font-family: sans-serif; text-align: center; padding: 40px; color: #1e293b; }
-                            img { max-width: 80%; border-radius: 16px; border: 1px solid #e2e8f0; }
-                            h2 { margin-bottom: 5px; font-size: 24px; }
-                            p { margin-top: 0; color: #64748b; font-size: 14px; }
+                            img { max-width: 80%; border-radius: 24px; border: 1px solid #e2e8f0; }
+                            h2 { margin-bottom: 5px; font-size: 24px; font-weight: 900; }
+                            p { margin-top: 0; color: #64748b; font-size: 14px; font-weight: 600; }
                         </style>
                     </head>
                     <body>
@@ -286,21 +292,27 @@ export const CustomerQRModal: React.FC<{
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={customer.name}>
-            <div className="text-center space-y-6">
-                <div className="bg-white p-4 rounded-3xl border shadow-inner inline-block mx-auto">
-                   <img src={customer.qr_data_url} alt={`QR Code for ${customer.name}`} className="w-56 h-56 mx-auto rounded-xl" />
+            <div className="text-center space-y-10">
+                <div className="bg-white p-6 rounded-[2.5rem] border-2 border-slate-50 shadow-inner inline-block mx-auto">
+                   <img src={customer.qr_data_url} alt={`QR Code for ${customer.name}`} className="w-56 h-56 mx-auto rounded-2xl shadow-xl border-4 border-white" />
                 </div>
                 
-                <div className="text-left bg-slate-50 p-4 rounded-2xl space-y-2 border border-slate-100">
-                    <p className="text-sm"><span className="font-semibold text-slate-500 uppercase tracking-tighter mr-2">Phone:</span> <span className="text-slate-900">{customer.phone_number}</span></p>
-                    <p className="text-sm"><span className="font-semibold text-slate-500 uppercase tracking-tighter mr-2">Token:</span> <code className="text-indigo-600 bg-indigo-50 px-1 rounded">{customer.qr_token}</code></p>
+                <div className="text-left bg-slate-50 p-6 rounded-[2rem] space-y-3 border border-slate-100">
+                    <div>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Contact</p>
+                        <p className="text-slate-900 font-bold">{customer.phone_number}</p>
+                    </div>
+                    <div>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">System Token</p>
+                        <code className="text-primary font-black text-sm bg-primary/5 px-2 py-0.5 rounded-lg">{customer.qr_token}</code>
+                    </div>
                 </div>
                 
                 <button
                     onClick={handlePrint}
-                    className="w-full bg-indigo-600 text-white font-bold py-4 px-6 rounded-2xl hover:bg-indigo-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-100 active:scale-95"
+                    className="w-full bg-primary text-white font-black py-4 rounded-2xl hover:bg-blue-700 transition-all flex items-center justify-center gap-3 shadow-xl shadow-primary/20 active:scale-95"
                 >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v6a2 2 0 002 2h12a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z" clipRule="evenodd" /></svg>
+                    <span className="material-symbols-outlined">print</span>
                     {t('printQr')}
                 </button>
             </div>
@@ -317,21 +329,23 @@ export const RewardModal: React.FC<{
 
     useEffect(() => {
         if (isOpen) {
-            confetti({ particleCount: 150, spread: 90, origin: { y: 0.6 }, colors: ['#6366f1', '#10b981', '#f59e0b'] });
+            confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 }, colors: ['#135bec', '#C5A059', '#ffffff'] });
         }
     }, [isOpen]);
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={t('giftWon')}>
-            <div className="text-center space-y-4">
-                <div className="bg-amber-50 w-24 h-24 rounded-full flex items-center justify-center mx-auto animate-bounce">
-                  <GiftIcon className="h-12 w-12 text-amber-500" />
+            <div className="text-center space-y-8 py-4">
+                <div className="bg-amber-50 size-28 rounded-full flex items-center justify-center mx-auto animate-bounce border-4 border-white shadow-xl shadow-amber-200/50">
+                  <GiftIcon className="size-14 text-amber-500" />
                 </div>
-                <p className="text-xl font-bold text-slate-800">{rewardMessage}</p>
-                <p className="text-slate-500 text-sm">{t('giftWonMessage')}</p>
+                <div className="space-y-2">
+                    <p className="text-2xl font-black text-slate-900 tracking-tight leading-tight">{rewardMessage}</p>
+                    <p className="text-slate-400 font-medium text-sm leading-relaxed px-4">{t('giftWonMessage')}</p>
+                </div>
                  <button
                     onClick={onClose}
-                    className="mt-6 w-full bg-indigo-600 text-white font-bold py-4 px-6 rounded-2xl hover:bg-indigo-700 transition-all active:scale-95"
+                    className="mt-6 w-full bg-slate-900 text-white font-black py-4 rounded-2xl transition-all active:scale-95 shadow-xl"
                 >
                     {t('close')}
                 </button>
@@ -356,8 +370,8 @@ export const QRScannerModal: React.FC<{
             const timerId = setTimeout(() => {
                 const scanner = new Html5Qrcode(scannerId);
                 qrScannerRef.current = scanner;
-                scanner.start({ facingMode }, { fps: 10, qrbox: { width: 250, height: 250 } }, (decodedText: string) => { onScan(decodedText); }, (errorMessage: string) => {}).catch((err: any) => {
-                    setError("Could not start camera. Please grant permission.");
+                scanner.start({ facingMode }, { fps: 15, qrbox: { width: 250, height: 250 } }, (decodedText: string) => { onScan(decodedText); }, (errorMessage: string) => {}).catch((err: any) => {
+                    setError("Camera access denied or unavailable.");
                 });
             }, 100);
             return () => {
@@ -371,11 +385,12 @@ export const QRScannerModal: React.FC<{
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={t('scanQRCode')}>
-            <div className="relative overflow-hidden rounded-2xl bg-black aspect-square">
-               <div id={scannerId} className="w-full" />
-               <div className="absolute inset-0 pointer-events-none border-[40px] border-black/40"></div>
+            <div className="relative overflow-hidden rounded-[2.5rem] bg-black aspect-square shadow-2xl">
+               <div id={scannerId} className="w-full h-full" />
+               <div className="absolute inset-0 pointer-events-none border-[60px] border-black/40"></div>
+               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-[180px] border-2 border-white/50 rounded-3xl"></div>
             </div>
-            {error && <p className="text-red-500 text-center mt-4 font-medium">{error}</p>}
+            {error && <p className="text-rose-500 text-center mt-6 font-bold text-sm bg-rose-50 p-4 rounded-2xl">{error}</p>}
         </Modal>
     );
 };
@@ -400,7 +415,7 @@ export const BusinessScannerModal: React.FC<{
         if (html5Qrcode.isScanning) return;
         setScanResult(null);
         setError(null);
-        html5Qrcode.start({ facingMode: "user" }, { fps: 10, qrbox: { width: 250, height: 250 } },
+        html5Qrcode.start({ facingMode: "user" }, { fps: 15, qrbox: { width: 250, height: 250 } },
             async (decodedText: string) => {
                 if (html5Qrcode.isScanning) { try { await html5Qrcode.stop(); } catch (e) {} }
                 try {
@@ -411,11 +426,11 @@ export const BusinessScannerModal: React.FC<{
                        setScanResult(result);
                        onScanSuccess(result);
                        if (result.success && result.rewardWon) { setRewardMessage(result.rewardMessage || t('giftWonMessage')); setIsRewardModalOpen(true); }
-                    } else { setError('Not a valid customer QR code.'); }
+                    } else { setError('Invalid QRoyal ID Code.'); }
                 } catch (e) { setError(t('errorUnexpected')); }
             },
             (errorMessage: string) => {}
-        ).catch((err: any) => { setError("Could not start camera. Please grant permission."); });
+        ).catch((err: any) => { setError("Could not access tablet camera."); });
     }, [businessId, onScanSuccess, t]);
 
     useEffect(() => {
@@ -426,7 +441,6 @@ export const BusinessScannerModal: React.FC<{
         }
     }, [isOpen, startScanner]);
 
-    const resultColor = scanResult?.success ? 'bg-emerald-50 text-emerald-800 border-emerald-100' : 'bg-rose-50 text-rose-800 border-rose-100';
     const showScannerView = !scanResult && !error;
 
     return (
@@ -434,27 +448,31 @@ export const BusinessScannerModal: React.FC<{
             <RewardModal isOpen={isRewardModalOpen} onClose={() => setIsRewardModalOpen(false)} rewardMessage={rewardMessage} />
             <Modal isOpen={isOpen} onClose={onClose} title={t('scanQRCode')}>
                 <div style={{ display: showScannerView ? 'block' : 'none' }}>
-                    <div className="relative overflow-hidden rounded-3xl bg-black aspect-square shadow-inner">
+                    <div className="relative overflow-hidden rounded-[2.5rem] bg-black aspect-square shadow-2xl">
                       <div id={scannerContainerId} className="w-full" />
+                      <div className="absolute inset-0 pointer-events-none border-[60px] border-black/40"></div>
+                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-[180px] border-2 border-white/50 rounded-3xl"></div>
                     </div>
                 </div>
                 
-                <div className="mt-6 w-full">
-                    <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">{t('scanResult')}</h2>
-                    <div className={`p-6 rounded-3xl text-center font-semibold min-h-[140px] flex flex-col justify-center border-2 transition-all ${showScannerView ? 'bg-slate-50 border-slate-100' : ''} ${scanResult ? resultColor : ''} ${error ? 'bg-rose-50 text-rose-800 border-rose-100' : ''}`}>
+                <div className="mt-8 w-full">
+                    <div className={`p-8 rounded-[2.5rem] text-center font-semibold min-h-[160px] flex flex-col justify-center border-2 transition-all duration-500 ${showScannerView ? 'bg-slate-50 border-slate-100' : ''} ${scanResult?.success ? 'bg-emerald-50 text-emerald-900 border-emerald-100' : ''} ${error || (scanResult && !scanResult.success) ? 'bg-rose-50 text-rose-900 border-rose-100' : ''}`}>
                         {showScannerView ? (
-                             <div className="flex flex-col items-center gap-2"><Spinner className="w-6 h-6 text-indigo-400"/><p className="text-slate-400 animate-pulse">Scanning...</p></div>
+                             <div className="flex flex-col items-center gap-4">
+                                <Spinner className="size-8 text-primary/40"/>
+                                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 animate-pulse">Position ID Card in frame</p>
+                             </div>
                         ) : (
-                            <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+                            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                                 {scanResult ? (
-                                    <div className="space-y-1">
-                                        <p className="text-lg">{scanResult.message}</p>
-                                        {scanResult.customer && <p className="text-sm opacity-80">Total Points: {scanResult.newPointsTotal}</p>}
+                                    <div className="space-y-2">
+                                        <p className="text-2xl font-black tracking-tight">{scanResult.message}</p>
+                                        {scanResult.customer && <p className="text-sm font-bold opacity-60">Total Points Wallet: {scanResult.newPointsTotal}</p>}
                                     </div>
-                                ) : (<p>{error}</p>)}
+                                ) : (<p className="text-xl font-black">{error}</p>)}
                                 <button
                                     onClick={startScanner}
-                                    className="mt-6 w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-2xl hover:bg-indigo-700 transition-all active:scale-95"
+                                    className="mt-8 w-full bg-slate-900 text-white font-black py-4 px-6 rounded-2xl hover:bg-black transition-all active:scale-95 shadow-lg shadow-slate-200"
                                 >
                                     {t('scanNext')}
                                 </button>
@@ -484,23 +502,23 @@ export const DeleteAccountModal: React.FC<{
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={t('deleteAccountConfirmTitle')}>
-            <div className="space-y-6">
-                <p className="text-sm text-rose-600 font-medium bg-rose-50 border border-rose-100 p-4 rounded-2xl leading-relaxed">{t('deleteAccountWarning')}</p>
-                <div className="space-y-2">
-                  <p className="text-slate-600 text-sm">{t('deleteAccountPrompt')}</p>
-                  <p className="font-bold text-slate-900 text-lg">{customerPhoneNumber}</p>
+            <div className="space-y-8">
+                <div className="bg-rose-50 border border-rose-100 p-6 rounded-[2rem] space-y-2">
+                    <p className="text-xs font-black text-rose-600 uppercase tracking-widest">{t('deleteAccountWarning')}</p>
+                    <p className="text-slate-600 text-sm font-medium leading-relaxed">{t('deleteAccountPrompt')}</p>
+                    <p className="font-black text-rose-900 text-lg">{customerPhoneNumber}</p>
                 </div>
-                <InputField label="Confirm Phone Number" name="del-phone" value={inputValue} onChange={(e: any) => setInputValue(e.target.value)} placeholder={customerPhoneNumber} />
-                <div className="flex flex-col gap-3 pt-4">
+                <InputField label="Verify Phone Number" name="del-phone" value={inputValue} onChange={(e: any) => setInputValue(e.target.value)} placeholder={customerPhoneNumber} />
+                <div className="flex flex-col gap-4 pt-4">
                     <button 
                         onClick={handleDelete}
                         disabled={!isMatch || isDeleting}
-                        className="w-full py-4 bg-rose-600 text-white rounded-2xl hover:bg-rose-700 font-bold disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all active:scale-95"
+                        className="w-full py-4 bg-rose-600 text-white rounded-2xl hover:bg-rose-700 font-black disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed flex items-center justify-center gap-3 transition-all active:scale-95"
                     >
-                        {isDeleting && <Spinner className="h-4 w-4 text-white" />}
+                        {isDeleting && <Spinner className="size-5 text-white" />}
                         {t('deleteAccount')}
                     </button>
-                    <button onClick={onClose} className="w-full py-3 text-slate-500 font-semibold hover:text-slate-700 transition-colors">{t('cancel')}</button>
+                    <button onClick={onClose} className="w-full py-3 text-slate-400 font-bold hover:text-slate-900 transition-colors uppercase text-[10px] tracking-[0.2em]">{t('cancel')}</button>
                 </div>
             </div>
         </Modal>
@@ -522,16 +540,16 @@ export const MarkdownEditor: React.FC<{ label: string; name: string; value: stri
 
     return (
         <div className="group">
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1 group-focus-within:text-indigo-600 transition-colors">{label}</label>
-            <div className="mt-1 border border-slate-200 rounded-2xl shadow-sm overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-500 transition-all bg-slate-50">
-                <div className="p-2 bg-slate-100/50 border-b border-slate-200 flex items-center gap-2">
-                    <button type="button" onClick={() => applyStyle('bold')} className="p-2 w-10 h-10 rounded-lg hover:bg-white text-slate-600 font-bold transition-all shadow-sm">B</button>
-                    <button type="button" onClick={() => applyStyle('italic')} className="p-2 w-10 h-10 rounded-lg hover:bg-white text-slate-600 italic transition-all shadow-sm">I</button>
-                    <button type="button" onClick={() => applyStyle('link')} className="p-2 w-10 h-10 rounded-lg hover:bg-white text-slate-600 transition-all shadow-sm">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.596a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
+            <label className="block text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-2 group-focus-within:text-primary transition-colors">{label}</label>
+            <div className="mt-1 border border-slate-200 rounded-[2rem] shadow-sm overflow-hidden focus-within:ring-4 focus-within:ring-primary/5 focus-within:border-primary transition-all bg-slate-50/50">
+                <div className="p-3 bg-white/50 border-b border-slate-200 flex items-center gap-2">
+                    <button type="button" onClick={() => applyStyle('bold')} className="size-10 rounded-xl hover:bg-white text-slate-700 font-black transition-all shadow-sm flex items-center justify-center">B</button>
+                    <button type="button" onClick={() => applyStyle('italic')} className="size-10 rounded-xl hover:bg-white text-slate-700 italic transition-all shadow-sm flex items-center justify-center">I</button>
+                    <button type="button" onClick={() => applyStyle('link')} className="size-10 rounded-xl hover:bg-white text-slate-700 transition-all shadow-sm flex items-center justify-center">
+                        <span className="material-symbols-outlined text-[20px]">link</span>
                     </button>
                 </div>
-                <textarea ref={textareaRef} name={name} value={value} onChange={(e) => onChange(name, e.target.value)} rows={5} className="w-full p-4 bg-transparent border-0 focus:ring-0 text-slate-900" />
+                <textarea ref={textareaRef} name={name} value={value} onChange={(e) => onChange(name, e.target.value)} rows={5} className="w-full p-6 bg-transparent border-0 focus:ring-0 text-slate-900 font-medium" />
             </div>
         </div>
     );
@@ -559,18 +577,17 @@ export const CreatePostModal: React.FC<{
     
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={t('newPost')}>
-             <form onSubmit={handleSubmit} className="space-y-6">
+             <form onSubmit={handleSubmit} className="space-y-8">
                 <InputField label={t('title')} name="title" value={formState.title} onChange={handleFormChange} />
                 <SelectField label={t('postType')} name="post_type" value={formState.post_type} onChange={handleFormChange} options={[ {value: 'standard', label: t('standardPost')}, {value: 'discount', label: t('discountOffer')} ]} />
                 <MarkdownEditor label={t('content')} name="content" value={formState.content || ''} onChange={handleMarkdownChange} />
-                {/* FIX: Change t('image_url') to t('imageUrl') to match language context keys */}
                 <InputField label={t('imageUrl')} name="image_url" value={formState.image_url || ''} onChange={handleFormChange} />
                 <div className="flex flex-col gap-4 pt-6">
-                    <button type="submit" disabled={isSaving} className="w-full bg-indigo-600 text-white font-bold py-4 px-6 rounded-2xl hover:bg-indigo-700 disabled:bg-indigo-300 flex items-center justify-center transition-all active:scale-95">
-                        {isSaving && <Spinner className="h-5 w-5 mr-2 text-white" />}
+                    <button type="submit" disabled={isSaving} className="w-full bg-primary text-white font-black py-5 px-6 rounded-[1.5rem] hover:bg-blue-700 disabled:bg-slate-200 flex items-center justify-center transition-all shadow-xl shadow-primary/20 active:scale-95">
+                        {isSaving && <Spinner className="size-5 mr-3 text-white" />}
                         {t('createPost')}
                     </button>
-                    <button type="button" onClick={onClose} className="w-full py-2 text-slate-500 font-semibold hover:text-slate-700 transition-colors">{t('cancel')}</button>
+                    <button type="button" onClick={onClose} className="w-full py-2 text-slate-400 font-bold hover:text-slate-900 transition-colors uppercase text-[10px] tracking-[0.2em]">{t('cancel')}</button>
                 </div>
             </form>
         </Modal>

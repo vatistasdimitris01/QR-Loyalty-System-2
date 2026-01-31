@@ -1,194 +1,113 @@
-import React, { useState, useEffect, useRef } from 'react';
+
+import React, { useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { signupBusiness } from '../services/api';
 import { Business } from '../types';
-import { Spinner } from '../components/common';
-
-interface Message {
-  text: string;
-  isUser?: boolean;
-}
-
-const TypingIndicator: React.FC = () => (
-  <div className="flex items-center space-x-1">
-    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-  </div>
-);
-
-const ChatBubble: React.FC<{ message: string; isUser?: boolean }> = ({ message, isUser }) => {
-  const avatarUrl = "https://i.postimg.cc/bJwnZhs9/Chat-GPT-Image-Aug-31-2025-06-45-18-AM.png";
-  if (isUser) {
-    return (
-      <div className="flex justify-end">
-        <div className="bg-blue-600 text-white p-3 rounded-xl rounded-br-lg max-w-sm">
-          {message}
-        </div>
-      </div>
-    );
-  }
-  return (
-    <div className="flex items-end gap-2">
-      <img src={avatarUrl} alt="QRoyal Bot" className="w-8 h-8 rounded-full bg-gray-200 flex-shrink-0" />
-      <div className="bg-gray-200 text-gray-800 p-3 rounded-xl rounded-bl-lg max-w-sm">
-        {message}
-      </div>
-    </div>
-  );
-};
+import { Spinner, InputField } from '../components/common';
 
 const BusinessSignupPage: React.FC = () => {
     const { t } = useLanguage();
-    
-    // Read params once at the top to set initial state
-    const searchParams = new URLSearchParams(window.location.search);
-    const initialName = searchParams.get('name') || '';
-    const initialEmail = searchParams.get('email') || '';
-    const isPrefilled = !!(initialName && initialEmail);
-
-    const [step, setStep] = useState(isPrefilled ? 3 : 1);
-    const [formData, setFormData] = useState({ name: initialName, email: initialEmail, password: '' });
-    const [inputValue, setInputValue] = useState('');
-    const [error, setError] = useState('');
+    const [step, setStep] = useState(1);
+    const [formData, setFormData] = useState({ name: '', email: '', password: '' });
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
     const [newBusiness, setNewBusiness] = useState<Business | null>(null);
-    
-    const [messages, setMessages] = useState<Message[]>(isPrefilled ? [{ text: `Welcome! Let's finish setting up your account for "${initialName}".` }] : []);
-    const [isBotTyping, setIsBotTyping] = useState(true);
-    const chatEndRef = useRef<HTMLDivElement>(null);
 
-    // Define bot messages inside component to access formData
-    const botMessages: { [key: number]: string } = {
-        1: "Hello! Let's set up your QRoyal business account. First, what's the name of your business?",
-        2: `Great name! Now, what's the best email address for this account?`,
-        3: "Perfect. Lastly, please choose a secure password.",
-        4: `Congratulations, ${formData.name}! Your account is ready. Here is your unique QR code for quick logins.`
-    };
-
-    useEffect(() => {
-        chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages, isBotTyping]);
-    
-    // This single effect handles posting bot messages when the step changes.
-    useEffect(() => {
-        if (step in botMessages) {
-            setIsBotTyping(true);
-            setTimeout(() => {
-                setMessages(prev => [...prev, { text: botMessages[step] }]);
-                setIsBotTyping(false);
-            }, 1000);
-        }
-    }, [step]);
-
-    const handleNextStep = (e: React.FormEvent) => {
+    const handleNext = (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
-        if (!inputValue.trim()) {
-            setError('This field is required.');
-            return;
-        }
-
-        setMessages(prev => [...prev, { text: inputValue, isUser: true }]);
-
-        if (step === 1) {
-            setFormData(prev => ({...prev, name: inputValue}));
-            setStep(2);
-        } else if (step === 2) {
-             if (!/^\S+@\S+\.\S+$/.test(inputValue)) {
-                setError('Please enter a valid email address.');
-                setMessages(prev => prev.slice(0,-1)); // remove invalid user message
-                return;
-            }
-            setFormData(prev => ({...prev, email: inputValue}));
-            setStep(3);
-        } else if (step === 3) {
-            if (inputValue.length < 6) {
-                setError('Password must be at least 6 characters long.');
-                setMessages(prev => prev.slice(0,-1));
-                return;
-            }
-            const finalData = { ...formData, password: inputValue };
-            setFormData(finalData);
-            handleSignup(finalData);
-        }
-        setInputValue('');
+        if (step === 1 && !formData.name) return setError('Business name is required.');
+        if (step === 2 && (!formData.email || !/^\S+@\S+\.\S+$/.test(formData.email))) return setError('Valid email is required.');
+        if (step === 1 || step === 2) setStep(step + 1);
+        else handleSignup();
     };
 
-    const handleSignup = async (data: typeof formData) => {
+    const handleSignup = async () => {
+        if (formData.password.length < 6) return setError('Password too short.');
         setLoading(true);
-        setIsBotTyping(true);
-        const result = await signupBusiness(data);
+        const result = await signupBusiness(formData);
         setLoading(false);
-        setIsBotTyping(false);
-
-        if (result.success && result.business) {
-            setNewBusiness(result.business);
-            setStep(4);
-        } else {
-            setError(result.message || t('errorUnexpected'));
-            setMessages(prev => prev.slice(0,-1)); // remove user message on fail
-        }
+        if (result.success && result.business) setNewBusiness(result.business);
+        else setError(result.message || t('errorUnexpected'));
     };
 
-    const getInputType = () => {
-        if (step === 2) return 'email';
-        if (step === 3) return 'password';
-        return 'text';
-    };
-    
-    const getButtonText = () => {
-        if (loading) return t('createAccount') + '...';
-        if (step === 3) return t('createAccount');
-        return 'Continue';
-    };
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, [e.target.name]: e.target.value });
+
+    if (newBusiness) {
+        return (
+            <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
+                <div className="w-full max-w-md bg-white rounded-[3rem] shadow-2xl p-12 text-center space-y-10 animate-in zoom-in-95 duration-500 border border-slate-100">
+                    <div className="size-20 bg-emerald-50 text-emerald-500 rounded-[2rem] flex items-center justify-center mx-auto mb-6">
+                        <span className="material-symbols-outlined text-[40px]">check_circle</span>
+                    </div>
+                    <div className="space-y-4">
+                        <h1 className="text-4xl font-black text-slate-900 tracking-tighter leading-none">Your Royal Portal is Ready</h1>
+                        <p className="text-slate-500 font-medium">Use this unique QR code to access your business dashboard anytime.</p>
+                    </div>
+                    <div className="bg-slate-50 p-6 rounded-[2.5rem] shadow-inner inline-block border border-slate-100">
+                        <img src={newBusiness.qr_data_url} alt="QR" className="w-48 h-48 rounded-xl border-4 border-white shadow-lg" />
+                    </div>
+                    <a href="/business/login" className="block w-full bg-primary text-white font-black py-5 rounded-[1.5rem] shadow-xl shadow-primary/20 hover:bg-blue-700 transition-all active:scale-95">Go to Login</a>
+                </div>
+            </div>
+        );
+    }
 
     return (
-        <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4 font-sans">
-            <div className="w-full max-w-lg h-[90vh] max-h-[700px] bg-white rounded-2xl shadow-xl flex flex-col">
-                <header className="p-4 border-b text-center relative">
-                    <a href="/business/login" className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-600 hover:text-blue-800">&larr;</a>
-                    <h1 className="text-xl font-bold text-gray-800">{t('businessSignup')}</h1>
-                </header>
-                <div className="flex-grow p-4 overflow-y-auto space-y-4">
-                    {messages.map((msg, index) => (
-                        <ChatBubble key={index} message={msg.text} isUser={msg.isUser} />
-                    ))}
-                    {isBotTyping && !newBusiness && (
-                         <div className="flex items-end gap-2">
-                             <img src="https://i.postimg.cc/bJwnZhs9/Chat-GPT-Image-Aug-31-2025-06-45-18-AM.png" alt="QRoyal Bot" className="w-8 h-8 rounded-full bg-gray-200" />
-                             <div className="bg-gray-200 p-3 rounded-xl rounded-bl-lg"><TypingIndicator /></div>
-                         </div>
-                    )}
-                    {newBusiness && (
-                        <div className="bg-white p-4 rounded-lg flex flex-col items-center text-center">
-                            <img src={newBusiness.qr_data_url} alt="Your Business QR Code" className="w-48 h-48 mx-auto" />
-                             <a href="/business/login" className="mt-4 w-full bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors">
-                                Go to Login
-                            </a>
-                        </div>
-                    )}
-                    <div ref={chatEndRef} />
-                </div>
-                {!newBusiness && (
-                    <div className="p-4 border-t bg-gray-50">
-                        <form onSubmit={handleNextStep} className="flex items-center gap-2">
-                            <input
-                                type={getInputType()}
-                                value={inputValue}
-                                onChange={(e) => setInputValue(e.target.value)}
-                                placeholder={step === 1 ? 'e.g. The Coffee Shop' : step === 2 ? 'e.g. owner@email.com' : 'Your password...'}
-                                className="flex-grow p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-200"
-                                disabled={isBotTyping || loading}
-                                autoFocus
-                            />
-                            <button type="submit" disabled={isBotTyping || loading} className="bg-blue-600 text-white font-semibold py-3 px-5 rounded-lg hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-wait transition-colors">
-                                {loading ? <Spinner className="w-5 h-5" /> : getButtonText()}
-                            </button>
-                        </form>
-                        {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+        <div className="min-h-screen bg-white font-sans flex flex-col lg:flex-row">
+             <div className="relative hidden lg:flex lg:w-1/2 flex-col justify-between bg-slate-900 p-16 text-white overflow-hidden">
+                <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(255,255,255,0.15) 1px, transparent 0)', backgroundSize: '32px 32px' }}></div>
+                <div className="relative z-10 flex items-center gap-3">
+                   <div className="size-10 text-primary">
+                        <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M36.7273 44C33.9891 44 31.6043 39.8386 30.3636 33.69C29.123 39.8386 26.7382 44 24 44C21.2618 44 18.877 39.8386 17.6364 33.69C16.3957 39.8386 14.0109 44 11.2727 44C7.25611 44 4 35.0457 4 24C4 12.9543 7.25611 4 11.2727 4C14.0109 4 16.3957 8.16144 17.6364 14.31C18.877 8.16144 21.2618 4 24 4C26.7382 4 29.123 8.16144 30.3636 14.31C31.6043 8.16144 33.9891 4 36.7273 4C40.7439 4 44 12.9543 44 24C44 35.0457 40.7439 44 36.7273 44Z" fill="currentColor"></path>
+                        </svg>
                     </div>
-                )}
+                    <h2 className="text-2xl font-black tracking-tighter">QROYAL</h2>
+                </div>
+                <div className="relative z-10 max-w-lg">
+                    <h1 className="text-6xl font-black leading-[1.1] tracking-tight mb-8">Scale Your Enterprise Loyalty.</h1>
+                    <div className="space-y-6 text-slate-400 text-lg font-medium">
+                        <p className="flex items-center gap-4"><span className="size-8 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold">1</span> Account Creation</p>
+                        <p className={`flex items-center gap-4 ${step > 1 ? 'text-white' : ''}`}><span className={`size-8 rounded-full flex items-center justify-center font-bold ${step > 1 ? 'bg-primary text-white' : 'bg-slate-800 text-slate-500'}`}>2</span> Brand Configuration</p>
+                        <p className={`flex items-center gap-4 ${step > 2 ? 'text-white' : ''}`}><span className={`size-8 rounded-full flex items-center justify-center font-bold ${step > 2 ? 'bg-primary text-white' : 'bg-slate-800 text-slate-500'}`}>3</span> Launch Program</p>
+                    </div>
+                </div>
+                <div className="relative z-10 pt-10 border-t border-slate-800">
+                    <p className="text-slate-500 font-bold uppercase tracking-[0.2em] text-xs">Standard Partner Plan</p>
+                </div>
+            </div>
+
+            <div className="flex-grow flex flex-col justify-center px-8 lg:px-24 py-16 bg-white">
+                <div className="max-w-[440px] w-full mx-auto space-y-12 animate-in slide-in-from-right-10 duration-700">
+                    <div className="space-y-3">
+                        <p className="text-primary font-black uppercase tracking-[0.3em] text-[10px]">Onboarding Step {step}</p>
+                        <h2 className="text-4xl font-black text-slate-900 tracking-tighter">{step === 1 ? 'Whats your brand called?' : step === 2 ? 'Direct contact email' : 'Secure your gateway'}</h2>
+                    </div>
+
+                    <form onSubmit={handleNext} className="space-y-10">
+                        {step === 1 && <InputField label="Public Business Name" name="name" value={formData.name} onChange={handleChange} placeholder="The Coffee Club" />}
+                        {step === 2 && <InputField label="Enterprise Email" name="email" value={formData.email} onChange={handleChange} placeholder="partners@yourbrand.com" type="email" />}
+                        {step === 3 && <InputField label="Portal Password" name="password" value={formData.password} onChange={handleChange} placeholder="••••••••" type="password" />}
+                        
+                        {error && <p className="text-rose-500 text-sm font-bold bg-rose-50 p-4 rounded-2xl">{error}</p>}
+
+                        <div className="flex flex-col gap-4">
+                            <button 
+                                type="submit" 
+                                disabled={loading}
+                                className="w-full bg-primary text-white font-black py-5 rounded-[1.5rem] shadow-xl shadow-primary/20 hover:bg-blue-700 transition-all flex items-center justify-center active:scale-95 disabled:bg-slate-200"
+                            >
+                                {loading ? <Spinner className="size-6 text-white" /> : (step === 3 ? t('createAccount') : 'Continue Journey')}
+                            </button>
+                            {step > 1 && <button type="button" onClick={() => setStep(step - 1)} className="text-slate-400 font-bold uppercase tracking-[0.2em] text-[10px] hover:text-slate-900 transition-colors py-2">Go Back</button>}
+                        </div>
+                    </form>
+
+                    <div className="pt-12 border-t border-slate-50 text-center">
+                        <p className="text-sm text-slate-500 font-medium">Already managing a program? <a href="/business/login" className="text-primary font-black ml-1">Log in here</a></p>
+                    </div>
+                </div>
             </div>
         </div>
     );
