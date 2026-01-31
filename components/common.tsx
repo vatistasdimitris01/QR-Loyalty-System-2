@@ -19,17 +19,59 @@ export const BackButton: React.FC<{ onClick?: () => void; className?: string }> 
     const { t } = useLanguage();
     const handleBack = () => {
         if (onClick) onClick();
-        else window.history.back();
+        else if (window.history.length > 1) window.history.back();
+        else window.location.href = '/';
     };
     return (
         <button 
             onClick={handleBack} 
-            className={`group flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-md border border-slate-200 rounded-2xl text-slate-600 font-bold text-sm hover:bg-slate-50 hover:border-slate-300 transition-all active:scale-95 shadow-sm ${className}`}
+            className={`group flex items-center gap-2 px-5 py-2.5 bg-white/80 backdrop-blur-md border border-slate-200 rounded-2xl text-slate-800 font-bold text-sm hover:bg-white hover:border-slate-300 hover:shadow-lg transition-all active:scale-95 ${className}`}
         >
             <span className="material-symbols-outlined text-[20px] transition-transform group-hover:-translate-x-1">arrow_back</span>
             {t('back')}
         </button>
     );
+};
+
+export const DeviceGuard: React.FC<{ children: React.ReactNode; target: 'mobile' | 'pc' }> = ({ children, target }) => {
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+    const { t } = useLanguage();
+
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth < 1024);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    const isWrongDevice = (target === 'mobile' && !isMobile) || (target === 'pc' && isMobile);
+
+    if (isWrongDevice) {
+        return (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-50 p-6 font-sans">
+                <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, #135bec 1px, transparent 0)', backgroundSize: '32px 32px' }}></div>
+                <div className="w-full max-w-md bg-white rounded-[3rem] shadow-2xl border border-slate-100 p-10 text-center space-y-8 animate-in zoom-in-95 duration-500">
+                    <div className="size-24 bg-indigo-50 text-primary rounded-[2rem] flex items-center justify-center mx-auto mb-6">
+                        <span className="material-symbols-outlined text-[48px]">{target === 'pc' ? 'desktop_windows' : 'smartphone'}</span>
+                    </div>
+                    <div className="space-y-3">
+                        <h2 className="text-3xl font-black text-slate-900 tracking-tighter">
+                            {target === 'pc' ? 'PC Exclusive' : 'Mobile Experience'}
+                        </h2>
+                        <p className="text-slate-500 font-medium leading-relaxed">
+                            {target === 'pc' 
+                                ? 'The QRoyal Business Portal is designed for large displays. Please switch to a desktop or laptop.' 
+                                : 'The Customer Dashboard is optimized for your mobile device. Please scan your QR code on your smartphone.'}
+                        </p>
+                    </div>
+                    <div className="pt-6">
+                        <BackButton className="w-full justify-center py-4 border-2 border-slate-100 bg-slate-50 hover:bg-white" />
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    return <>{children}</>;
 };
 
 // --- Icons ---
@@ -521,6 +563,7 @@ export const CreatePostModal: React.FC<{
                 <InputField label={t('title')} name="title" value={formState.title} onChange={handleFormChange} />
                 <SelectField label={t('postType')} name="post_type" value={formState.post_type} onChange={handleFormChange} options={[ {value: 'standard', label: t('standardPost')}, {value: 'discount', label: t('discountOffer')} ]} />
                 <MarkdownEditor label={t('content')} name="content" value={formState.content || ''} onChange={handleMarkdownChange} />
+                {/* FIX: Change t('image_url') to t('imageUrl') to match language context keys */}
                 <InputField label={t('imageUrl')} name="image_url" value={formState.image_url || ''} onChange={handleFormChange} />
                 <div className="flex flex-col gap-4 pt-6">
                     <button type="submit" disabled={isSaving} className="w-full bg-indigo-600 text-white font-bold py-4 px-6 rounded-2xl hover:bg-indigo-700 disabled:bg-indigo-300 flex items-center justify-center transition-all active:scale-95">
