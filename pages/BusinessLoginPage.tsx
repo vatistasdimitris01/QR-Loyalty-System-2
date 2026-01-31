@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { loginBusiness } from '../services/api';
+import { Logo } from '../components/common';
 
 declare global {
   interface Window {
@@ -53,11 +54,7 @@ const BusinessLoginPage: React.FC = () => {
                     
                     {/* Header/Logo Area */}
                     <div className="relative z-10 flex items-center gap-3">
-                        <div className="size-8">
-                            <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M4 42.4379C4 42.4379 14.0962 36.0744 24 41.1692C35.0664 46.8624 44 42.2078 44 42.2078L44 7.01134C44 7.01134 35.068 11.6577 24.0031 5.96913C14.0971 0.876274 4 7.27094 4 7.27094L4 42.4379Z" fill="white"></path>
-                            </svg>
-                        </div>
+                        <Logo className="size-8 text-white" />
                         <h2 className="text-xl font-bold leading-tight tracking-tight">QROYAL Business</h2>
                     </div>
 
@@ -92,11 +89,7 @@ const BusinessLoginPage: React.FC = () => {
                     <div className="mx-auto w-full max-w-[440px]">
                         {/* Mobile Logo */}
                         <div className="flex lg:hidden items-center gap-3 mb-10">
-                            <div className="size-8 text-primary">
-                                <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M4 42.4379C4 42.4379 14.0962 36.0744 24 41.1692C35.0664 46.8624 44 42.2078 44 42.2078L44 7.01134C44 7.01134 35.068 11.6577 24.0031 5.96913C14.0971 0.876274 4 7.27094 4 7.27094L4 42.4379Z" fill="currentColor"></path>
-                                </svg>
-                            </div>
+                            <Logo className="size-8 text-primary" />
                             <h2 className="text-xl font-bold text-[#111318] dark:text-white">QROYAL</h2>
                         </div>
 

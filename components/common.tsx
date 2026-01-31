@@ -15,6 +15,14 @@ export const Spinner: React.FC<{ className?: string }> = ({ className = 'h-8 w-8
   </svg>
 );
 
+export const Logo: React.FC<{ className?: string }> = ({ className = "size-8" }) => (
+  <div className={`${className}`}>
+    <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M4 16C14 6 34 26 44 16V36C34 46 14 26 4 36V16Z" fill="currentColor" />
+    </svg>
+  </div>
+);
+
 export const BackButton: React.FC<{ onClick?: () => void; className?: string }> = ({ onClick, className }) => {
     const { t } = useLanguage();
     const handleBack = () => {
@@ -25,7 +33,7 @@ export const BackButton: React.FC<{ onClick?: () => void; className?: string }> 
     return (
         <button 
             onClick={handleBack} 
-            className={`group flex items-center gap-2 px-5 py-2.5 bg-white/80 backdrop-blur-md border border-slate-200 rounded-2xl text-slate-800 font-bold text-sm hover:bg-white hover:border-slate-300 hover:shadow-xl transition-all active:scale-95 ${className}`}
+            className={`group flex items-center gap-2 px-5 py-2.5 bg-white/80 backdrop-blur-md border border-slate-200 rounded-2xl text-slate-800 font-bold text-sm hover:bg-white hover:border-slate-300 hover:shadow-lg transition-all active:scale-95 ${className}`}
         >
             <span className="material-symbols-outlined text-[20px] transition-transform group-hover:-translate-x-1">arrow_back</span>
             {t('back')}

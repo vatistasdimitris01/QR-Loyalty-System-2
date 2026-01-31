@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { signupBusiness } from '../services/api';
 import { Business } from '../types';
-import { Spinner, InputField } from '../components/common';
+import { Spinner, InputField, Logo } from '../components/common';
 
 const BusinessSignupPage: React.FC = () => {
     const { t } = useLanguage();
@@ -58,11 +58,7 @@ const BusinessSignupPage: React.FC = () => {
              <div className="relative hidden lg:flex lg:w-1/2 flex-col justify-between bg-slate-900 p-16 text-white overflow-hidden">
                 <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(255,255,255,0.15) 1px, transparent 0)', backgroundSize: '32px 32px' }}></div>
                 <div className="relative z-10 flex items-center gap-3">
-                   <div className="size-10 text-primary">
-                        <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M36.7273 44C33.9891 44 31.6043 39.8386 30.3636 33.69C29.123 39.8386 26.7382 44 24 44C21.2618 44 18.877 39.8386 17.6364 33.69C16.3957 39.8386 14.0109 44 11.2727 44C7.25611 44 4 35.0457 4 24C4 12.9543 7.25611 4 11.2727 4C14.0109 4 16.3957 8.16144 17.6364 14.31C18.877 8.16144 21.2618 4 24 4C26.7382 4 29.123 8.16144 30.3636 14.31C31.6043 8.16144 33.9891 4 36.7273 4C40.7439 4 44 12.9543 44 24C44 35.0457 40.7439 44 36.7273 44Z" fill="currentColor"></path>
-                        </svg>
-                    </div>
+                   <Logo className="size-10 text-primary" />
                     <h2 className="text-2xl font-black tracking-tighter">QROYAL</h2>
                 </div>
                 <div className="relative z-10 max-w-lg">

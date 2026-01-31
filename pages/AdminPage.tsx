@@ -8,7 +8,7 @@ import {
     updatePost, deletePost, updateMembership, deleteMembershipById,
     createBusinessByAdmin
 } from '../services/api';
-import { Spinner, InputField, TextAreaField, PencilIcon, TrashIcon, BackButton } from '../components/common';
+import { Spinner, InputField, TextAreaField, PencilIcon, TrashIcon, BackButton, Logo } from '../components/common';
 
 type AdminTab = 'businesses' | 'customers' | 'posts' | 'memberships';
 type ModalState = {
@@ -140,9 +140,12 @@ const AdminPage: React.FC = () => {
             <header className="sticky top-0 z-30 bg-white/60 backdrop-blur-xl border-b border-slate-200 p-8 md:px-16 flex flex-col md:flex-row justify-between items-center gap-8">
                 <div className="flex items-center gap-8">
                     <BackButton />
-                    <div className="space-y-1">
-                        <h1 className="text-4xl font-black text-slate-900 tracking-tighter leading-none">Global Control</h1>
-                        <p className="text-slate-400 font-bold uppercase tracking-[0.2em] text-[10px]">Platform Oversite Dashboard</p>
+                    <div className="flex items-center gap-4">
+                        <Logo className="size-10 text-primary" />
+                        <div className="space-y-1">
+                            <h1 className="text-4xl font-black text-slate-900 tracking-tighter leading-none">Global Control</h1>
+                            <p className="text-slate-400 font-bold uppercase tracking-[0.2em] text-[10px]">Platform Oversite Dashboard</p>
+                        </div>
                     </div>
                 </div>
                 <nav className="flex gap-4 p-1.5 bg-slate-100 rounded-2xl">
