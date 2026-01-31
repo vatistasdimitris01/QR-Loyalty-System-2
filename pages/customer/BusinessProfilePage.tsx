@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -18,41 +19,13 @@ const BusinessProfilePage: React.FC<BusinessProfilePageProps> = ({ business, cus
     const { t } = useLanguage();
     const [activeTab, setActiveTab] = useState<ProfileTab>(business.default_profile_tab || 'posts');
     const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
-    
-    // Responsive Tabs
-    const allTabs: ProfileTab[] = ['posts', 'discounts', 'about'];
-    const [visibleTabs, setVisibleTabs] = useState<ProfileTab[]>(allTabs);
-    const [dropdownTabs, setDropdownTabs] = useState<ProfileTab[]>([]);
-    const tabsRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        const handleResize = () => {
-            if (!tabsRef.current) return;
-            // Simple logic: if screen is small (mobile), show 2 tabs + More
-            const screenWidth = window.innerWidth;
-            if (screenWidth < 420) {
-                setVisibleTabs(allTabs.slice(0, 2));
-                setDropdownTabs(allTabs.slice(2));
-            } else {
-                setVisibleTabs(allTabs);
-                setDropdownTabs([]);
-            }
-        };
-        handleResize();
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
-
+    const [visibleTabs, setVisibleTabs] = useState<ProfileTab[]>(['posts', 'discounts', 'about']);
 
     const handleLeave = async () => {
         const confirmed = window.confirm(t('leaveConfirm'));
         if (confirmed) {
             const result = await leaveBusiness(customerId, business.id);
-            if (result.success) {
-                onLeaveSuccess();
-            } else {
-                alert('Could not leave business. Please try again.');
-            }
+            if (result.success) onLeaveSuccess();
         }
     };
     
@@ -65,77 +38,62 @@ const BusinessProfilePage: React.FC<BusinessProfilePageProps> = ({ business, cus
         }
     };
 
-    const selectTab = (tab: ProfileTab) => {
-        setActiveTab(tab);
-        setIsMoreMenuOpen(false);
-    }
-
     return (
-        <div className="min-h-screen bg-gray-100 font-sans">
-            <header className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-sm z-20 flex items-center p-2 shadow-sm">
-                <button onClick={onBack} className="p-2 rounded-full hover:bg-gray-200 transition-colors">
-                   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" /></svg>
+        <div className="min-h-screen bg-slate-50 font-sans animate-in fade-in duration-300 pb-20">
+            {/* Transparent Header */}
+            <header className="fixed top-0 left-0 right-0 bg-white/60 backdrop-blur-xl z-30 flex items-center p-4 border-b border-white/20 transition-all">
+                <button onClick={onBack} className="p-3 bg-white/80 rounded-2xl text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-all">
+                   <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" /></svg>
                 </button>
-                <h1 className="text-lg font-bold text-gray-800 text-center flex-grow truncate px-2">{business.public_name}</h1>
-                <div className="w-10"></div>
+                <h1 className="text-lg font-black text-slate-800 text-center flex-grow truncate px-4">{business.public_name}</h1>
+                <div className="w-11"></div>
             </header>
             
-            <div className="pt-14">
-                {/* Cover and Profile Picture */}
-                <div className="relative bg-gray-300 h-40 sm:h-56">
-                    {business.cover_photo_url && <img src={business.cover_photo_url} alt="Cover" className="w-full h-full object-cover" />}
-                    <div className="absolute -bottom-12 left-1/2 -translate-x-1/2">
-                        <img src={business.logo_url || 'https://i.postimg.cc/8zRZt9pM/user.png'} alt="Logo" className="w-24 h-24 rounded-full object-cover bg-gray-200 border-4 border-white shadow-md" />
-                    </div>
-                </div>
+            <div className="pt-20">
+                {/* Hero Header */}
+                <div className="px-4 max-w-2xl mx-auto">
+                  <div className="relative rounded-[2.5rem] overflow-hidden shadow-2xl h-52 sm:h-64 bg-slate-200">
+                      {business.cover_photo_url ? (
+                        <img src={business.cover_photo_url} alt="Cover" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-indigo-500 to-indigo-800" />
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-900/40 to-transparent"></div>
+                      <div className="absolute -bottom-1 right-8 translate-y-1/2">
+                          <img src={business.logo_url || 'https://i.postimg.cc/8zRZt9pM/user.png'} alt="Logo" className="w-24 h-24 rounded-3xl object-cover bg-white border-4 border-white shadow-xl" />
+                      </div>
+                  </div>
 
-                {/* Name and Bio */}
-                <div className="text-center pt-16 pb-4 px-4 bg-white">
-                    <h2 className="text-3xl font-bold">{business.public_name}</h2>
-                    {business.bio && <p className="text-gray-600 mt-2 text-base max-w-xl mx-auto">{business.bio}</p>}
+                  {/* Profile Header Stats */}
+                  <div className="mt-14 mb-8 text-center sm:text-left px-2">
+                      <h2 className="text-4xl font-black text-slate-800 tracking-tight leading-none">{business.public_name}</h2>
+                      {business.bio && <p className="text-slate-500 mt-4 text-sm font-medium leading-relaxed">{business.bio}</p>}
+                  </div>
                 </div>
                 
-                {/* Tabs */}
-                <div className="sticky top-[56px] z-10 bg-white shadow-sm border-t border-b">
-                    <nav ref={tabsRef} className="flex justify-center relative">
+                {/* Sticky Tabbar */}
+                <div className="sticky top-[76px] z-20 px-4 max-w-2xl mx-auto mb-8">
+                    <nav className="bg-white p-1.5 rounded-[1.5rem] shadow-lg border border-slate-100 flex justify-between overflow-hidden">
                         {visibleTabs.map(tab => (
-                             <TabButton key={tab} label={t(tab)} isActive={activeTab === tab} onClick={() => selectTab(tab)} />
+                             <button 
+                                key={tab}
+                                onClick={() => setActiveTab(tab)}
+                                className={`flex-1 py-3 px-4 rounded-2xl font-bold text-xs uppercase tracking-widest transition-all ${activeTab === tab ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}
+                             >
+                                {t(tab)}
+                             </button>
                         ))}
-                        {dropdownTabs.length > 0 && (
-                             <div className="relative">
-                                <button onClick={() => setIsMoreMenuOpen(prev => !prev)} className={`py-3 px-4 font-medium text-sm transition-colors relative flex items-center gap-1 ${dropdownTabs.includes(activeTab) ? 'text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}>
-                                    {t('more')}
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
-                                </button>
-                                {isMoreMenuOpen && (
-                                    <div className="absolute right-0 mt-2 w-36 bg-white rounded-md shadow-lg z-20 border">
-                                        {dropdownTabs.map(tab => (
-                                            <a key={tab} href="#" onClick={(e) => { e.preventDefault(); selectTab(tab); }} className={`block px-4 py-2 text-sm ${activeTab === tab ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'}`}>
-                                                {t(tab)}
-                                            </a>
-                                        ))}
-                                    </div>
-                                )}
-                             </div>
-                        )}
                     </nav>
                 </div>
 
-                {/* Content */}
-                <main className="p-4 max-w-2xl mx-auto">
+                {/* Content Area */}
+                <main className="px-4 max-w-2xl mx-auto space-y-8 min-h-[50vh]">
                     {renderContent()}
                 </main>
             </div>
         </div>
     );
 };
-
-const TabButton: React.FC<{label: string, isActive: boolean, onClick: () => void}> = ({label, isActive, onClick}) => (
-    <button onClick={onClick} className={`py-3 px-4 font-medium text-sm transition-colors relative ${isActive ? 'text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}>
-        {label}
-        {isActive && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600"></span>}
-    </button>
-);
 
 // --- TAB COMPONENTS ---
 
@@ -144,60 +102,31 @@ const PostsTab: React.FC<{businessId: string}> = ({ businessId }) => {
     const [posts, setPosts] = useState<Post[]>([]);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        getPostsForBusiness(businessId).then(data => {
-            setPosts(data);
-            setLoading(false);
-        });
-    }, [businessId]);
+    useEffect(() => { getPostsForBusiness(businessId).then(data => { setPosts(data); setLoading(false); }); }, [businessId]);
 
     const getYouTubeEmbedUrl = (url: string) => {
-        try {
-            const urlObj = new URL(url);
-            let videoId = urlObj.searchParams.get('v');
-            if (urlObj.hostname === 'youtu.be') {
-                videoId = urlObj.pathname.slice(1);
-            }
-            return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
-        } catch {
-            return null;
-        }
+        try { const urlObj = new URL(url); let videoId = urlObj.searchParams.get('v') || (urlObj.hostname === 'youtu.be' ? urlObj.pathname.slice(1) : null); return videoId ? `https://www.youtube.com/embed/${videoId}` : null; } catch { return null; }
     };
 
-    if (loading) return <div className="flex justify-center py-8"><Spinner /></div>;
-    if (posts.length === 0) return <p className="text-center text-gray-500 py-8">{t('noBusinessPosts')}</p>;
+    if (loading) return <div className="flex justify-center py-20"><Spinner /></div>;
+    if (posts.length === 0) return <div className="bg-white p-12 rounded-[2.5rem] text-center text-slate-300 font-bold uppercase tracking-widest border border-dashed">{t('noBusinessPosts')}</div>;
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-8">
             {posts.map(post => {
                 const embedUrl = post.video_url ? getYouTubeEmbedUrl(post.video_url) : null;
                 return (
-                    <div key={post.id} className="bg-white rounded-lg shadow-md overflow-hidden">
-                        {post.image_url && <img src={post.image_url} alt={post.title} className="w-full h-auto max-h-96 object-cover" />}
-                        {embedUrl && (
-                             <div className="aspect-w-16 aspect-h-9">
-                                <iframe src={embedUrl} frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>
-                            </div>
-                        )}
-                        <div className="p-4">
-                            <h3 className="text-xl font-bold mb-2">{post.title}</h3>
-                            <p className="text-gray-500 text-xs mb-2 uppercase">{new Date(post.created_at).toLocaleString()}</p>
-                            {post.content && (
-                                <div className="prose prose-sm max-w-none text-gray-700">
-                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                        {post.content}
-                                    </ReactMarkdown>
-                                </div>
-                            )}
-
+                    <div key={post.id} className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden hover:shadow-xl transition-all group">
+                        {post.image_url && <img src={post.image_url} alt="p" className="w-full h-auto max-h-[30rem] object-cover transition-transform group-hover:scale-[1.01]" />}
+                        {embedUrl && <div className="aspect-video"><iframe className="w-full h-full" src={embedUrl} frameBorder="0" allowFullScreen></iframe></div>}
+                        <div className="p-8">
+                            <h3 className="text-2xl font-black text-slate-800 mb-2 leading-tight">{post.title}</h3>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">{new Date(post.created_at).toLocaleDateString()}</p>
+                            {post.content && <div className="prose prose-slate prose-sm max-w-none text-slate-600 font-medium leading-relaxed"><ReactMarkdown remarkPlugins={[remarkGfm]}>{post.content}</ReactMarkdown></div>}
                              {(post.price_text || post.external_url) && (
-                                <div className="mt-4 pt-4 border-t flex items-center justify-between gap-4">
-                                    {post.price_text && <span className="text-2xl font-bold text-blue-600">{post.price_text}</span>}
-                                    {post.external_url && (
-                                        <a href={post.external_url} target="_blank" rel="noopener noreferrer" className="bg-blue-600 text-white font-semibold py-2 px-5 rounded-lg text-sm hover:bg-blue-700 transition-colors">
-                                            {t('learnMore')}
-                                        </a>
-                                    )}
+                                <div className="mt-6 pt-6 border-t border-slate-50 flex items-center justify-between gap-4">
+                                    {post.price_text && <span className="text-3xl font-black text-indigo-600 tracking-tight">{post.price_text}</span>}
+                                    {post.external_url && <a href={post.external_url} target="_blank" rel="noopener noreferrer" className="bg-indigo-600 text-white font-bold py-3 px-6 rounded-2xl text-sm hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 active:scale-95">{t('learnMore')}</a>}
                                 </div>
                             )}
                         </div>
@@ -212,25 +141,23 @@ const DiscountsTab: React.FC<{businessId: string}> = ({ businessId }) => {
     const { t } = useLanguage();
     const [discounts, setDiscounts] = useState<Discount[]>([]);
     const [loading, setLoading] = useState(true);
+    useEffect(() => { getDiscountsForBusiness(businessId).then(data => { setDiscounts(data); setLoading(false); }); }, [businessId]);
 
-    useEffect(() => {
-        getDiscountsForBusiness(businessId).then(data => {
-            setDiscounts(data);
-            setLoading(false);
-        });
-    }, [businessId]);
-
-    if (loading) return <div className="flex justify-center py-8"><Spinner /></div>;
-    if (discounts.length === 0) return <p className="text-center text-gray-500 py-8">{t('noBusinessDiscounts')}</p>;
+    if (loading) return <div className="flex justify-center py-20"><Spinner /></div>;
+    if (discounts.length === 0) return <div className="bg-white p-12 rounded-[2.5rem] text-center text-slate-300 font-bold uppercase tracking-widest border border-dashed">{t('noBusinessDiscounts')}</div>;
 
     return (
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {discounts.map(d => (
-                <div key={d.id} className="bg-white p-4 rounded-lg shadow-md flex items-center gap-4">
-                    {d.image_url && <img src={d.image_url} alt={d.name} className="w-20 h-20 rounded-md object-cover" />}
-                    <div className="flex-grow">
-                        <p className="font-bold text-gray-800 text-lg">{d.name}</p>
-                        {d.description && <p className="text-sm text-gray-600 mt-1">{d.description}</p>}
+                <div key={d.id} className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 flex flex-col gap-4 hover:shadow-xl transition-all group">
+                    {d.image_url ? (
+                        <img src={d.image_url} alt="d" className="w-full h-32 rounded-2xl object-cover bg-slate-100 transition-transform group-hover:scale-[1.02]" />
+                    ) : (
+                        <div className="w-full h-32 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-300 font-black text-2xl uppercase tracking-tighter">OFFER</div>
+                    )}
+                    <div>
+                        <p className="font-black text-slate-800 text-xl leading-none mb-2">{d.name}</p>
+                        {d.description && <p className="text-xs text-slate-500 font-bold leading-relaxed">{d.description}</p>}
                     </div>
                 </div>
             ))}
@@ -241,43 +168,34 @@ const DiscountsTab: React.FC<{businessId: string}> = ({ businessId }) => {
 const AboutTab: React.FC<{business: Business; onLeave: () => void}> = ({ business, onLeave }) => {
     const { t } = useLanguage();
     return (
-        <div className="space-y-6">
-            {/* Location */}
+        <div className="space-y-8">
             {business.address_text && (
-                <div className="bg-white p-4 sm:p-6 rounded-lg shadow-md">
-                    <h3 className="text-xl font-bold mb-4">{t('location')}</h3>
-                    <p className="text-gray-700 mb-4">{business.address_text}</p>
-                    <div className="aspect-w-16 aspect-h-9 rounded-lg overflow-hidden border">
-                         <iframe
-                            className="w-full h-full"
-                            style={{ height: '250px' }}
-                            loading="lazy"
-                            allowFullScreen
-                            referrerPolicy="no-referrer-when-downgrade"
-                            src={`https://www.google.com/maps?q=${encodeURIComponent(business.address_text)}&output=embed`}
-                          ></iframe>
+                <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100">
+                    <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">{t('location')}</h3>
+                    <p className="text-slate-800 font-bold text-lg mb-6 leading-tight">{business.address_text}</p>
+                    <div className="rounded-3xl overflow-hidden border-4 border-white shadow-lg">
+                         <iframe className="w-full h-64 grayscale contrast-125" loading="lazy" src={`https://www.google.com/maps?q=${encodeURIComponent(business.address_text)}&output=embed`}></iframe>
                     </div>
                 </div>
             )}
-            {/* Contact Info */}
-            <div className="bg-white p-4 sm:p-6 rounded-lg shadow-md">
-                <h3 className="text-xl font-bold mb-4">{t('contactInfo')}</h3>
-                <div className="space-y-3">
-                    {business.public_phone_number && <div className="flex items-center gap-3 text-gray-700"><PhoneIcon className="h-5 w-5 text-gray-500"/><span>{business.public_phone_number}</span></div>}
-                    {business.website_url && <a href={business.website_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-blue-600 hover:underline"><WebsiteIcon className="h-5 w-5"/><span>Website</span></a>}
-                    {business.facebook_url && <a href={business.facebook_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-blue-600 hover:underline"><FacebookIcon className="h-5 w-5"/><span>Facebook</span></a>}
-                    {business.instagram_url && <a href={business.instagram_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-blue-600 hover:underline"><InstagramIcon className="h-5 w-5"/><span>Instagram</span></a>}
+            <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100">
+                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-6">{t('contactInfo')}</h3>
+                <div className="grid grid-cols-1 gap-4">
+                    {business.public_phone_number && <div className="flex items-center gap-4 text-slate-700 font-bold bg-slate-50 p-4 rounded-2xl"><PhoneIcon className="h-6 w-6 text-indigo-400"/><span className="flex-grow">{business.public_phone_number}</span></div>}
+                    <div className="flex flex-wrap gap-3 mt-2">
+                        {business.website_url && <SocialLink href={business.website_url} icon={<WebsiteIcon className="h-5 w-5"/>}/>}
+                        {business.facebook_url && <SocialLink href={business.facebook_url} icon={<FacebookIcon className="h-5 w-5"/>}/>}
+                        {business.instagram_url && <SocialLink href={business.instagram_url} icon={<InstagramIcon className="h-5 w-5"/>}/>}
+                    </div>
                 </div>
             </div>
-             {/* Actions */}
-            <div className="mt-8">
-                <button onClick={onLeave} className="w-full bg-red-100 text-red-700 font-bold py-3 rounded-lg hover:bg-red-200 transition-colors">
-                    {t('leaveBusiness')}
-                </button>
-            </div>
+            <button onClick={onLeave} className="w-full bg-rose-50 text-rose-600 font-black py-4 rounded-[1.5rem] hover:bg-rose-100 transition-all uppercase tracking-widest text-xs active:scale-95">{t('leaveBusiness')}</button>
         </div>
     );
 };
 
+const SocialLink: React.FC<{href: string, icon: React.ReactNode}> = ({href, icon}) => (
+    <a href={href} target="_blank" rel="noopener noreferrer" className="bg-slate-50 p-4 rounded-2xl text-indigo-500 hover:bg-indigo-600 hover:text-white transition-all shadow-sm active:scale-90">{icon}</a>
+);
 
 export default BusinessProfilePage;
