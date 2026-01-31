@@ -74,36 +74,48 @@ const CustomerPage: React.FC<CustomerPageProps> = ({ qrToken }) => {
     }
   };
 
-  if (loading) return <div className="h-screen flex items-center justify-center bg-white"><Spinner className="w-5 h-5 text-black" /></div>;
-  if (error || !customer) return <div className="h-screen flex items-center justify-center text-xs font-black uppercase tracking-widest">{error || '404'}</div>;
+  if (loading) return <div className="h-screen flex items-center justify-center bg-white"><Spinner className="size-8 text-primary/40" /></div>;
+  if (error || !customer) return <div className="h-screen flex items-center justify-center text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">{error || 'Access Denied'}</div>;
   
   if (viewingBusiness) return <BusinessProfilePage business={viewingBusiness} customerId={customer.id} onBack={() => setViewingBusiness(null)} onLeaveSuccess={() => { setViewingBusiness(null); fetchData(); }} />;
 
   return (
-    <div className="min-h-screen bg-white text-black font-sans">
+    <div className="min-h-screen bg-white text-slate-900 font-sans selection:bg-primary/10">
         <CustomerSetupModal isOpen={isSetupModalOpen} onSave={handleSetupSave} />
         <CustomerQRModal isOpen={isQrModalOpen} onClose={() => setIsQrModalOpen(false)} customer={customer} />
         
         {joinMessage && (
-            <div className="fixed top-8 left-1/2 -translate-x-1/2 bg-black text-white text-[10px] font-black uppercase tracking-[0.2em] py-3 px-8 rounded-full z-[100] animate-in fade-in slide-in-from-top duration-300">
+            <div className="fixed top-12 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] font-black uppercase tracking-[0.25em] py-4 px-10 rounded-full z-[100] shadow-2xl animate-in fade-in slide-in-from-top-4 duration-500">
                 {joinMessage}
             </div>
         )}
 
-        <main className="pb-32">
+        <main className="pb-32 max-w-md mx-auto">
             {activeTab === 'home' && <CustomerHomePage customer={customer} memberships={memberships} onViewBusiness={setViewingBusiness} onShowMyQr={() => setIsQrModalOpen(true)} />}
             {activeTab === 'search' && <CustomerSearchPage customer={customer} onJoinSuccess={handleJoinSuccess} />}
             {activeTab === 'profile' && <CustomerProfilePage customer={customer} onUpdate={setCustomer} onContactUs={() => window.tidioChatApi?.open()} />}
         </main>
 
-        <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-50 pt-4 pb-10 px-8 z-50">
-            <div className="max-w-md mx-auto flex justify-between items-center">
+        <nav className="fixed bottom-8 left-1/2 -translate-x-1/2 w-[90%] max-w-[360px] bg-white/80 backdrop-blur-2xl border border-slate-200/50 p-2 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] z-50">
+            <div className="flex justify-between items-center px-2">
                 <NavItem icon="home" label="Home" active={activeTab === 'home'} onClick={() => setActiveTab('home')} />
-                <NavItem icon="explore" label="Discover" active={activeTab === 'search'} onClick={() => setActiveTab('search')} />
-                <button onClick={() => setIsQrModalOpen(true)} className="w-10 h-10 bg-slate-50 text-black border border-slate-100 rounded-full flex items-center justify-center hover:bg-black hover:text-white transition-all">
-                    <span className="material-symbols-outlined text-[20px]">qr_code</span>
+                <NavItem icon="explore" label="Explore" active={activeTab === 'search'} onClick={() => setActiveTab('search')} />
+                
+                <button 
+                  onClick={() => setIsQrModalOpen(true)} 
+                  className="size-14 -mt-10 bg-slate-900 text-white rounded-full flex items-center justify-center shadow-xl shadow-slate-900/20 active:scale-90 transition-all border-4 border-white"
+                >
+                    <span className="material-symbols-outlined text-[28px]">qr_code_2</span>
                 </button>
+
                 <NavItem icon="person" label="Profile" active={activeTab === 'profile'} onClick={() => setActiveTab('profile')} />
+                <button 
+                  onClick={() => window.tidioChatApi?.open()}
+                  className="flex flex-col items-center gap-1 min-w-[64px] text-slate-300 hover:text-primary transition-all"
+                >
+                    <span className="material-symbols-outlined text-[24px]">support_agent</span>
+                    <span className="text-[8px] font-black uppercase tracking-tighter">Support</span>
+                </button>
             </div>
         </nav>
     </div>
@@ -111,9 +123,10 @@ const CustomerPage: React.FC<CustomerPageProps> = ({ qrToken }) => {
 };
 
 const NavItem: React.FC<{ icon: string, label: string, active: boolean, onClick: () => void }> = ({ icon, label, active, onClick }) => (
-    <button onClick={onClick} className={`flex flex-col items-center gap-1 transition-all ${active ? 'text-primary scale-110' : 'text-slate-300'}`}>
+    <button onClick={onClick} className={`flex flex-col items-center gap-1 min-w-[64px] transition-all ${active ? 'text-primary' : 'text-slate-300 hover:text-slate-400'}`}>
         <span className="material-symbols-outlined text-[24px]" style={{ fontVariationSettings: active ? "'FILL' 1" : "'FILL' 0" }}>{icon}</span>
         <span className="text-[8px] font-black uppercase tracking-tighter">{label}</span>
+        {active && <div className="size-1 bg-primary rounded-full -mb-2 mt-0.5 animate-in zoom-in duration-300"></div>}
     </button>
 )
 

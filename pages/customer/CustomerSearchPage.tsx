@@ -62,10 +62,10 @@ const CustomerSearchPage: React.FC<CustomerSearchPageProps> = ({ customer, onJoi
     };
 
     return (
-        <div className="max-w-xl mx-auto px-6 pt-12">
-            <h1 className="text-4xl font-black tracking-tighter mb-12">Discover.</h1>
+        <div className="px-8 pt-16 animate-in fade-in duration-700">
+            <h1 className="text-4xl font-black tracking-tight text-slate-900 mb-10">Discover.</h1>
             
-            <div className="flex gap-8 mb-10 border-b border-slate-50">
+            <div className="flex gap-8 mb-10 border-b border-slate-100">
                 <TabButton label="Popular" active={activeTab === 'popular'} onClick={() => setActiveTab('popular')} />
                 <TabButton label="Nearby" active={activeTab === 'nearby'} onClick={() => setActiveTab('nearby')} />
                 <TabButton label="Search" active={activeTab === 'all'} onClick={() => setActiveTab('all')} />
@@ -73,20 +73,31 @@ const CustomerSearchPage: React.FC<CustomerSearchPageProps> = ({ customer, onJoi
             
             <div className="space-y-8">
                 {activeTab === 'all' && (
-                    <form onSubmit={handleSearch} className="relative mb-12">
-                        <input
-                            type="text"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            placeholder="Find a business..."
-                            className="w-full bg-slate-50 border-none rounded-full py-4 px-8 text-sm font-bold focus:ring-1 focus:ring-black transition-all"
-                        />
+                    <form onSubmit={handleSearch} className="mb-10 animate-in slide-in-from-top-2 duration-500">
+                        <div className="relative">
+                            <input
+                                type="text"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                placeholder="Find your next brand..."
+                                className="w-full bg-slate-50 border-slate-200 rounded-2xl py-4 px-6 text-sm font-bold focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all"
+                            />
+                            <button type="submit" className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
+                                <span className="material-symbols-outlined">search</span>
+                            </button>
+                        </div>
                     </form>
                 )}
 
                 {activeTab === 'nearby' && locationStatus === 'idle' && (
-                    <div className="text-center py-20 border-2 border-dashed border-slate-50 rounded-3xl">
-                        <button onClick={fetchNearby} className="text-[10px] font-black uppercase tracking-[0.3em] text-primary">Enable Location Access</button>
+                    <div className="text-center py-20 bg-slate-50/50 border-2 border-dashed border-slate-200 rounded-[2.5rem] animate-in zoom-in-95 duration-500">
+                        <button 
+                            onClick={fetchNearby} 
+                            className="bg-primary text-white font-black text-[10px] uppercase tracking-[0.2em] px-8 py-4 rounded-2xl shadow-xl shadow-primary/20 active:scale-95 transition-all"
+                        >
+                            Enable Location Access
+                        </button>
+                        <p className="mt-4 text-[9px] font-black text-slate-400 uppercase tracking-widest">Find participating shops around you</p>
                     </div>
                 )}
 
@@ -102,32 +113,35 @@ const CustomerSearchPage: React.FC<CustomerSearchPageProps> = ({ customer, onJoi
 };
 
 const TabButton: React.FC<{label: string, active: boolean, onClick: () => void}> = ({label, active, onClick}) => (
-    <button onClick={onClick} className={`pb-4 text-[10px] font-black uppercase tracking-[0.3em] transition-all border-b-2 ${active ? 'border-black text-black' : 'border-transparent text-slate-300'}`}>
+    <button onClick={onClick} className={`pb-4 text-[10px] font-black uppercase tracking-[0.3em] transition-all relative ${active ? 'text-slate-900' : 'text-slate-300 hover:text-slate-500'}`}>
         {label}
+        {active && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-slate-900 rounded-full animate-in slide-in-from-left duration-300"></div>}
     </button>
 );
 
 const BusinessList: React.FC<{loading: boolean, items: Business[], joinedIds: Set<string>, onJoin: (id: string) => void}> = ({ loading, items, joinedIds, onJoin }) => {
-    if (loading) return <div className="py-20 flex justify-center"><Spinner className="w-5 h-5 text-black" /></div>;
+    if (loading) return <div className="py-20 flex justify-center"><Spinner className="size-8 text-primary/30" /></div>;
+    if (items.length === 0) return <div className="py-20 text-center text-[10px] font-black uppercase tracking-[0.3em] text-slate-300">No results found</div>;
+    
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 pb-20">
             {items.map(biz => (
-                <div key={biz.id} className="flex items-center justify-between py-2 border-b border-slate-50 group">
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-slate-50 border border-slate-100 rounded-full flex-shrink-0 grayscale">
-                             <img src={biz.logo_url || ''} className="w-full h-full object-cover rounded-full" alt="L"/>
+                <div key={biz.id} className="flex items-center justify-between group animate-in fade-in slide-in-from-bottom-2 duration-500">
+                    <div className="flex items-center gap-5">
+                        <div className="size-14 rounded-2xl bg-slate-50 border border-slate-100 flex-shrink-0 grayscale group-hover:grayscale-0 transition-all duration-700 shadow-sm overflow-hidden p-1">
+                             <img src={biz.logo_url || 'https://i.postimg.cc/8zRZt9pM/user.png'} className="size-full object-cover rounded-xl bg-white" alt="L"/>
                         </div>
-                        <div>
-                            <p className="font-black tracking-tight">{biz.public_name}</p>
-                            <p className="text-[9px] font-black uppercase tracking-widest text-slate-300">{biz.membership_count || 0} Members</p>
+                        <div className="space-y-0.5">
+                            <p className="font-black text-slate-800 tracking-tight leading-none">{biz.public_name}</p>
+                            <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">{biz.membership_count || 0} Regulars</p>
                         </div>
                     </div>
                     <button
                         onClick={() => onJoin(biz.id)}
                         disabled={joinedIds.has(biz.id)}
-                        className={`text-[9px] font-black uppercase tracking-widest px-4 py-2 rounded-full transition-all ${joinedIds.has(biz.id) ? 'bg-slate-50 text-slate-300' : 'bg-black text-white active:scale-95'}`}
+                        className={`text-[9px] font-black uppercase tracking-[0.2em] px-6 py-3 rounded-2xl transition-all ${joinedIds.has(biz.id) ? 'bg-slate-50 text-slate-300' : 'bg-slate-900 text-white active:scale-95 shadow-lg shadow-slate-900/10'}`}
                     >
-                        {joinedIds.has(biz.id) ? 'Joined' : 'Join'}
+                        {joinedIds.has(biz.id) ? 'Active' : 'Enroll'}
                     </button>
                 </div>
             ))}
