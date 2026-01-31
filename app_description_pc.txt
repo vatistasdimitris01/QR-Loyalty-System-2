@@ -1,0 +1,46 @@
+QROYAL PC/DESKTOP APP - ROLE-BASED DESCRIPTION
+
+=========================================
+SECTION 1: BUSINESS OWNER PORTAL
+=========================================
+
+1. Dashboard & Analytics
+- The core management hub.
+- 7-Day Performance Charts: New Members, Points Awarded, Rewards Claimed.
+- Real-time "Points per Scan" and "Reward Threshold" editor for immediate program adjustments.
+- Widget Customization: Toggle visibility and drag-to-reorder analytics cards.
+
+2. Customer Management (CRM)
+- Searchable database of all loyal customers.
+- Individual member cards with point totals and contact history.
+- Ability to manually award/deduct points or remove members.
+
+3. Content & Promotion Studio
+- Post Manager: Rich text (Markdown) editor to publish news and announcements.
+- Discount Manager: Creation tool for digital vouchers and time-limited offers.
+- Multimedia support: Image uploads and YouTube video embedding.
+
+4. Profile & Branding Center
+- Public Profile Editor: Upload logo, cover photo, and business bio.
+- Social Link Integrations: Facebook, Instagram, and Website URLs.
+- Location Settings: Geocoding tool to set physical store location for the mobile map.
+
+5. QR Design Lab
+- Business QR Stylizer: Customize the look of the business login code.
+- Customer QR Library: Create unique branded styles that customers can apply to their own digital cards.
+
+=========================================
+SECTION 2: SUPER ADMIN (PLATFORM) PORTAL
+=========================================
+
+1. Platform Oversite
+- Master view of every registered business on the network.
+- Global customer list for cross-platform support.
+
+2. Global Management
+- Post Moderation: View and manage all announcements across the platform.
+- Membership Logs: Track every point transaction and membership joining event globally.
+
+3. Partner Provisioning
+- Professional onboarding tool to create and configure new business partner accounts.
+- Direct database management for troubleshooting and data maintenance.

@@ -1,31 +1,35 @@
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="https://i.postimg.cc/bJwnZhs9/Chat-GPT-Image-Aug-31-2025-06-45-18-AM.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>QRoyal</title>
+    <title>QRoyal | Enterprise Loyalty Infrastructure</title>
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Manrope:wght@200..800&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
     
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     
     <script>
       tailwind.config = {
+        darkMode: "class",
         theme: {
           extend: {
             colors: {
-              "primary": "#1337ec",
+              "primary": "#135bec",
+              "accent-gold": "#C5A059",
+              "background-light": "#f6f6f8",
+              "background-dark": "#101622",
             },
             fontFamily: {
-              "sans": ["Manrope", "sans-serif"],
+              "sans": ["Inter", "Manrope", "sans-serif"],
+              "display": ["Inter", "sans-serif"]
             },
           },
         },
@@ -35,6 +39,11 @@
       body { background-color: #ffffff; color: #0f172a; }
       .no-scrollbar::-webkit-scrollbar { display: none; }
       .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      .gold-gradient-text {
+        background: linear-gradient(to right, #C5A059, #E2C275);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
     </style>
     
   <script type="importmap">
@@ -53,7 +62,7 @@
 </script>
 <script src="//code.tidio.co/lbmfxqsklq19pkniyajxaxzjguaddmtv.js" async></script>
 </head>
-  <body class="font-sans antialiased overflow-x-hidden selection:bg-indigo-100">
+  <body class="font-sans antialiased overflow-x-hidden selection:bg-blue-100">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
   </body>

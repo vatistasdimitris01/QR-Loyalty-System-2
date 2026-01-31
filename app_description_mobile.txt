@@ -1,0 +1,53 @@
+QROYAL MOBILE APP - ROLE-BASED DESCRIPTION
+
+=========================================
+SECTION 1: CUSTOMER INTERFACE (MOBILE WEB)
+=========================================
+
+1. Landing & Authentication
+- Public entry point for users to understand the loyalty system.
+- Direct CTA to "Get Your Card" (Signup).
+- "Scan to Login" button to quickly access profile via existing QR codes.
+
+2. Signup & Onboarding
+- Minimalist form capturing Name and Phone Number.
+- Immediate generation of the "Universal QR Code" digital identity.
+
+3. Home Dashboard (The Digital Wallet)
+- Personalized greeting and current date.
+- Real-time progress tracker for the most active loyalty program (points/stamps).
+- Floating Action Button (FAB) to instantly display the personal QR code for store scanning.
+
+4. Discover & Search
+- Tool to find participating businesses.
+- Categorized lists for "Popular", "Nearby" (GPS-based), and "All".
+- Instant "Join" buttons for one-tap enrollment in new programs.
+
+5. Personal Profile
+- High-visibility display of the personal QR code with a Print option.
+- Profile picture upload and personal info management.
+- Account deletion and support contact options.
+
+6. Business Profile (Customer View)
+- The landing page for a specific shop.
+- 3-Tab View: 
+    - [Posts] for news and videos.
+    - [Discounts] for active coupons.
+    - [About] for contact info, map, and social links.
+
+=========================================
+SECTION 2: BUSINESS INTERFACE (KIOSK MODE)
+=========================================
+
+1. Kiosk Scanner
+- Full-screen, high-performance camera interface.
+- Designed for tablets or store-front smartphones.
+- Continuous scanning capability for rapid customer processing.
+
+2. Scan Confirmation Overlay
+- Real-time feedback window after a scan.
+- Displays Customer Name, points awarded, and updated total.
+- High-visibility success/reward alerts for store staff.
+
+3. Walk-in Provisioning
+- "Create QR" button to generate temporary IDs for customers who don't have the app yet.
