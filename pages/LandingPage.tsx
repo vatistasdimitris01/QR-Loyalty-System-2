@@ -1,47 +1,14 @@
+
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { QRScannerModal, Spinner } from '../components/common';
 import { loginBusinessWithQrToken } from '../services/api';
 
-declare global {
-  interface Window {
-    tidioChatApi: any;
-  }
-}
-
-// --- New Feature Icon Components ---
-
-const CustomerFeatureIcon1: React.FC = () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 5.25v13.5m-7.5-13.5v13.5" /><path strokeLinecap="round" strokeLinejoin="round" d="M12 2.25v19.5" /><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 9h16.5" /><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 15h16.5" /></svg>;
-const CustomerFeatureIcon2: React.FC = () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8"><path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" /></svg>;
-const CustomerFeatureIcon3: React.FC = () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8"><path strokeLinecap="round" strokeLinejoin="round" d="M9.53 16.122a3 3 0 00-5.78 1.128 2.25 2.25 0 01-2.47 2.118v-.09A12.75 12.75 0 0112 3.055a12.75 12.75 0 019.8 16.173v.09a2.25 2.25 0 01-2.47-2.118 3 3 0 00-5.78-1.128L12 16.122zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5z" /></svg>;
-const CustomerFeatureIcon4: React.FC = () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8"><path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c.502 0 1.002-.02 1.49-.06M12 3c.502 0 1.002.02 1.49.06M12 3a9.004 9.004 0 00-8.716 6.747M12 3c-1.285 0-2.51.188-3.684.534M19.684 18.534c.249-.244.477-.504.686-.774M4.316 18.534a9.012 9.012 0 00.686-.774M12 18c.502 0 1.002-.02 1.49-.06" /><path strokeLinecap="round" strokeLinejoin="round" d="M12 9a3 3 0 100 6 3 3 0 000-6z" /></svg>;
-const BusinessFeatureIcon1: React.FC = () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 1.5m-2-1.5V6.75" /></svg>;
-const BusinessFeatureIcon2: React.FC = () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8"><path strokeLinecap="round" strokeLinejoin="round" d="M10.34 15.84c-.688-.06-1.386-.09-2.09-.09H7.5a4.5 4.5 0 01-4.5-4.5V7.5a4.5 4.5 0 014.5-4.5h7.084c.361 0 .71.054 1.047.152l3.435 1.018a.5.5 0 01.448.49l.263 2.632c.036.363.053.73.053 1.102 0 .74-.027 1.472-.08 2.188l-.248 2.477a.5.5 0 01-.45.49l-3.434 1.018C11.71 15.786 11.02 15.84 10.34 15.84z" /></svg>;
-const BusinessFeatureIcon3: React.FC = () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8"><path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.438.995a6.473 6.473 0 010 1.082c0 .382.145.755.438.995l1.003.827c.48.398.665.98.26 1.431l-1.296 2.247a1.125 1.125 0 01-1.37.49l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.063-.374-.313-.686-.645-.87a6.52 6.52 0 01-.22-.127c-.324-.196-.72-.257-1.075-.124l-1.217.456a1.125 1.125 0 01-1.37-.49l-1.296-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.437-.995a6.473 6.473 0 010-1.082c0-.382-.145-.755-.437-.995l-1.004-.827a1.125 1.125 0 01-.26-1.431l1.296-2.247a1.125 1.125 0 011.37-.49l1.217.456c.355.133.75.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>;
-const BusinessFeatureIcon4: React.FC = () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8"><path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m-7.5-2.962c.57-1.023.57-2.309 0-3.332m-1.215 7.078a9.09 9.09 0 01-3.741-.479 3 3 0 014.682-2.72M12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5z" /></svg>;
-
-const QuoteIcon: React.FC = () => (
-    <svg className="w-10 h-10 text-blue-100" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 18 14"><path d="M6 0H2a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h4v1a3 3 0 0 1-3 3H2a1 1 0 1 0 0 2h1a5.006 5.006 0 0 0 5-5V2a2 2 0 0 0-2-2Zm10 0h-4a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h4v1a3 3 0 0 1-3 3h-1a1 1 0 1 0 0 2h1a5.006 5.006 0 0 0 5-5V2a2 2 0 0 0-2-2Z"/></svg>
-);
-
-// --- Logo Placeholder Components ---
-const LogoCafe: React.FC<{className?: string}> = ({className}) => (<svg className={className} viewBox="0 0 24 24" fill="currentColor"><path d="M1 21.008h14v-2H1v2zm18-12h-2v-2a3 3 0 0 0-3-3H6a3 3 0 0 0-3 3v8a3 3 0 0 0 3 3h6v2a3 3 0 0 0 3 3h2a3 3 0 0 0 3-3v-8a3 3 0 0 0-3-3zM5 6.008h8v2H5v-2zm8 8H5v-2h8v2z"></path></svg>);
-const LogoBooks: React.FC<{className?: string}> = ({className}) => (<svg className={className} viewBox="0 0 24 24" fill="currentColor"><path d="M21 5.008c-1.841-1.232-4.14-2-6.5-2s-4.659.768-6.5 2H4v16h18V5.008h-1zM6 19.008V7.328c1.695-.712 3.822-1.32 5.5-1.32s3.805.608 5.5 1.32v11.68c-1.695.712-3.822 1.32-5.5 1.32s-3.805-.608-5.5-1.32z"></path><path d="M12.5 17.008h3v-2h-3v-2h-2v6h2v-2zm-3-4h-2v-2h2v-2h-4v6h4v-2z"></path></svg>);
-const LogoBoutique: React.FC<{className?: string}> = ({className}) => (<svg className={className} viewBox="0 0 24 24" fill="currentColor"><path d="M12 1.008c-3.513 0-4.834.305-6.41 2.373C3.993 5.488 4.693 8.308 6 10.008c1.332 1.733 2.05 4.341 2 6.5l.5 4.5h7l.5-4.5c-.05-2.159.668-4.767 2-6.5 1.307-1.7 2.007-4.52 1.41-6.627C20.834 1.313 19.513 1.008 16 1.008H12z"></path></svg>);
-const LogoBakery: React.FC<{className?: string}> = ({className}) => (<svg className={className} viewBox="0 0 24 24" fill="currentColor"><path d="M21.579 10.008a3.15 3.15 0 0 0-3.32-3.13c-.63.02-1.22.25-1.72.63l-2.06-4.63c-.39-.88-1.26-1.46-2.22-1.46h-4.5c-.96 0-1.83.58-2.22 1.46l-2.06 4.63c-.4-.3-1-.5-1.63-.52a3.15 3.15 0 0 0-3.17 3.25c.03.7.23 1.35.6 1.92L2 12.008v7a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-7l-.66-.07c.37-.57.57-1.22.6-1.93zm-15.02-6.62c.13-.29.42-.47.74-.47h4.5c.32 0 .61.18.74.47l1.72 3.87-9.42-.02 1.72-3.85zM5 20.008a1 1 0 0 1-1-1v-6h16v6a1 1 0 0 1-1 1H5z"></path></svg>);
-
 const LandingPage: React.FC = () => {
     const { t, language, setLanguage } = useLanguage();
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isScannerOpen, setIsScannerOpen] = useState(false);
     const [loginStatus, setLoginStatus] = useState<{ loading: boolean; error: string }>({ loading: false, error: '' });
-
-    const handleGeneralContactClick = (e: React.MouseEvent) => {
-        e.preventDefault();
-        if (window.tidioChatApi) {
-            window.tidioChatApi.open();
-        }
-    };
+    const [howItWorksTab, setHowItWorksTab] = useState<'customer' | 'business'>('customer');
 
     const handleLoginWithToken = async (token: string) => {
         setLoginStatus({ loading: true, error: '' });
@@ -63,25 +30,9 @@ const LandingPage: React.FC = () => {
 
     useEffect(() => {
         const searchParams = new URLSearchParams(window.location.search);
-        
         const token = searchParams.get('token');
         if (token && token.startsWith('biz_')) {
             handleLoginWithToken(token);
-        }
-
-        if (searchParams.get('action') === 'open_chat') {
-            const checkTidio = setInterval(() => {
-                if (window.tidioChatApi) {
-                    window.tidioChatApi.open();
-                    clearInterval(checkTidio);
-                    
-                    // Clean up URL
-                    const newSearchParams = new URLSearchParams(window.location.search);
-                    newSearchParams.delete('action');
-                    const newUrl = window.location.pathname + (newSearchParams.toString() ? `?${newSearchParams.toString()}` : '');
-                    window.history.replaceState({}, '', newUrl);
-                }
-            }, 100);
         }
     }, []);
 
@@ -90,228 +41,268 @@ const LandingPage: React.FC = () => {
         try {
             const url = new URL(scannedText);
             const token = url.searchParams.get('token');
-
             if (token) {
                 if (token.startsWith('biz_')) handleLoginWithToken(token);
                 else if (token.startsWith('cust_')) window.location.href = `/customer?token=${token}`;
-                else { setLoginStatus({ loading: false, error: 'Invalid QR code.' }); setTimeout(() => setLoginStatus({ loading: false, error: '' }), 4000); }
-            } else { setLoginStatus({ loading: false, error: 'QR code does not contain a valid token.' }); setTimeout(() => setLoginStatus({ loading: false, error: '' }), 4000); }
+            } else if (scannedText.startsWith('biz_')) {
+                handleLoginWithToken(scannedText);
+            } else if (scannedText.startsWith('cust_')) {
+                window.location.href = `/customer?token=${scannedText}`;
+            }
         } catch (e) {
             if (scannedText.startsWith('biz_')) handleLoginWithToken(scannedText);
             else if (scannedText.startsWith('cust_')) window.location.href = `/customer?token=${scannedText}`;
-            else { setLoginStatus({ loading: false, error: 'Invalid QR code format.' }); setTimeout(() => setLoginStatus({ loading: false, error: '' }), 4000); }
         }
     };
 
-    const navLinks = (
-        <>
-            <a href="/business/login" className="text-gray-600 hover:text-blue-600 font-medium transition-colors">{t('businessLogin')}</a>
-            <button onClick={() => setIsScannerOpen(true)} className="text-gray-600 hover:text-blue-600 font-medium transition-colors text-left">{t('scanToLogin')}</button>
-            <button onClick={() => setLanguage(language === 'en' ? 'el' : 'en')} className="text-gray-600 hover:text-blue-600 font-medium transition-colors text-left">
-                {language === 'en' ? 'Ελληνικά' : 'English'}
-            </button>
-        </>
-    );
-
     return (
-        <div className="bg-white font-sans text-gray-800 antialiased">
+        <div className="bg-white min-h-screen">
             {loginStatus.loading && (
-                 <div className="fixed inset-0 bg-black bg-opacity-50 z-[999] flex justify-center items-center p-4">
-                     <div className="bg-white rounded-lg shadow-xl p-8 text-center flex flex-col items-center gap-4">
+                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[999] flex justify-center items-center p-4">
+                     <div className="bg-white rounded-3xl shadow-2xl p-8 text-center flex flex-col items-center gap-4">
                         <Spinner />
-                        <p className="font-semibold text-lg">Logging you in...</p>
+                        <p className="font-bold text-lg text-slate-800">Logging you in...</p>
                      </div>
                  </div>
             )}
-             {loginStatus.error && (
-                 <div className="fixed top-5 left-1/2 -translate-x-1/2 bg-red-500 text-white font-semibold py-2 px-6 rounded-lg shadow-lg z-[999]">
-                    {loginStatus.error}
-                 </div>
-            )}
+            
             <QRScannerModal isOpen={isScannerOpen} onClose={() => setIsScannerOpen(false)} onScan={handleScan} />
 
-            {/* Sidebar Overlay */}
-            <div 
-                className={`fixed inset-0 bg-black bg-opacity-50 z-[55] transition-opacity duration-300 md:hidden ${isSidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
-                onClick={() => setIsSidebarOpen(false)}
-                aria-hidden="true"
-            ></div>
-
-            {/* Sidebar Menu */}
-            <aside 
-                className={`fixed top-0 left-0 h-full w-72 bg-white shadow-xl z-[60] transform transition-transform duration-300 ease-in-out md:hidden ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
-                role="dialog"
-                aria-modal="true"
-            >
-                <div className="p-6">
-                    <div className="flex justify-between items-center mb-8">
-                        <a href="/" className="flex items-center gap-2">
-                            <img src="https://i.postimg.cc/bJwnZhs9/Chat-GPT-Image-Aug-31-2025-06-45-18-AM.png" alt="QRoyal Logo" className="w-8 h-8" />
-                            <span className="font-bold text-xl text-gray-800">QRoyal</span>
-                        </a>
-                        <button onClick={() => setIsSidebarOpen(false)} aria-label="Close menu">
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                        </button>
-                    </div>
-                    <nav className="flex flex-col items-start gap-6 text-lg">
-                        {navLinks}
-                        <a href="/?action=open_chat" className="w-full text-center bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors mt-4">{t('landingCtaBusiness')}</a>
-                    </nav>
-                </div>
-            </aside>
-
-            <header className="bg-white/80 backdrop-blur-sm sticky top-0 z-50 shadow-sm">
-                <nav className="container mx-auto px-6 py-4 flex justify-between items-center">
-                    <div className="flex items-center gap-4">
-                        <div className="md:hidden">
-                             <button onClick={() => setIsSidebarOpen(true)} aria-label="Open menu">
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-                            </button>
+            {/* Navigation */}
+            <header className="sticky top-0 z-50 w-full border-b border-slate-100 bg-white/80 backdrop-blur-md">
+                <div className="flex h-16 items-center justify-between px-6 lg:px-20 max-w-7xl mx-auto">
+                    <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                            <span className="material-symbols-outlined text-[28px]">qr_code_scanner</span>
                         </div>
-                        <a href="/" className="flex items-center gap-2">
-                            <img src="https://i.postimg.cc/bJwnZhs9/Chat-GPT-Image-Aug-31-2025-06-45-18-AM.png" alt="QRoyal Logo" className="w-10 h-10" />
-                            <span className="font-bold text-2xl text-gray-800">QRoyal</span>
-                        </a>
+                        <h2 className="text-2xl font-black tracking-tighter text-slate-900">QRoyal</h2>
                     </div>
                     
                     <div className="hidden md:flex items-center gap-8">
-                        {navLinks}
-                        <a href="/?action=open_chat" className="bg-blue-600 text-white font-semibold py-2 px-5 rounded-lg hover:bg-blue-700 transition-all shadow-sm hover:shadow-md">
-                            {t('landingCtaBusiness')}
+                        <a className="text-sm font-bold text-slate-500 hover:text-primary transition-colors" href="/business/login">{t('businessLogin')}</a>
+                        <button onClick={() => setLanguage(language === 'en' ? 'el' : 'en')} className="flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-primary transition-colors">
+                            <span className="material-symbols-outlined text-lg">language</span>
+                            {language === 'en' ? 'EL' : 'EN'}
+                        </button>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                        <button onClick={() => setIsScannerOpen(true)} className="hidden sm:flex h-10 items-center justify-center px-4 text-sm font-black text-slate-700 hover:text-primary transition-colors">
+                            {t('scanToLogin')}
+                        </button>
+                        <a href="/signup/customer" className="flex h-10 items-center justify-center rounded-xl bg-primary px-6 text-sm font-black text-white shadow-xl shadow-primary/20 transition-all hover:bg-blue-700 active:scale-95">
+                            {t('landingCtaCustomer')}
                         </a>
                     </div>
-                </nav>
+                </div>
             </header>
 
             <main>
-                <section className="relative bg-gradient-to-br from-blue-50 via-white to-cyan-50 overflow-hidden">
-                    <div className="container mx-auto px-6 py-20 md:py-24 grid md:grid-cols-2 items-center gap-12">
-                        <div className="text-center md:text-left">
-                            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-gray-900 mb-4 leading-tight">{t('landingTitle')}</h1>
-                            <p className="text-lg md:text-xl text-gray-600 max-w-xl mx-auto md:mx-0 mb-10">{t('landingSubtitle')}</p>
-                            <div className="flex flex-col md:flex-row items-center gap-4 justify-center md:justify-start">
-                                <a href="/signup/customer" className="w-full md:w-auto bg-blue-600 text-white font-bold py-3 px-8 rounded-full text-lg shadow-md hover:bg-blue-700 transition-transform transform hover:scale-105">
+                {/* Hero Section */}
+                <section className="relative overflow-hidden pt-16 pb-24 lg:pt-32 lg:pb-40 px-6 max-w-7xl mx-auto">
+                    <div className="grid gap-16 lg:grid-cols-2 items-center">
+                        <div className="flex flex-col gap-8">
+                            <div className="flex flex-col gap-5">
+                                <div className="inline-flex w-fit items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-4 py-1.5 text-[10px] font-black text-primary uppercase tracking-widest">
+                                    <span className="material-symbols-outlined text-[14px]">verified</span>
+                                    {t('oneProgramAllNeeds')}
+                                </div>
+                                <h1 className="text-5xl sm:text-7xl font-black leading-[1.05] tracking-tight text-slate-900">
+                                    {t('landingTitle').split(' ').slice(0, -1).join(' ')} <span className="text-primary">{t('landingTitle').split(' ').pop()}</span>
+                                </h1>
+                                <p className="text-xl text-slate-500 font-medium leading-relaxed max-w-lg">
+                                    {t('landingSubtitle')}
+                                </p>
+                            </div>
+                            <div className="flex flex-wrap gap-4">
+                                <a href="/signup/customer" className="h-14 px-10 rounded-2xl bg-primary text-white text-lg font-black shadow-2xl shadow-primary/30 hover:bg-blue-700 transition-all flex items-center gap-3 active:scale-95">
                                     {t('landingCtaCustomer')}
+                                    <span className="material-symbols-outlined">arrow_forward</span>
                                 </a>
-                                <a href="/business/login" className="w-full md:w-auto bg-white text-blue-600 border-2 border-blue-200 font-bold py-3 px-8 rounded-full text-lg shadow-sm hover:bg-blue-50 transition-transform transform hover:scale-105">
-                                    {t('landingForBusinesses')}
-                                </a>
+                                <button onClick={() => window.tidioChatApi?.open()} className="h-14 px-8 rounded-2xl border-2 border-slate-100 bg-white text-slate-900 text-lg font-black hover:bg-slate-50 transition-all flex items-center gap-3 active:scale-95">
+                                    {t('landingCtaBusiness')}
+                                </button>
                             </div>
                         </div>
-                        <div className="relative mt-16 md:mt-0 h-[34rem] md:h-full flex justify-center items-center">
-                            <div className="absolute w-64 h-[512px] bg-gray-800 rounded-[48px] border-[14px] border-black shadow-2xl"></div>
-                            <div className="absolute w-[232px] h-[484px] bg-white rounded-[34px] overflow-hidden flex flex-col items-center justify-center p-4 space-y-4">
-                               <img src="https://i.postimg.cc/KjFxM2bz/Chat-GPT-Image-Apr-27-2025-05-14-20-PM.png" alt="Profile" className="w-24 h-24 rounded-full border-4 border-gray-100 object-cover" />
-                               <h2 className="text-2xl font-bold">John Doe</h2>
-                               <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=qroyal_customer_preview" alt="QR Code" className="w-36 h-36" />
-                               <p className="text-sm text-gray-500">Your Universal QR Card</p>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-                
-                <section className="py-16 bg-gray-50">
-                    <div className="container mx-auto px-6 text-center">
-                        <h3 className="text-sm font-bold uppercase text-gray-500 tracking-widest mb-8">Trusted by local businesses</h3>
-                        <div className="flex justify-center items-center gap-10 md:gap-16 flex-wrap opacity-60">
-                            <LogoCafe className="h-8 text-gray-500" />
-                            <LogoBooks className="h-10 text-gray-500" />
-                            <LogoBoutique className="h-10 text-gray-500" />
-                            <LogoBakery className="h-9 text-gray-500" />
-                        </div>
-                    </div>
-                </section>
 
-                {/* CUSTOMER FEATURES SECTION */}
-                <section className="py-20 md:py-28 px-6 bg-white">
-                    <div className="container mx-auto text-center">
-                        <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">{t('customerFeaturesTitle')}</h2>
-                        <p className="text-lg text-gray-500 mb-16 max-w-3xl mx-auto">{t('customerFeaturesSubtitle')}</p>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 text-left">
-                            <div className="bg-gray-50 p-6 rounded-xl border border-gray-100"><div className="flex items-center justify-center bg-blue-100 text-blue-600 w-12 h-12 rounded-lg mb-4"><CustomerFeatureIcon1 /></div><h3 className="text-xl font-bold mb-2">{t('customerFeature1Title')}</h3><p className="text-gray-600">{t('customerFeature1Desc')}</p></div>
-                            <div className="bg-gray-50 p-6 rounded-xl border border-gray-100"><div className="flex items-center justify-center bg-blue-100 text-blue-600 w-12 h-12 rounded-lg mb-4"><CustomerFeatureIcon2 /></div><h3 className="text-xl font-bold mb-2">{t('customerFeature2Title')}</h3><p className="text-gray-600">{t('customerFeature2Desc')}</p></div>
-                            <div className="bg-gray-50 p-6 rounded-xl border border-gray-100"><div className="flex items-center justify-center bg-blue-100 text-blue-600 w-12 h-12 rounded-lg mb-4"><CustomerFeatureIcon3 /></div><h3 className="text-xl font-bold mb-2">{t('customerFeature3Title')}</h3><p className="text-gray-600">{t('customerFeature3Desc')}</p></div>
-                            <div className="bg-gray-50 p-6 rounded-xl border border-gray-100"><div className="flex items-center justify-center bg-blue-100 text-blue-600 w-12 h-12 rounded-lg mb-4"><CustomerFeatureIcon4 /></div><h3 className="text-xl font-bold mb-2">{t('customerFeature4Title')}</h3><p className="text-gray-600">{t('customerFeature4Desc')}</p></div>
-                        </div>
-                    </div>
-                </section>
-
-                {/* BUSINESS FEATURES SECTION */}
-                <section className="py-20 md:py-28 px-6 bg-blue-50">
-                     <div className="container mx-auto grid lg:grid-cols-2 gap-12 items-center">
-                        <div className="text-center lg:text-left">
-                            <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">{t('businessFeaturesTitle')}</h2>
-                            <p className="text-lg text-gray-500 mb-12 max-w-xl mx-auto lg:mx-0">{t('businessFeaturesSubtitle')}</p>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 text-left">
-                                <div className="space-y-1"><div className="flex items-center justify-center bg-blue-200 text-blue-700 w-10 h-10 rounded-lg mb-3"><BusinessFeatureIcon1 /></div><h3 className="text-lg font-bold">{t('businessFeature1Title')}</h3><p className="text-gray-600 text-sm">{t('businessFeature1Desc')}</p></div>
-                                <div className="space-y-1"><div className="flex items-center justify-center bg-blue-200 text-blue-700 w-10 h-10 rounded-lg mb-3"><BusinessFeatureIcon2 /></div><h3 className="text-lg font-bold">{t('businessFeature2Title')}</h3><p className="text-gray-600 text-sm">{t('businessFeature2Desc')}</p></div>
-                                <div className="space-y-1"><div className="flex items-center justify-center bg-blue-200 text-blue-700 w-10 h-10 rounded-lg mb-3"><BusinessFeatureIcon3 /></div><h3 className="text-lg font-bold">{t('businessFeature3Title')}</h3><p className="text-gray-600 text-sm">{t('businessFeature3Desc')}</p></div>
-                                <div className="space-y-1"><div className="flex items-center justify-center bg-blue-200 text-blue-700 w-10 h-10 rounded-lg mb-3"><BusinessFeatureIcon4 /></div><h3 className="text-lg font-bold">{t('businessFeature4Title')}</h3><p className="text-gray-600 text-sm">{t('businessFeature4Desc')}</p></div>
-                            </div>
-                        </div>
-                        <div className="p-8 bg-white/50 rounded-2xl shadow-lg">
-                            <div className="aspect-video bg-gray-800 rounded-lg shadow-inner-lg p-2">
-                                <div className="w-full h-full bg-white rounded flex items-center justify-center">
-                                    <img src="https://i.postimg.cc/x8TjZ24Z/Generated-Image-September-06-2025-10-34-PM.jpg" alt="Business Dashboard Mockup" className="w-full h-full object-cover rounded"/>
+                        {/* Phone Mockup Visual */}
+                        <div className="relative flex justify-center items-center">
+                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-gradient-to-tr from-blue-100/40 via-purple-100/20 to-transparent rounded-full blur-3xl"></div>
+                            <div className="relative z-10 w-[300px] sm:w-[340px] rotate-[-6deg] hover:rotate-0 transition-all duration-700 ease-out">
+                                <div className="rounded-[3rem] border-[10px] border-slate-900 bg-slate-900 overflow-hidden shadow-2xl">
+                                    <div className="h-[640px] w-full bg-white flex flex-col relative">
+                                        <div className="h-8 w-full flex justify-between px-8 pt-4 text-[10px] font-black text-slate-900">
+                                            <span>9:41</span>
+                                            <div className="flex gap-1.5">
+                                                <span className="material-symbols-outlined text-[14px]">signal_cellular_alt</span>
+                                                <span className="material-symbols-outlined text-[14px]">wifi</span>
+                                            </div>
+                                        </div>
+                                        <div className="pt-8 px-8 pb-4">
+                                            <div className="flex justify-between items-center mb-6">
+                                                <span className="material-symbols-outlined text-slate-400">menu</span>
+                                                <div className="h-10 w-10 rounded-2xl bg-slate-100 bg-[url('https://i.postimg.cc/KjFxM2bz/Chat-GPT-Image-Apr-27-2025-05-14-20-PM.png')] bg-cover"></div>
+                                            </div>
+                                            <h3 className="text-3xl font-black text-slate-900 leading-tight mb-1">Hello, Alex! 👋</h3>
+                                            <p className="text-sm text-slate-400 font-bold uppercase tracking-tighter">Your active rewards</p>
+                                        </div>
+                                        <div className="px-6">
+                                            <div className="bg-gradient-to-br from-primary to-indigo-800 rounded-3xl p-6 text-white shadow-2xl shadow-primary/20 mb-6 relative overflow-hidden">
+                                                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
+                                                <div className="flex justify-between items-start mb-10 relative z-10">
+                                                    <div>
+                                                        <p className="text-blue-100 text-[10px] font-black uppercase tracking-widest mb-1">Urban Coffee</p>
+                                                        <h4 className="text-xl font-black leading-tight">Golden Card</h4>
+                                                    </div>
+                                                    <div className="bg-white/20 p-2 rounded-xl backdrop-blur-md">
+                                                        <span className="material-symbols-outlined">local_cafe</span>
+                                                    </div>
+                                                </div>
+                                                <div className="grid grid-cols-5 gap-3 relative z-10">
+                                                    {[1,2,3].map(i => <div key={i} className="aspect-square rounded-full bg-white text-primary flex items-center justify-center shadow-sm"><span className="material-symbols-outlined text-sm font-black">check</span></div>)}
+                                                    <div className="aspect-square rounded-full bg-white/30 border-2 border-white/50 flex items-center justify-center text-xs font-black">4</div>
+                                                    <div className="aspect-square rounded-full bg-white/10 border-2 border-dashed border-white/20 flex items-center justify-center"><span className="material-symbols-outlined text-[16px] opacity-40">redeem</span></div>
+                                                </div>
+                                            </div>
+                                            <button onClick={() => setIsScannerOpen(true)} className="w-full bg-slate-50 rounded-2xl p-4 border border-slate-100 flex items-center gap-4 active:scale-95 transition-all">
+                                                <div className="h-12 w-12 rounded-xl bg-primary text-white flex items-center justify-center shadow-lg shadow-primary/20">
+                                                    <span className="material-symbols-outlined">qr_code_scanner</span>
+                                                </div>
+                                                <div className="flex-1 text-left">
+                                                    <h4 className="font-black text-slate-800 text-sm">Scan Now</h4>
+                                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Award points instantly</p>
+                                                </div>
+                                                <span className="material-symbols-outlined text-slate-300">chevron_right</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="absolute -right-8 top-32 bg-white p-4 rounded-2xl shadow-2xl flex items-center gap-4 animate-bounce duration-[3000ms] border border-slate-50">
+                                    <div className="bg-emerald-100 p-2 rounded-xl text-emerald-600">
+                                        <span className="material-symbols-outlined">celebration</span>
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">New Reward!</p>
+                                        <p className="text-sm font-black text-slate-800">Free Coffee Unlocked</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                     </div>
+                    </div>
                 </section>
-                
-                <section className="py-20 md:py-28 px-6 bg-gray-50">
-                    <div className="container mx-auto text-center">
-                         <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-12">Loved by Businesses Like Yours</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 text-left">
-                            <figure className="bg-white p-8 rounded-lg shadow-sm relative"><QuoteIcon /><blockquote className="mt-4 text-gray-600 italic">"{'QRoyal revolutionized how we interact with our customers. It\'s simple, effective, and our regulars love it!'}"</blockquote><figcaption className="mt-6"><div className="font-bold text-gray-800">Maria P.</div><div className="text-sm text-gray-500">Owner, The Daily Grind Cafe</div></figcaption></figure>
-                            <figure className="bg-white p-8 rounded-lg shadow-sm relative"><QuoteIcon /><blockquote className="mt-4 text-gray-600 italic">"{'We saw a 20% increase in repeat customers within three months. The analytics dashboard is a game-changer.'}"</blockquote><figcaption className="mt-6"><div className="font-bold text-gray-800">John A.</div><div className="text-sm text-gray-500">Manager, Book Haven</div></figcaption></figure>
-                            <figure className="bg-white p-8 rounded-lg shadow-sm relative"><QuoteIcon /><blockquote className="mt-4 text-gray-600 italic">"{'Finally, a loyalty solution that doesn\'t require an app! Our customers signed up instantly. The support has been fantastic too.'}"</blockquote><figcaption className="mt-6"><div className="font-bold text-gray-800">Elena V.</div><div className="text-sm text-gray-500">Stylist, Chic Boutique</div></figcaption></figure>
+
+                {/* Social Proof */}
+                <div className="w-full border-y border-slate-50 bg-slate-50/30 py-10">
+                    <div className="max-w-7xl mx-auto px-6 text-center">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-8">Trusted by local legends</p>
+                        <div className="flex flex-wrap justify-center gap-12 md:gap-24 opacity-30 grayscale contrast-125">
+                            {['UrbanEats', 'BeanBrew', 'FlexGym', 'GlowSpa', 'BistroX'].map(name => (
+                                <div key={name} className="flex items-center gap-2 text-2xl font-black tracking-tighter">{name}</div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
+                {/* How It Works */}
+                <section className="py-24 bg-white">
+                    <div className="max-w-7xl mx-auto px-6">
+                        <div className="text-center max-w-2xl mx-auto mb-12">
+                            <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-6">{t('howItWorks')}</h2>
+                            <p className="text-lg text-slate-500 font-medium">{t('landingSubtitle')}</p>
+                        </div>
+                        
+                        <div className="flex justify-center mb-16">
+                            <div className="inline-flex bg-slate-100 p-1.5 rounded-2xl border border-slate-200">
+                                <button 
+                                    onClick={() => setHowItWorksTab('customer')}
+                                    className={`px-8 py-3 rounded-xl text-sm font-black transition-all ${howItWorksTab === 'customer' ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+                                >
+                                    {t('landingForCustomers')}
+                                </button>
+                                <button 
+                                    onClick={() => setHowItWorksTab('business')}
+                                    className={`px-8 py-3 rounded-xl text-sm font-black transition-all ${howItWorksTab === 'business' ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+                                >
+                                    {t('landingForBusinesses')}
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="grid md:grid-cols-3 gap-10">
+                            {howItWorksTab === 'customer' ? (
+                                <>
+                                    <StepCard icon="qr_code_2" title={t('howStep2')} desc={t('howStep2Desc')} color="blue" />
+                                    <StepCard icon="approval_delegation" title="Collect Stamps" desc="Watch your digital stamp card fill up instantly. One scan is all it takes." color="purple" />
+                                    <StepCard icon="redeem" title={t('howStep3')} desc={t('howStep3Desc')} color="green" />
+                                </>
+                            ) : (
+                                <>
+                                    <StepCard icon="settings" title={t('howStep1')} desc={t('howStep1Desc')} color="blue" />
+                                    <StepCard icon="dashboard" title="Live Dashboard" desc="Monitor scans, points, and member growth in real-time." color="purple" />
+                                    <StepCard icon="auto_graph" title="Retention Boost" desc="Automatically identify and reward your most loyal customers." color="green" />
+                                </>
+                            )}
                         </div>
                     </div>
                 </section>
 
-                <section className="bg-blue-600">
-                    <div className="container mx-auto py-20 px-6 text-center text-white">
-                        <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Build Your Loyalty?</h2>
-                        <p className="text-blue-200 text-lg mb-8 max-w-2xl mx-auto">Join hundreds of businesses growing with QRoyal. Get started today for free.</p>
-                        <a href="/?action=open_chat" className="bg-white text-blue-600 font-bold py-3 px-8 rounded-full text-lg shadow-md hover:bg-blue-100 transition-transform transform hover:scale-105">
-                            {t('landingCtaBusiness')}
-                        </a>
+                {/* CTA Banner */}
+                <section className="py-20 px-6 max-w-7xl mx-auto">
+                    <div className="bg-primary rounded-[3rem] p-10 sm:p-20 text-center lg:text-left relative overflow-hidden shadow-2xl shadow-primary/30">
+                        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(#fff 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
+                        <div className="absolute right-0 top-0 w-96 h-96 bg-white/20 blur-[120px] rounded-full pointer-events-none -mr-48 -mt-48"></div>
+                        <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-12">
+                            <div className="max-w-xl">
+                                <h2 className="text-4xl md:text-5xl font-black text-white mb-6 leading-tight">Ready to build your digital legacy?</h2>
+                                <p className="text-blue-100 text-xl font-medium">Join 2,000+ businesses growing with QRoyal. No physical cards, no hassle.</p>
+                            </div>
+                            <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
+                                <a href="/signup/customer" className="h-16 px-10 rounded-2xl bg-white text-primary text-lg font-black shadow-xl hover:bg-slate-50 transition-all flex items-center justify-center active:scale-95">
+                                    {t('landingCtaCustomer')}
+                                </a>
+                                <button onClick={() => window.tidioChatApi?.open()} className="h-16 px-10 rounded-2xl bg-blue-800/40 border border-blue-400/20 text-white text-lg font-black hover:bg-blue-800/60 transition-all flex items-center justify-center active:scale-95">
+                                    {t('landingCtaBusiness')}
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </section>
             </main>
 
-            <footer className="bg-gray-900 text-gray-400">
-                <div className="container mx-auto py-12 px-6">
-                    <div className="flex flex-col md:flex-row justify-between items-center md:items-start gap-8 text-center md:text-left">
-                        <div>
-                            <a href="/" className="flex items-center justify-center md:justify-start gap-2 mb-4">
-                                <img src="https://i.postimg.cc/bJwnZhs9/Chat-GPT-Image-Aug-31-2025-06-45-18-AM.png" alt="QRoyal Logo" className="w-10 h-10" />
-                                <span className="font-bold text-2xl text-white">QRoyal</span>
-                            </a>
-                            <p className="text-sm max-w-xs">The Smartest Loyalty Program for Local Businesses.</p>
+            {/* Footer */}
+            <footer className="border-t border-slate-100 bg-white py-16 px-6 lg:px-20">
+                <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-10">
+                    <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                            <span className="material-symbols-outlined text-[24px]">qr_code_scanner</span>
                         </div>
-                        <div className="flex flex-col sm:flex-row gap-8 sm:gap-16 text-sm">
-                           <div>
-                             <h4 className="font-bold text-white mb-3">Product</h4>
-                             <ul className="space-y-2">
-                                <li><a href="/business/login" className="hover:text-white">Business Login</a></li>
-                                <li><a href="/signup/customer" className="hover:text-white">Get a Card</a></li>
-                             </ul>
-                           </div>
-                            <div>
-                             <h4 className="font-bold text-white mb-3">Company</h4>
-                             <ul className="space-y-2">
-                                <li><button onClick={handleGeneralContactClick} className="hover:text-white">Contact Us</button></li>
-                             </ul>
-                           </div>
-                        </div>
+                        <span className="text-xl font-black tracking-tighter text-slate-900">QRoyal</span>
                     </div>
-                    <div className="mt-10 pt-8 border-t border-gray-800 text-center text-sm">
-                        <p>&copy; {new Date().getFullYear()} QRoyal. All rights reserved.</p>
+                    <div className="flex gap-10 text-sm font-bold text-slate-400">
+                        <a className="hover:text-primary transition-colors" href="#">Privacy</a>
+                        <a className="hover:text-primary transition-colors" href="#">Terms</a>
+                        <button onClick={() => window.tidioChatApi?.open()} className="hover:text-primary transition-colors">{t('contactUs')}</button>
                     </div>
+                    <p className="text-sm font-bold text-slate-300">© {new Date().getFullYear()} QRoyal Inc.</p>
                 </div>
             </footer>
+        </div>
+    );
+};
+
+const StepCard: React.FC<{ icon: string, title: string, desc: string, color: 'blue' | 'purple' | 'green' }> = ({ icon, title, desc, color }) => {
+    const colors = {
+        blue: 'bg-blue-50 text-blue-600',
+        purple: 'bg-purple-50 text-purple-600',
+        green: 'bg-emerald-50 text-emerald-600'
+    };
+    return (
+        <div className="bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500 group">
+            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-8 transition-colors ${colors[color]} group-hover:bg-primary group-hover:text-white`}>
+                <span className="material-symbols-outlined text-[32px]">{icon}</span>
+            </div>
+            <h3 className="text-2xl font-black text-slate-900 mb-4">{title}</h3>
+            <p className="text-slate-500 font-medium leading-relaxed">{desc}</p>
         </div>
     );
 };

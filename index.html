@@ -1,14 +1,36 @@
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="https://i.postimg.cc/bJwnZhs9/Chat-GPT-Image-Aug-31-2025-06-45-18-AM.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>QRoyal</title>
+    <title>QRoyal - The Smartest Loyalty Program</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#1337ec",
+            },
+            fontFamily: {
+              "sans": ["Manrope", "sans-serif"],
+            },
+          },
+        },
+      }
+    </script>
     
   <script type="importmap">
 {
@@ -26,7 +48,7 @@
 </script>
 <script src="//code.tidio.co/lbmfxqsklq19pkniyajxaxzjguaddmtv.js" async></script>
 </head>
-  <body class="bg-gray-100">
+  <body class="bg-gray-100 font-sans antialiased overflow-x-hidden">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
   </body>
