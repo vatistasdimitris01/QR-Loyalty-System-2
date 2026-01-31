@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { getCustomerByQrToken, updateCustomer, joinBusiness, getMembershipsForCustomer } from '../services/api';
 import { Customer, Membership, Business } from '../types';
-import { Spinner, CustomerSetupModal, HomeIcon, SearchIcon, UserIcon } from '../components/common';
+import { Spinner, CustomerSetupModal, HomeIcon, SearchIcon, UserIcon, CustomerQRModal } from '../components/common';
 import { useLanguage } from '../context/LanguageContext';
 import CustomerHomePage from './customer/CustomerHomePage';
 import CustomerSearchPage from './customer/CustomerSearchPage';
@@ -29,6 +29,7 @@ const CustomerPage: React.FC<CustomerPageProps> = ({ qrToken }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isSetupModalOpen, setIsSetupModalOpen] = useState(false);
+  const [isQrModalOpen, setIsQrModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<ActiveTab>('home');
   const [joinMessage, setJoinMessage] = useState('');
   const [viewingBusiness, setViewingBusiness] = useState<Business | null>(null);
@@ -86,7 +87,6 @@ const CustomerPage: React.FC<CustomerPageProps> = ({ qrToken }) => {
         
         return () => {
             document.removeEventListener('tidioChat-ready', hideChat);
-            // Make sure chat is visible when leaving customer page, for other parts of the site
             if (window.tidioChatApi) {
                 window.tidioChatApi.show();
             }
@@ -106,9 +106,8 @@ const CustomerPage: React.FC<CustomerPageProps> = ({ qrToken }) => {
             if (result) {
                 setJoinMessage(`${t('joinSuccess')} ${result.business.public_name}!`);
                 handleJoinSuccess();
-                setTimeout(() => setJoinMessage(''), 5000); // Hide message after 5s
+                setTimeout(() => setJoinMessage(''), 5000);
             }
-            // Remove join param from URL to prevent re-joining on refresh
             const newUrl = `${window.location.pathname}?token=${qrToken}`;
             window.history.replaceState({}, document.title, newUrl);
         }
@@ -160,22 +159,33 @@ const CustomerPage: React.FC<CustomerPageProps> = ({ qrToken }) => {
       if (!customer) return null;
       switch (activeTab) {
           case 'home':
-              return <CustomerHomePage customer={customer} memberships={memberships} onViewBusiness={setViewingBusiness} />;
+              return <CustomerHomePage 
+                        customer={customer} 
+                        memberships={memberships} 
+                        onViewBusiness={setViewingBusiness} 
+                        onShowMyQr={() => setIsQrModalOpen(true)} 
+                      />;
           case 'search':
               return <CustomerSearchPage customer={customer} onJoinSuccess={handleJoinSuccess} />;
           case 'profile':
               return <CustomerProfilePage customer={customer} onUpdate={setCustomer} onContactUs={() => window.tidioChatApi?.open()} />;
           default:
-              return <CustomerHomePage customer={customer} memberships={memberships} onViewBusiness={setViewingBusiness} />;
+              return <CustomerHomePage 
+                        customer={customer} 
+                        memberships={memberships} 
+                        onViewBusiness={setViewingBusiness}
+                        onShowMyQr={() => setIsQrModalOpen(true)}
+                      />;
       }
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 font-sans">
+    <div className="min-h-screen bg-[#f6f6f8] font-sans">
         <CustomerSetupModal isOpen={isSetupModalOpen} onSave={handleSetupSave} />
+        <CustomerQRModal isOpen={isQrModalOpen} onClose={() => setIsQrModalOpen(false)} customer={customer} />
         
         {joinMessage && (
-            <div className="fixed top-4 left-1/2 -translate-x-1/2 bg-green-500 text-white font-bold py-2 px-4 rounded-lg shadow-lg z-50">
+            <div className="fixed top-4 left-1/2 -translate-x-1/2 bg-green-500 text-white font-bold py-2 px-4 rounded-lg shadow-lg z-50 animate-bounce">
                 {joinMessage}
             </div>
         )}
@@ -184,21 +194,35 @@ const CustomerPage: React.FC<CustomerPageProps> = ({ qrToken }) => {
             {renderContent()}
         </main>
 
-        <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg flex justify-around">
+        <nav className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-slate-100 shadow-[0_-4px_20px_-5px_rgba(0,0,0,0.05)] flex justify-around items-center px-4 py-2 md:py-4 z-40">
             <NavItem icon={<HomeIcon className="h-6 w-6" />} label={t('home')} isActive={activeTab === 'home'} onClick={() => setActiveTab('home')} />
             <NavItem icon={<SearchIcon className="h-6 w-6" />} label={t('search')} isActive={activeTab === 'search'} onClick={() => setActiveTab('search')} />
+            
+            <button 
+                onClick={() => setIsQrModalOpen(true)}
+                className="relative -top-8 bg-primary hover:bg-blue-700 text-white rounded-full p-4 shadow-xl shadow-primary/40 border-4 border-white transition-all active:scale-90"
+            >
+                <span className="material-symbols-outlined text-2xl">qr_code_scanner</span>
+            </button>
+
             <NavItem icon={<UserIcon className="h-6 w-6" />} label={t('profile')} isActive={activeTab === 'profile'} onClick={() => setActiveTab('profile')} />
+            <NavItem 
+                icon={<span className="material-symbols-outlined">wallet</span>} 
+                label="Cards" 
+                isActive={false} 
+                onClick={() => setActiveTab('home')} 
+            />
         </nav>
     </div>
   );
 };
 
 const NavItem: React.FC<{ icon: React.ReactNode, label: string, isActive: boolean, onClick: () => void }> = ({ icon, label, isActive, onClick }) => {
-    const activeClass = isActive ? 'text-blue-600' : 'text-gray-500';
+    const activeClass = isActive ? 'text-primary' : 'text-slate-400';
     return (
-        <button onClick={onClick} className={`flex flex-col items-center justify-center w-full pt-2 pb-1 ${activeClass} hover:text-blue-600 transition-colors`}>
-            {icon}
-            <span className="text-xs font-medium">{label}</span>
+        <button onClick={onClick} className={`flex flex-col items-center justify-center w-full transition-all hover:text-primary ${activeClass}`}>
+            <div className="mb-0.5">{icon}</div>
+            <span className="text-[10px] font-bold uppercase tracking-tighter">{label}</span>
         </button>
     )
 }
