@@ -1,0 +1,197 @@
+-- ================================================================
+-- QRoyal PostgreSQL Setup Script (Neon.tech / PostgreSQL)
+-- ================================================================
+-- This script initializes all tables, constraints, and functions
+-- required for the QRoyal loyalty system.
+-- ================================================================
+
+-- Enable UUID extension
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+
+-- 1. CUSTOMERS TABLE
+CREATE TABLE IF NOT EXISTS public.customers (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT NOT NULL,
+    phone_number TEXT NOT NULL,
+    qr_token TEXT UNIQUE NOT NULL,
+    qr_data_url TEXT,
+    qr_style_preferences JSONB DEFAULT '{"qr_color": "#000000", "qr_dot_style": "square", "qr_eye_shape": "square"}'::jsonb,
+    profile_picture_url TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX idx_customers_qr_token ON public.customers(qr_token);
+
+-- 2. BUSINESSES TABLE
+CREATE TABLE IF NOT EXISTS public.businesses (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT NOT NULL, -- Internal/Login Name
+    email TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL,
+    qr_token TEXT UNIQUE NOT NULL,
+    qr_data_url TEXT,
+    
+    -- Public Profile Info
+    public_name TEXT,
+    logo_url TEXT,
+    cover_photo_url TEXT,
+    bio TEXT,
+    website_url TEXT,
+    facebook_url TEXT,
+    instagram_url TEXT,
+    public_phone_number TEXT,
+    default_profile_tab TEXT DEFAULT 'posts' CHECK (default_profile_tab IN ('posts', 'discounts', 'about')),
+    
+    -- Loyalty Rules
+    points_per_scan INTEGER DEFAULT 1,
+    reward_threshold INTEGER DEFAULT 5,
+    reward_message TEXT DEFAULT 'Congratulations! You won a reward!',
+    
+    -- Location
+    address_text TEXT,
+    latitude NUMERIC,
+    longitude NUMERIC,
+    
+    -- Business QR Style
+    qr_logo_url TEXT,
+    qr_color TEXT DEFAULT '#000000',
+    qr_eye_shape TEXT DEFAULT 'square',
+    qr_dot_style TEXT DEFAULT 'square',
+    
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX idx_businesses_email ON public.businesses(email);
+CREATE INDEX idx_businesses_qr_token ON public.businesses(qr_token);
+
+-- 3. MEMBERSHIPS TABLE (Join table between Customers and Businesses)
+CREATE TABLE IF NOT EXISTS public.memberships (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    customer_id UUID REFERENCES public.customers(id) ON DELETE CASCADE,
+    business_id UUID REFERENCES public.businesses(id) ON DELETE CASCADE,
+    points INTEGER DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(customer_id, business_id)
+);
+CREATE INDEX idx_memberships_customer ON public.memberships(customer_id);
+CREATE INDEX idx_memberships_business ON public.memberships(business_id);
+
+-- 4. SCAN LOGS TABLE (For Analytics)
+CREATE TABLE IF NOT EXISTS public.scan_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    business_id UUID REFERENCES public.businesses(id) ON DELETE CASCADE,
+    customer_id UUID REFERENCES public.customers(id) ON DELETE SET NULL,
+    points_awarded INTEGER DEFAULT 0,
+    reward_claimed BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX idx_scan_logs_business ON public.scan_logs(business_id);
+CREATE INDEX idx_scan_logs_created ON public.scan_logs(created_at);
+
+-- 5. POSTS TABLE
+CREATE TABLE IF NOT EXISTS public.posts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    business_id UUID REFERENCES public.businesses(id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    content TEXT,
+    image_url TEXT,
+    post_type TEXT NOT NULL DEFAULT 'standard' CHECK (post_type IN ('standard', 'discount')),
+    video_url TEXT,
+    price_text TEXT,
+    external_url TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX idx_posts_business ON public.posts(business_id);
+
+-- 6. DISCOUNTS TABLE (Vouchers/Coupons)
+CREATE TABLE IF NOT EXISTS public.discounts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    business_id UUID REFERENCES public.businesses(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    description TEXT,
+    image_url TEXT,
+    percentage INTEGER,
+    expiry_date TIMESTAMPTZ,
+    price NUMERIC,
+    price_cutoff NUMERIC,
+    active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX idx_discounts_business ON public.discounts(business_id);
+
+-- 7. BUSINESS QR DESIGNS (Store predefined styles for customers to pick)
+CREATE TABLE IF NOT EXISTS public.business_qr_designs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    business_id UUID REFERENCES public.businesses(id) ON DELETE CASCADE,
+    qr_logo_url TEXT,
+    qr_color TEXT DEFAULT '#000000',
+    qr_eye_shape TEXT DEFAULT 'square',
+    qr_dot_style TEXT DEFAULT 'square',
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ================================================================
+-- ANALYTICS FUNCTIONS
+-- ================================================================
+
+-- Drop existing if migration is re-run
+DROP TYPE IF EXISTS public.daily_stat CASCADE;
+CREATE TYPE public.daily_stat AS (
+    log_date date,
+    new_members_count integer,
+    points_awarded_sum integer,
+    rewards_claimed_count integer
+);
+
+-- Function to get 7-day performance for dashboard charts
+CREATE OR REPLACE FUNCTION get_daily_analytics_7d(p_business_id uuid)
+RETURNS SETOF public.daily_stat AS $$
+WITH date_series AS (
+    SELECT generate_series(
+        CURRENT_DATE - INTERVAL '6 days',
+        CURRENT_DATE,
+        '1 day'
+    )::date AS log_date
+),
+daily_members AS (
+    SELECT
+        created_at::date AS log_date,
+        COUNT(*)::integer AS new_members_count
+    FROM
+        public.memberships
+    WHERE
+        business_id = p_business_id
+        AND created_at >= CURRENT_DATE - INTERVAL '6 days'
+    GROUP BY
+        created_at::date
+),
+daily_scans AS (
+    SELECT
+        created_at::date AS log_date,
+        SUM(points_awarded)::integer AS points_awarded_sum,
+        COUNT(CASE WHEN reward_claimed THEN 1 END)::integer AS rewards_claimed_count
+    FROM
+        public.scan_logs
+    WHERE
+        business_id = p_business_id
+        AND created_at >= CURRENT_DATE - INTERVAL '6 days'
+    GROUP BY
+        created_at::date
+)
+SELECT
+    d.log_date,
+    COALESCE(m.new_members_count, 0) AS new_members_count,
+    COALESCE(s.points_awarded_sum, 0) AS points_awarded_sum,
+    COALESCE(s.rewards_claimed_count, 0) AS rewards_claimed_count
+FROM
+    date_series d
+LEFT JOIN
+    daily_members m ON d.log_date = m.log_date
+LEFT JOIN
+    daily_scans s ON d.log_date = s.log_date
+ORDER BY
+    d.log_date;
+$$ LANGUAGE sql STABLE;
+
+-- ================================================================
+-- SETUP COMPLETE
+-- ================================================================

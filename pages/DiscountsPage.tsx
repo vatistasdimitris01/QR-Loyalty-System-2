@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { Spinner } from '../components/common';
 import { useLanguage } from '../context/LanguageContext';
-import supabase from '../services/supabaseClient';
+import sql from '../services/dbClient';
 import { Discount } from '../types';
 
 const DiscountsPage: React.FC = () => {
@@ -19,14 +18,12 @@ const DiscountsPage: React.FC = () => {
 
   const fetchDiscounts = async () => {
     try {
-      const { data, error } = await supabase
-        .from('discounts')
-        .select('*')
-        .eq('active', true)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setDiscounts(data || []);
+      const rows = await sql`
+        SELECT * FROM discounts 
+        WHERE active = true 
+        ORDER BY created_at DESC
+      `;
+      setDiscounts(rows as Discount[]);
     } catch (err) {
       console.error('Error fetching discounts:', err);
       setError(t('errorUnexpected'));

@@ -1,0 +1,3 @@
+QRoyal is a streamlined digital loyalty platform that replaces traditional physical stamp cards with a universal, browser-based QR code system. Customers enjoy a completely app-free experience, using a single digital ID to instantly join multiple loyalty programs, track their points in real-time, and discover nearby rewards and discounts directly from their mobile browser.
+
+For business owners, QRoyal offers an all-in-one management suite to drive customer retention through data-driven insights. The platform features a dedicated point-of-sale scanner, real-time analytics for tracking member growth, and a customizable profile editor where businesses can share updates, manage exclusive offers, and design branded QR code styles to maintain a professional digital presence.

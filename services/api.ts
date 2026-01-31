@@ -1,100 +1,81 @@
-
 import { Customer, ScanResult, Business, Membership, Discount, QrStyle, BusinessQrDesign, Post, BusinessAnalytics, DailyAnalyticsData } from '../types';
-import supabase from './supabaseClient';
+import sql from './dbClient';
 import { generateQrCode } from './qrGenerator';
+
+// ====== HELPERS ======
+
+const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = error => reject(error);
+    });
+};
 
 // ====== CUSTOMER-FACING APIs ======
 
 export const getCustomerByQrToken = async (qrToken: string): Promise<Customer | null> => {
-  const { data, error } = await supabase.from('customers').select('*').eq('qr_token', qrToken).single();
-  if (error) {
-    console.error(`Error fetching customer by token ${qrToken}:`, error);
-    return null;
-  }
-  return data;
+    const rows = await sql`SELECT * FROM customers WHERE qr_token = ${qrToken} LIMIT 1`;
+    return (rows[0] as Customer) || null;
 };
 
 export const uploadProfilePicture = async (customerId: string, file: File): Promise<string | null> => {
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${customerId}-${Date.now()}.${fileExt}`;
-    const filePath = `${fileName}`;
-
-    const { error: uploadError } = await supabase.storage
-        .from('profile-pictures')
-        .upload(filePath, file, {
-            cacheControl: '3600',
-            upsert: true,
-        });
-
-    if (uploadError) {
-        console.error('Error uploading profile picture:', uploadError);
+    try {
+        const base64 = await fileToBase64(file);
+        // In raw PSQL migration, we store the base64 directly in the URL column
+        await sql`UPDATE customers SET profile_picture_url = ${base64} WHERE id = ${customerId}`;
+        return base64;
+    } catch (e) {
+        console.error('Error uploading profile picture:', e);
         return null;
     }
-
-    const { data } = supabase.storage
-        .from('profile-pictures')
-        .getPublicUrl(filePath);
-
-    if (!data.publicUrl) {
-        console.error('Error getting public URL for profile picture');
-        return null;
-    }
-    
-    return data.publicUrl;
 };
 
 export const uploadBusinessAsset = async (businessId: string, file: File, assetType: 'logo' | 'cover'): Promise<string | null> => {
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${assetType}-${businessId}-${Date.now()}.${fileExt}`;
-    const filePath = `${fileName}`;
-
-    const { error: uploadError } = await supabase.storage
-        .from('business-assets')
-        .upload(filePath, file, {
-            cacheControl: '3600',
-            upsert: true,
-        });
-
-    if (uploadError) {
-        console.error(`Error uploading ${assetType}:`, uploadError);
+    try {
+        const base64 = await fileToBase64(file);
+        const column = assetType === 'logo' ? 'logo_url' : 'cover_photo_url';
+        
+        // Dynamic column selection is tricky in SQL templates, so we use logic
+        if (assetType === 'logo') {
+            await sql`UPDATE businesses SET logo_url = ${base64} WHERE id = ${businessId}`;
+        } else {
+            await sql`UPDATE businesses SET cover_photo_url = ${base64} WHERE id = ${businessId}`;
+        }
+        return base64;
+    } catch (e) {
+        console.error(`Error uploading ${assetType}:`, e);
         return null;
     }
-
-    const { data } = supabase.storage
-        .from('business-assets')
-        .getPublicUrl(filePath);
-
-    if (!data.publicUrl) {
-        console.error(`Error getting public URL for ${assetType}`);
-        return null;
-    }
-    
-    return data.publicUrl;
 };
 
-
-export const updateCustomer = async (id: string, updatedData: Partial<Pick<Customer, 'name' | 'phone_number' | 'qr_style_preferences' | 'profile_picture_url'>>): Promise<Customer | null> => {
-    // If QR style is being updated, regenerate the QR code data URL
-    if ('qr_style_preferences' in updatedData && updatedData.qr_style_preferences) {
-        const { data: currentCustomer } = await supabase.from('customers').select('qr_token').eq('id', id).single();
-        if (currentCustomer) {
-            const newQrDataUrl = await generateQrCode(currentCustomer.qr_token, updatedData.qr_style_preferences);
-            (updatedData as any).qr_data_url = newQrDataUrl;
+export const updateCustomer = async (id: string, updatedData: Partial<Customer>): Promise<Customer | null> => {
+    if (updatedData.qr_style_preferences) {
+        const rows = await sql`SELECT qr_token FROM customers WHERE id = ${id}`;
+        if (rows.length > 0) {
+            const newQrDataUrl = await generateQrCode(rows[0].qr_token, updatedData.qr_style_preferences);
+            updatedData.qr_data_url = newQrDataUrl;
         }
     }
 
-    const { data, error } = await supabase
-        .from('customers')
-        .update(updatedData)
-        .eq('id', id)
-        .select()
-        .single();
+    // Build update query dynamically
+    const fields = Object.entries(updatedData).filter(([k, v]) => v !== undefined);
+    if (fields.length === 0) return null;
 
-    if (error) {
-        console.error(`Error updating customer ${id}:`, error);
-        return null;
+    // Use a multi-statement approach or simple individual calls if needed
+    // For simplicity and since Neon HTTP driver is stateless, we just do one update
+    for (const [key, value] of fields) {
+        // Warning: This is simplified. In production use a more robust query builder.
+        if (key === 'name') await sql`UPDATE customers SET name = ${value as any} WHERE id = ${id}`;
+        if (key === 'phone_number') await sql`UPDATE customers SET phone_number = ${value as any} WHERE id = ${id}`;
+        if (key === 'qr_style_preferences') await sql`UPDATE customers SET qr_style_preferences = ${JSON.stringify(value)}::jsonb WHERE id = ${id}`;
+        if (key === 'profile_picture_url') await sql`UPDATE customers SET profile_picture_url = ${value as any} WHERE id = ${id}`;
+        if (key === 'qr_data_url') await sql`UPDATE customers SET qr_data_url = ${value as any} WHERE id = ${id}`;
     }
-    return data;
+
+    const rows = await sql`SELECT * FROM customers WHERE id = ${id}`;
+    return (rows[0] as Customer) || null;
 };
 
 export const createCustomer = async (customerData: Pick<Customer, 'name' | 'phone_number'>): Promise<Customer | null> => {
@@ -102,138 +83,94 @@ export const createCustomer = async (customerData: Pick<Customer, 'name' | 'phon
     const defaultStyle = { qr_color: '#000000', qr_dot_style: 'square', qr_eye_shape: 'square' };
     const qr_data_url = await generateQrCode(qr_token, defaultStyle);
 
-    const newCustomerData = {
-        ...customerData,
-        qr_token,
-        qr_data_url,
-        qr_style_preferences: defaultStyle
-    };
-
-    const { data, error } = await supabase
-        .from('customers')
-        .insert(newCustomerData)
-        .select()
-        .single();
-
-    if (error) {
-        console.error('Error creating customer:', error);
-        return null;
-    }
-    return data;
+    const rows = await sql`
+        INSERT INTO customers (name, phone_number, qr_token, qr_data_url, qr_style_preferences)
+        VALUES (${customerData.name}, ${customerData.phone_number}, ${qr_token}, ${qr_data_url}, ${JSON.stringify(defaultStyle)}::jsonb)
+        RETURNING *
+    `;
+    return (rows[0] as Customer) || null;
 };
 
 export const getMembershipsForCustomer = async (customerId: string): Promise<Membership[]> => {
-    const { data, error } = await supabase
-        .from('memberships')
-        .select('*, businesses(*)')
-        .eq('customer_id', customerId)
-        .order('updated_at', { ascending: false });
+    const rows = await sql`
+        SELECT m.*, b.id as b_id, b.public_name as b_public_name, b.logo_url as b_logo_url
+        FROM memberships m
+        JOIN businesses b ON m.business_id = b.id
+        WHERE m.customer_id = ${customerId}
+        ORDER BY m.updated_at DESC
+    `;
     
-    if (error) {
-        console.error('Error fetching memberships:', error);
-        return [];
-    }
-    return (data as Membership[]) || [];
-}
+    return rows.map(r => ({
+        ...r,
+        businesses: {
+            id: r.b_id,
+            public_name: r.b_public_name,
+            logo_url: r.b_logo_url
+        }
+    })) as Membership[];
+};
 
 export const searchBusinesses = async (searchTerm: string): Promise<Business[]> => {
-    const { data, error } = await supabase
-        .from('businesses')
-        .select('*')
-        .ilike('public_name', `%${searchTerm}%`);
-    
-    if (error) {
-        console.error('Error searching businesses:', error);
-        return [];
-    }
-    return data || [];
-}
+    const rows = await sql`
+        SELECT * FROM businesses 
+        WHERE public_name ILIKE ${'%' + searchTerm + '%'}
+    `;
+    return rows as Business[];
+};
 
 export const getPopularBusinesses = async (): Promise<Business[]> => {
-    const { data, error } = await supabase.rpc('get_popular_businesses');
-    if (error) {
-        console.error('Error fetching popular businesses:', error);
-        return [];
-    }
-    return data || [];
+    const rows = await sql`
+        SELECT b.*, COUNT(m.id) as membership_count
+        FROM businesses b
+        LEFT JOIN memberships m ON b.id = m.business_id
+        GROUP BY b.id
+        ORDER BY membership_count DESC
+        LIMIT 10
+    `;
+    return rows as Business[];
 };
 
 export const getNearbyBusinesses = async (latitude: number, longitude: number): Promise<Business[]> => {
-    const { data, error } = await supabase.rpc('get_nearby_businesses', {
-        user_lat: latitude,
-        user_lon: longitude
-    });
-    if (error) {
-        console.error('Error fetching nearby businesses:', error);
-        return [];
-    }
-    return data || [];
+    // Haversine formula for proximity search
+    const rows = await sql`
+        SELECT *, (
+            6371 * acos(
+                cos(radians(${latitude})) * cos(radians(latitude)) *
+                cos(radians(longitude) - radians(${longitude})) +
+                sin(radians(${latitude})) * sin(radians(latitude))
+            )
+        ) * 1000 AS dist_meters
+        FROM businesses
+        WHERE latitude IS NOT NULL AND longitude IS NOT NULL
+        ORDER BY dist_meters ASC
+        LIMIT 20
+    `;
+    return rows as Business[];
 };
 
 export const joinBusiness = async(customerId: string, businessId: string): Promise<{membership: Membership, business: Business} | null> => {
-    // Check if membership already exists
-    const { data: existing, error: checkError } = await supabase
-        .from('memberships')
-        .select('id')
-        .eq('customer_id', customerId)
-        .eq('business_id', businessId)
-        .maybeSingle();
-    
-    if (checkError || existing) {
-        if(existing) console.log("Membership already exists.");
-        if(checkError) console.error("Error checking for membership:", checkError);
-        return null; // Don't create a duplicate
-    }
-    
-    // Fetch business details to return for a nice message
-    const { data: business, error: businessError } = await supabase
-        .from('businesses')
-        .select('public_name')
-        .eq('id', businessId)
-        .single();
+    const existing = await sql`SELECT id FROM memberships WHERE customer_id = ${customerId} AND business_id = ${businessId} LIMIT 1`;
+    if (existing.length > 0) return null;
 
-    if (businessError || !business) {
-        console.error('Could not find business to join');
-        return null;
-    }
+    const bizRows = await sql`SELECT public_name FROM businesses WHERE id = ${businessId} LIMIT 1`;
+    if (bizRows.length === 0) return null;
 
-    const { data, error } = await supabase
-        .from('memberships')
-        .insert({ customer_id: customerId, business_id: businessId, points: 0 })
-        .select()
-        .single();
+    const memRows = await sql`
+        INSERT INTO memberships (customer_id, business_id, points)
+        VALUES (${customerId}, ${businessId}, 0)
+        RETURNING *
+    `;
 
-    if (error) {
-        console.error('Error joining business:', error);
-        return null;
-    }
-    return { membership: data, business };
-}
+    return { membership: memRows[0] as Membership, business: bizRows[0] as Business };
+};
 
 export const leaveBusiness = async (customerId: string, businessId: string): Promise<{ success: boolean }> => {
-    const { error } = await supabase
-        .from('memberships')
-        .delete()
-        .eq('customer_id', customerId)
-        .eq('business_id', businessId);
-
-    if (error) {
-        console.error('Error leaving business:', error);
-        return { success: false };
-    }
+    await sql`DELETE FROM memberships WHERE customer_id = ${customerId} AND business_id = ${businessId}`;
     return { success: true };
-}
+};
 
 export const deleteCustomerAccount = async (customerId: string): Promise<{ success: boolean }> => {
-    const { error } = await supabase
-        .from('customers')
-        .delete()
-        .eq('id', customerId);
-
-    if (error) {
-        console.error('Error deleting customer account:', error);
-        return { success: false };
-    }
+    await sql`DELETE FROM customers WHERE id = ${customerId}`;
     return { success: true };
 };
 
@@ -242,28 +179,14 @@ export const deleteCustomerAccount = async (customerId: string): Promise<{ succe
 
 export const provisionCustomerForBusiness = async (businessId: string): Promise<Customer | null> => {
     const qr_token = `cust_${Math.random().toString(36).substr(2, 9)}`;
-    
-    // Generate a QR with an embedded 'join' parameter for this business
     const qr_data_url = await generateQrCode(qr_token, {}, businessId);
 
-    const newCustomerData = {
-        name: 'New Customer', // Placeholder name
-        phone_number: '', // Empty phone, to be filled by customer
-        qr_token,
-        qr_data_url,
-    };
-
-    const { data, error } = await supabase
-        .from('customers')
-        .insert(newCustomerData)
-        .select()
-        .single();
-
-    if (error) {
-        console.error('Error provisioning customer:', error);
-        return null;
-    }
-    return data;
+    const rows = await sql`
+        INSERT INTO customers (name, phone_number, qr_token, qr_data_url)
+        VALUES ('New Customer', '', ${qr_token}, ${qr_data_url})
+        RETURNING *
+    `;
+    return (rows[0] as Customer) || null;
 };
 
 export const awardPoints = async (customerQrToken: string, businessId: string): Promise<ScanResult> => {
@@ -271,20 +194,16 @@ export const awardPoints = async (customerQrToken: string, businessId: string): 
     const customer = await getCustomerByQrToken(customerQrToken);
     if (!customer) return { success: false, message: 'Customer QR not found.' };
 
-    const { data: business, error: businessError } = await supabase.from('businesses').select('*').eq('id', businessId).single();
-    if (businessError || !business) return { success: false, message: 'Business not found.' };
+    const bizRows = await sql`SELECT * FROM businesses WHERE id = ${businessId} LIMIT 1`;
+    if (bizRows.length === 0) return { success: false, message: 'Business not found.' };
+    const business = bizRows[0] as Business;
 
     const pointsPerScan = business.points_per_scan || 1;
     const rewardThreshold = business.reward_threshold || 5;
     const rewardMessage = business.reward_message || 'You won a reward!';
 
-    const { data: membership, error: membershipError } = await supabase
-      .from('memberships')
-      .select('*')
-      .eq('customer_id', customer.id)
-      .eq('business_id', businessId)
-      .maybeSingle();
-    if (membershipError) throw membershipError;
+    const memRows = await sql`SELECT * FROM memberships WHERE customer_id = ${customer.id} AND business_id = ${businessId} LIMIT 1`;
+    const membership = memRows[0] as Membership;
 
     let newPointsTotal: number;
     let newMember = false;
@@ -300,25 +219,16 @@ export const awardPoints = async (customerQrToken: string, businessId: string): 
     const finalPoints = rewardWon ? 0 : newPointsTotal;
     const pointsAwarded = newMember ? newPointsTotal : pointsPerScan;
 
-    const { error: upsertError } = await supabase
-        .from('memberships')
-        .upsert({ 
-            id: membership?.id,
-            customer_id: customer.id, 
-            business_id: businessId, 
-            points: finalPoints,
-            updated_at: new Date().toISOString()
-        });
-    if (upsertError) throw upsertError;
+    if (membership) {
+        await sql`UPDATE memberships SET points = ${finalPoints}, updated_at = NOW() WHERE id = ${membership.id}`;
+    } else {
+        await sql`INSERT INTO memberships (customer_id, business_id, points) VALUES (${customer.id}, ${businessId}, ${finalPoints})`;
+    }
 
-    // Log scan for analytics
-    const { error: logError } = await supabase.from('scan_logs').insert({
-        business_id: businessId,
-        customer_id: customer.id,
-        points_awarded: pointsAwarded,
-        reward_claimed: rewardWon
-    });
-    if (logError) console.error("Error logging scan:", logError);
+    await sql`
+        INSERT INTO scan_logs (business_id, customer_id, points_awarded, reward_claimed)
+        VALUES (${businessId}, ${customer.id}, ${pointsAwarded}, ${rewardWon})
+    `;
 
     let message = `+${pointsAwarded} point${pointsAwarded > 1 ? 's' : ''} for ${customer.name}!`;
     if (newMember) message = `${customer.name} just joined and earned ${pointsAwarded} point${pointsAwarded > 1 ? 's' : ''}!`;
@@ -332,124 +242,84 @@ export const awardPoints = async (customerQrToken: string, businessId: string): 
 };
 
 export const searchMembershipsForBusiness = async (businessId: string, searchTerm: string): Promise<Membership[]> => {
-    const { data, error } = await supabase
-        .rpc('search_memberships_for_business', {
-            business_id_param: businessId,
-            search_term_param: searchTerm
-        })
-        .select('*, customers(*)');
-
-    if (error) {
-        console.error('Error searching memberships for business:', error);
-        return [];
+    let rows;
+    if (!searchTerm) {
+        rows = await sql`
+            SELECT m.*, c.name as c_name, c.phone_number as c_phone_number, c.profile_picture_url as c_pfp
+            FROM memberships m
+            JOIN customers c ON m.customer_id = c.id
+            WHERE m.business_id = ${businessId}
+            ORDER BY m.updated_at DESC
+        `;
+    } else {
+        const likeTerm = `%${searchTerm}%`;
+        rows = await sql`
+            SELECT m.*, c.name as c_name, c.phone_number as c_phone_number, c.profile_picture_url as c_pfp
+            FROM memberships m
+            JOIN customers c ON m.customer_id = c.id
+            WHERE m.business_id = ${businessId}
+            AND (c.name ILIKE ${likeTerm} OR c.phone_number ILIKE ${likeTerm} OR c.qr_token = ${searchTerm})
+            ORDER BY m.updated_at DESC
+        `;
     }
-    return (data as any[]) || [];
-}
+
+    return rows.map(r => ({
+        ...r,
+        customers: {
+            name: r.c_name,
+            phone_number: r.c_phone_number,
+            profile_picture_url: r.c_pfp
+        }
+    })) as Membership[];
+};
 
 export const removeMembership = async (customerId: string, businessId: string): Promise<{ success: boolean }> => {
-    const { error } = await supabase
-        .from('memberships')
-        .delete()
-        .match({ customer_id: customerId, business_id: businessId });
-
-    if (error) {
-        console.error('Error removing membership:', error);
-        return { success: false };
-    }
+    await sql`DELETE FROM memberships WHERE customer_id = ${customerId} AND business_id = ${businessId}`;
     return { success: true };
 };
 
 export const loginBusiness = async (email: string, password: string): Promise<{ success: boolean; business?: Business; message?: string }> => {
-    const { data, error } = await supabase
-        .from('businesses')
-        .select('*')
-        .eq('email', email)
-        .single();
-    
-    if (error || !data) {
-        return { success: false, message: 'Business not found.' };
-    }
-
+    const rows = await sql`SELECT * FROM businesses WHERE email = ${email} LIMIT 1`;
+    if (rows.length === 0) return { success: false, message: 'Business not found.' };
+    const data = rows[0] as Business;
     if (data.password === password) {
         const { password: _, ...businessData } = data;
         return { success: true, business: businessData as Business };
     }
-
     return { success: false, message: 'Invalid credentials.' };
 };
 
 export const loginBusinessWithQrToken = async (qrToken: string): Promise<{ success: boolean; business?: Business; message?: string }> => {
-    const { data, error } = await supabase
-        .from('businesses')
-        .select('*')
-        .eq('qr_token', qrToken)
-        .single();
-
-    if (error || !data) {
-        return { success: false, message: 'Business not found.' };
-    }
-    
-    const { password: _, ...businessData } = data;
+    const rows = await sql`SELECT * FROM businesses WHERE qr_token = ${qrToken} LIMIT 1`;
+    if (rows.length === 0) return { success: false, message: 'Business not found.' };
+    const { password: _, ...businessData } = rows[0] as Business;
     return { success: true, business: businessData as Business };
 }
 
 export const signupBusiness = async (businessData: Omit<Business, 'id' | 'created_at' | 'qr_token' | 'qr_data_url'>): Promise<{ success: boolean; business?: Business; message?: string }> => {
-    const { data: existingBusinesses, error: checkError } = await supabase
-        .from('businesses')
-        .select('id')
-        .eq('email', businessData.email);
-
-    if (checkError) {
-        console.error('Error during existence check:', checkError);
-        return { success: false, message: 'An error occurred checking for existing business.' };
-    }
-
-    if (existingBusinesses && existingBusinesses.length > 0) {
-        return { success: false, message: 'A business with this email already exists.' };
-    }
+    const existing = await sql`SELECT id FROM businesses WHERE email = ${businessData.email} LIMIT 1`;
+    if (existing.length > 0) return { success: false, message: 'A business with this email already exists.' };
 
     const qr_token = `biz_${Math.random().toString(36).substr(2, 9)}`;
     const defaultSettings = { qr_color: '#000000', qr_dot_style: 'square', qr_eye_shape: 'square' };
     const qr_data_url = await generateQrCode(qr_token, defaultSettings);
 
-    const { data, error } = await supabase
-        .from('businesses')
-        .insert({
-            name: businessData.name,
-            public_name: businessData.name,
-            email: businessData.email,
-            password: businessData.password,
-            qr_token,
-            qr_data_url,
-            reward_message: 'Congratulations! You won a reward!',
-            ...defaultSettings
-        })
-        .select();
+    const rows = await sql`
+        INSERT INTO businesses (name, public_name, email, password, qr_token, qr_data_url, reward_message, qr_color, qr_dot_style, qr_eye_shape)
+        VALUES (${businessData.name}, ${businessData.name}, ${businessData.email}, ${businessData.password}, ${qr_token}, ${qr_data_url}, 'Congratulations! You won a reward!', '#000000', 'square', 'square')
+        RETURNING *
+    `;
     
-    if (error || !data || data.length === 0) {
-        console.error('Error creating business:', error);
-        return { success: false, message: 'Failed to create business.' };
-    }
-    
-    const { password: _password, ...newBusiness } = data[0];
+    if (rows.length === 0) return { success: false, message: 'Failed to create business.' };
+    const { password: _password, ...newBusiness } = rows[0] as Business;
     return { success: true, business: newBusiness as Business };
 };
 
-
 export const updateBusiness = async (id: string, updatedData: Partial<Business>): Promise<Business | null> => {
-    // Fetch the current state of the business to compare against for expensive operations
-    const { data: currentBusiness, error: fetchError } = await supabase
-        .from('businesses')
-        .select('qr_token, qr_logo_url, qr_color, qr_eye_shape, qr_dot_style, address_text')
-        .eq('id', id)
-        .single();
+    const bizRows = await sql`SELECT * FROM businesses WHERE id = ${id} LIMIT 1`;
+    if (bizRows.length === 0) return null;
+    const currentBusiness = bizRows[0] as Business;
 
-    if (fetchError) {
-        console.error('Error fetching current business state for comparison:', fetchError);
-        return null; // Cannot proceed without knowing the current state
-    }
-
-    // Check if QR-related properties have actually changed to avoid regenerating on every save
     const qrSettingsChanged = 
         ('qr_color' in updatedData && updatedData.qr_color !== currentBusiness.qr_color) ||
         ('qr_dot_style' in updatedData && updatedData.qr_dot_style !== currentBusiness.qr_dot_style) ||
@@ -466,10 +336,7 @@ export const updateBusiness = async (id: string, updatedData: Partial<Business>)
         updatedData.qr_data_url = await generateQrCode(currentBusiness.qr_token, newQrSettings);
     }
 
-    // Check if address has actually changed to avoid geocoding on every save
-    const addressChanged = 'address_text' in updatedData && updatedData.address_text !== currentBusiness.address_text;
-    
-    if (addressChanged) {
+    if ('address_text' in updatedData && updatedData.address_text !== currentBusiness.address_text) {
         try {
             if (updatedData.address_text) {
                 const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(updatedData.address_text)}&format=json&limit=1`);
@@ -477,242 +344,209 @@ export const updateBusiness = async (id: string, updatedData: Partial<Business>)
                 if (geoData && geoData.length > 0) {
                     updatedData.latitude = parseFloat(geoData[0].lat);
                     updatedData.longitude = parseFloat(geoData[0].lon);
-                } else {
-                     updatedData.latitude = null;
-                     updatedData.longitude = null;
                 }
-            } else {
-                updatedData.latitude = null;
-                updatedData.longitude = null;
             }
-        } catch (error) {
-            console.error("Geocoding failed:", error);
-            updatedData.latitude = null;
-            updatedData.longitude = null;
-        }
+        } catch (error) { console.error("Geocoding failed:", error); }
     }
     
-    // Perform the final update to the database
-    const { data, error } = await supabase
-        .from('businesses')
-        .update(updatedData)
-        .eq('id', id)
-        .select()
-        .single();
-
-    if (error) {
-        console.error(`Error updating business ${id}:`, error);
-        return null;
+    // Build update query dynamically
+    for (const [key, value] of Object.entries(updatedData)) {
+        if (value === undefined) continue;
+        // Simplified dynamic update
+        if (key === 'public_name') await sql`UPDATE businesses SET public_name = ${value as any} WHERE id = ${id}`;
+        if (key === 'logo_url') await sql`UPDATE businesses SET logo_url = ${value as any} WHERE id = ${id}`;
+        if (key === 'cover_photo_url') await sql`UPDATE businesses SET cover_photo_url = ${value as any} WHERE id = ${id}`;
+        if (key === 'bio') await sql`UPDATE businesses SET bio = ${value as any} WHERE id = ${id}`;
+        if (key === 'website_url') await sql`UPDATE businesses SET website_url = ${value as any} WHERE id = ${id}`;
+        if (key === 'facebook_url') await sql`UPDATE businesses SET facebook_url = ${value as any} WHERE id = ${id}`;
+        if (key === 'instagram_url') await sql`UPDATE businesses SET instagram_url = ${value as any} WHERE id = ${id}`;
+        if (key === 'public_phone_number') await sql`UPDATE businesses SET public_phone_number = ${value as any} WHERE id = ${id}`;
+        if (key === 'default_profile_tab') await sql`UPDATE businesses SET default_profile_tab = ${value as any} WHERE id = ${id}`;
+        if (key === 'points_per_scan') await sql`UPDATE businesses SET points_per_scan = ${value as any} WHERE id = ${id}`;
+        if (key === 'reward_threshold') await sql`UPDATE businesses SET reward_threshold = ${value as any} WHERE id = ${id}`;
+        if (key === 'reward_message') await sql`UPDATE businesses SET reward_message = ${value as any} WHERE id = ${id}`;
+        if (key === 'address_text') await sql`UPDATE businesses SET address_text = ${value as any} WHERE id = ${id}`;
+        if (key === 'latitude') await sql`UPDATE businesses SET latitude = ${value as any} WHERE id = ${id}`;
+        if (key === 'longitude') await sql`UPDATE businesses SET longitude = ${value as any} WHERE id = ${id}`;
+        if (key === 'qr_color') await sql`UPDATE businesses SET qr_color = ${value as any} WHERE id = ${id}`;
+        if (key === 'qr_dot_style') await sql`UPDATE businesses SET qr_dot_style = ${value as any} WHERE id = ${id}`;
+        if (key === 'qr_eye_shape') await sql`UPDATE businesses SET qr_eye_shape = ${value as any} WHERE id = ${id}`;
+        if (key === 'qr_logo_url') await sql`UPDATE businesses SET qr_logo_url = ${value as any} WHERE id = ${id}`;
+        if (key === 'qr_data_url') await sql`UPDATE businesses SET qr_data_url = ${value as any} WHERE id = ${id}`;
     }
-    const { password: _, ...businessData } = data;
+
+    const finalRows = await sql`SELECT * FROM businesses WHERE id = ${id}`;
+    const { password: _, ...businessData } = finalRows[0] as Business;
     return businessData as Business;
 };
 
 // ====== BUSINESS CONTENT APIs ======
 
 export const getDailyAnalytics = async (businessId: string): Promise<DailyAnalyticsData[] | null> => {
-    const { data, error } = await supabase.rpc('get_daily_analytics_7d', { p_business_id: businessId });
-    if (error) {
-        console.error('Error fetching daily analytics:', error);
-        return null;
-    }
-    return data;
+    // Calling the function created in migration scripts
+    const rows = await sql`SELECT * FROM get_daily_analytics_7d(${businessId})`;
+    return rows as any[];
 };
 
 export const getBusinessAnalytics = async (businessId: string): Promise<BusinessAnalytics | null> => {
-    const { data, error } = await supabase.rpc('get_business_analytics', { p_business_id: businessId }).single();
-    if (error) {
-        console.error('Error fetching analytics:', error);
-        return null;
-    }
-    return data;
+    const rows = await sql`
+        SELECT
+            (SELECT COUNT(*)::int FROM memberships WHERE business_id = ${businessId}) as total_customers,
+            (SELECT COUNT(*)::int FROM memberships WHERE business_id = ${businessId} AND created_at >= NOW() - INTERVAL '7 days') as new_members_7d,
+            (SELECT COALESCE(SUM(points_awarded), 0)::int FROM scan_logs WHERE business_id = ${businessId} AND created_at >= NOW() - INTERVAL '7 days') as points_awarded_7d,
+            (SELECT COUNT(*)::int FROM scan_logs WHERE business_id = ${businessId} AND reward_claimed = true AND created_at >= NOW() - INTERVAL '7 days') as rewards_claimed_7d
+    `;
+    return (rows[0] as BusinessAnalytics) || null;
 };
 
 export const getPostsForBusiness = async (businessId: string): Promise<Post[]> => {
-    const { data, error } = await supabase.from('posts').select('*').eq('business_id', businessId).order('created_at', { ascending: false });
-    if (error) console.error('Error fetching posts:', error);
-    return data || [];
+    const rows = await sql`SELECT * FROM posts WHERE business_id = ${businessId} ORDER BY created_at DESC`;
+    return rows as Post[];
 };
+
 export const createPost = async (postData: Omit<Post, 'id' | 'created_at'>): Promise<Post | null> => {
-    const { data, error } = await supabase.from('posts').insert(postData).select().single();
-    if (error) console.error('Error creating post:', error);
-    return data;
+    const rows = await sql`
+        INSERT INTO posts (business_id, title, content, image_url, post_type, video_url, price_text, external_url)
+        VALUES (${postData.business_id}, ${postData.title}, ${postData.content}, ${postData.image_url}, ${postData.post_type}, ${postData.video_url}, ${postData.price_text}, ${postData.external_url})
+        RETURNING *
+    `;
+    return (rows[0] as Post) || null;
 };
-export const updatePost = async (postId: string, postData: Partial<Omit<Post, 'id' | 'created_at' | 'business_id'>>): Promise<Post | null> => {
-    const { data, error } = await supabase.from('posts').update(postData).eq('id', postId).select().single();
-    if (error) console.error('Error updating post:', error);
-    return data;
+
+export const updatePost = async (postId: string, postData: Partial<Post>): Promise<Post | null> => {
+    for (const [key, value] of Object.entries(postData)) {
+        if (value === undefined) continue;
+        if (key === 'title') await sql`UPDATE posts SET title = ${value as any} WHERE id = ${postId}`;
+        if (key === 'content') await sql`UPDATE posts SET content = ${value as any} WHERE id = ${postId}`;
+        if (key === 'image_url') await sql`UPDATE posts SET image_url = ${value as any} WHERE id = ${postId}`;
+        if (key === 'post_type') await sql`UPDATE posts SET post_type = ${value as any} WHERE id = ${postId}`;
+        if (key === 'video_url') await sql`UPDATE posts SET video_url = ${value as any} WHERE id = ${postId}`;
+        if (key === 'price_text') await sql`UPDATE posts SET price_text = ${value as any} WHERE id = ${postId}`;
+        if (key === 'external_url') await sql`UPDATE posts SET external_url = ${value as any} WHERE id = ${postId}`;
+    }
+    const rows = await sql`SELECT * FROM posts WHERE id = ${postId}`;
+    return (rows[0] as Post) || null;
 }
+
 export const deletePost = async (postId: string) => {
-    const { error } = await supabase.from('posts').delete().eq('id', postId);
-    if (error) console.error('Error deleting post:', error);
-    return !error;
+    await sql`DELETE FROM posts WHERE id = ${postId}`;
+    return true;
 };
 
 export const getDiscountsForBusiness = async (businessId: string): Promise<Discount[]> => {
-    const { data, error } = await supabase.from('discounts').select('*').eq('business_id', businessId).eq('active', true).order('created_at', { ascending: false });
-    if (error) console.error('Error fetching discounts:', error);
-    return data || [];
+    const rows = await sql`SELECT * FROM discounts WHERE business_id = ${businessId} AND active = true ORDER BY created_at DESC`;
+    return rows as Discount[];
 };
+
 export const createDiscount = async (discountData: Omit<Discount, 'id' | 'created_at' | 'active'>): Promise<Discount | null> => {
-    const { data, error } = await supabase.from('discounts').insert({ ...discountData, active: true }).select().single();
-    if (error) console.error('Error creating discount:', error);
-    return data;
+    const rows = await sql`
+        INSERT INTO discounts (business_id, name, description, image_url, active)
+        VALUES (${discountData.business_id}, ${discountData.name}, ${discountData.description}, ${discountData.image_url}, true)
+        RETURNING *
+    `;
+    return (rows[0] as Discount) || null;
 };
+
 export const deleteDiscount = async (discountId: string) => {
-    const { error } = await supabase.from('discounts').delete().eq('id', discountId);
-    if (error) console.error('Error deleting discount:', error);
-    return !error;
+    await sql`DELETE FROM discounts WHERE id = ${discountId}`;
+    return true;
 };
 
 
 // ====== BUSINESS QR DESIGN APIs ======
 
 export const getBusinessQrDesigns = async (businessId: string): Promise<BusinessQrDesign[]> => {
-    const { data, error } = await supabase
-        .from('business_qr_designs')
-        .select('*')
-        .eq('business_id', businessId)
-        .order('created_at', { ascending: false });
-
-    if (error) {
-        console.error(`Error fetching QR designs for business ${businessId}:`, error);
-        return [];
-    }
-    return data || [];
+    const rows = await sql`SELECT * FROM business_qr_designs WHERE business_id = ${businessId} ORDER BY created_at DESC`;
+    return rows as BusinessQrDesign[];
 };
 
 export const createBusinessQrDesign = async (designData: Omit<BusinessQrDesign, 'id' | 'created_at'>): Promise<BusinessQrDesign | null> => {
-    const { data, error } = await supabase
-        .from('business_qr_designs')
-        .insert(designData)
-        .select()
-        .single();
-    if (error) {
-        console.error('Error creating QR design:', error);
-        return null;
-    }
-    return data;
+    const rows = await sql`
+        INSERT INTO business_qr_designs (business_id, qr_logo_url, qr_color, qr_eye_shape, qr_dot_style)
+        VALUES (${designData.business_id}, ${designData.qr_logo_url}, ${designData.qr_color}, ${designData.qr_eye_shape}, ${designData.qr_dot_style})
+        RETURNING *
+    `;
+    return (rows[0] as BusinessQrDesign) || null;
 };
 
 export const deleteBusinessQrDesign = async (designId: string): Promise<{ success: boolean }> => {
-    const { error } = await supabase
-        .from('business_qr_designs')
-        .delete()
-        .eq('id', designId);
-    if (error) {
-        console.error('Error deleting QR design:', error);
-        return { success: false };
-    }
+    await sql`DELETE FROM business_qr_designs WHERE id = ${designId}`;
     return { success: true };
 };
 
 // ====== ADMIN APIs ======
 
 export const getAllBusinesses = async (): Promise<Business[]> => {
-  const { data, error } = await supabase.from('businesses').select('*').order('created_at', { ascending: false });
-  if (error) {
-      console.error('Error fetching all businesses:', error);
-      return [];
-  }
-  return data || [];
+  const rows = await sql`SELECT * FROM businesses ORDER BY created_at DESC`;
+  return rows as Business[];
 };
 
 export const createBusinessByAdmin = async (businessData: Pick<Business, 'name' | 'email' | 'password'>): Promise<{ success: boolean; business?: Business; message?: string }> => {
-    // Check for existing email
-    const { data: existing, error: checkError } = await supabase.from('businesses').select('id').eq('email', businessData.email).single();
-    if (checkError && checkError.code !== 'PGRST116') { // PGRST116: no rows found
-        console.error('Error checking for existing business:', checkError);
-        return { success: false, message: 'Error checking for existing business.' };
-    }
-    if (existing) {
-        return { success: false, message: 'A business with this email already exists.' };
-    }
+    const existing = await sql`SELECT id FROM businesses WHERE email = ${businessData.email} LIMIT 1`;
+    if (existing.length > 0) return { success: false, message: 'A business with this email already exists.' };
 
     const qr_token = `biz_${Math.random().toString(36).substr(2, 9)}`;
     const defaultSettings = { qr_color: '#000000', qr_dot_style: 'square', qr_eye_shape: 'square' };
     const qr_data_url = await generateQrCode(qr_token, defaultSettings);
 
-    const { data, error } = await supabase
-        .from('businesses')
-        .insert({
-            name: businessData.name,
-            public_name: businessData.name, // Default public_name to name
-            email: businessData.email,
-            password: businessData.password,
-            qr_token,
-            qr_data_url,
-            reward_message: 'Congratulations! You won a reward!',
-            ...defaultSettings
-        })
-        .select()
-        .single();
+    const rows = await sql`
+        INSERT INTO businesses (name, public_name, email, password, qr_token, qr_data_url, reward_message, qr_color, qr_dot_style, qr_eye_shape)
+        VALUES (${businessData.name}, ${businessData.name}, ${businessData.email}, ${businessData.password}, ${qr_token}, ${qr_data_url}, 'Congratulations! You won a reward!', '#000000', 'square', 'square')
+        RETURNING *
+    `;
     
-    if (error || !data) {
-        console.error('Error creating business from admin:', error);
-        return { success: false, message: 'Failed to create business.' };
-    }
-    
-    const { password: _, ...newBusiness } = data;
+    if (rows.length === 0) return { success: false, message: 'Failed to create business.' };
+    const { password: _, ...newBusiness } = rows[0] as Business;
     return { success: true, business: newBusiness as Business };
 };
 
 export const getAllCustomers = async (): Promise<Customer[]> => {
-  const { data, error } = await supabase.from('customers').select('*').order('created_at', { ascending: false });
-  if (error) {
-      console.error('Error fetching all customers:', error);
-      return [];
-  }
-  return data || [];
+  const rows = await sql`SELECT * FROM customers ORDER BY created_at DESC`;
+  return rows as Customer[];
 };
 
 export const getAllPosts = async (): Promise<Post[]> => {
-  const { data, error } = await supabase.from('posts').select('*, businesses(public_name)').order('created_at', { ascending: false });
-  if (error) {
-      console.error('Error fetching all posts:', error);
-      return [];
-  }
-  return (data as Post[]) || [];
+  const rows = await sql`
+    SELECT p.*, b.public_name as b_public_name
+    FROM posts p
+    LEFT JOIN businesses b ON p.business_id = b.id
+    ORDER BY p.created_at DESC
+  `;
+  return rows.map(r => ({
+      ...r,
+      businesses: { public_name: r.b_public_name }
+  })) as Post[];
 };
 
 export const getAllMemberships = async (): Promise<Membership[]> => {
-  const { data, error } = await supabase.from('memberships').select('*, businesses(public_name), customers(name, phone_number)').order('updated_at', { ascending: false });
-  if (error) {
-      console.error('Error fetching all memberships:', error);
-      return [];
-  }
-  return (data as Membership[]) || [];
+  const rows = await sql`
+    SELECT m.*, b.public_name as b_public_name, c.name as c_name, c.phone_number as c_phone_number
+    FROM memberships m
+    JOIN businesses b ON m.business_id = b.id
+    JOIN customers c ON m.customer_id = c.id
+    ORDER BY m.updated_at DESC
+  `;
+  return rows.map(r => ({
+      ...r,
+      businesses: { public_name: r.b_public_name },
+      customers: { name: r.c_name, phone_number: r.c_phone_number }
+  })) as Membership[];
 };
 
 export const deleteBusiness = async (businessId: string): Promise<{ success: boolean }> => {
-    const { error } = await supabase.from('businesses').delete().eq('id', businessId);
-    if (error) {
-        console.error('Error deleting business:', error);
-        return { success: false };
-    }
+    await sql`DELETE FROM businesses WHERE id = ${businessId}`;
     return { success: true };
 };
 
 export const deleteMembershipById = async (membershipId: string): Promise<{ success: boolean }> => {
-    const { error } = await supabase.from('memberships').delete().eq('id', membershipId);
-     if (error) {
-        console.error('Error deleting membership:', error);
-        return { success: false };
-    }
+    await sql`DELETE FROM memberships WHERE id = ${membershipId}`;
     return { success: true };
 }
 
 export const updateMembership = async (membershipId: string, updates: Partial<Membership>): Promise<Membership | null> => {
-    const { data, error } = await supabase
-        .from('memberships')
-        .update(updates)
-        .eq('id', membershipId)
-        .select()
-        .single();
-
-    if (error) {
-        console.error('Error updating membership:', error);
-        return null;
+    if (updates.points !== undefined) {
+        await sql`UPDATE memberships SET points = ${updates.points} WHERE id = ${membershipId}`;
     }
-    return data;
+    const rows = await sql`SELECT * FROM memberships WHERE id = ${membershipId}`;
+    return (rows[0] as Membership) || null;
 }
