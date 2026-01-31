@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { QRScannerModal, Spinner } from '../components/common';
@@ -56,7 +57,7 @@ const LandingPage: React.FC = () => {
             )}
             <QRScannerModal isOpen={isScannerOpen} onClose={() => setIsScannerOpen(false)} onScan={handleScan} />
 
-            <!-- TopNavBar -->
+            {/* TopNavBar */}
             <header className="sticky top-0 z-50 w-full border-b border-solid border-[#dbdfe6] dark:border-[#2d3748] bg-white/80 dark:bg-background-dark/80 backdrop-blur-md">
                 <div className="max-w-[1280px] mx-auto flex items-center justify-between px-6 py-4">
                     <div className="flex items-center gap-2">
@@ -86,7 +87,7 @@ const LandingPage: React.FC = () => {
             </header>
 
             <main>
-                <!-- HeroSection -->
+                {/* HeroSection */}
                 <section className="relative overflow-hidden pt-16 pb-24 md:pt-24 md:pb-32">
                     <div className="max-w-[1280px] mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                         <div className="flex flex-col gap-8 z-10">
@@ -132,7 +133,7 @@ const LandingPage: React.FC = () => {
                     </div>
                 </section>
 
-                <!-- FeatureSection: Benefit Cards -->
+                {/* FeatureSection: Benefit Cards */}
                 <section className="py-24 max-w-[1280px] mx-auto px-6">
                     <div className="flex flex-col gap-16">
                         <div className="text-center max-w-2xl mx-auto flex flex-col gap-4">
@@ -166,7 +167,7 @@ const LandingPage: React.FC = () => {
                     </div>
                 </section>
 
-                <!-- CTA Section -->
+                {/* CTA Section */}
                 <section className="py-24 px-6">
                     <div className="max-w-[1280px] mx-auto bg-primary rounded-3xl p-12 md:p-20 relative overflow-hidden shadow-2xl">
                         <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-96 h-96 bg-accent-gold/20 rounded-full blur-3xl"></div>

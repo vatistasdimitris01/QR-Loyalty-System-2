@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { loginBusiness } from '../services/api';
@@ -45,12 +46,12 @@ const BusinessLoginPage: React.FC = () => {
     return (
         <div className="bg-background-light dark:bg-background-dark min-h-screen font-display">
             <div className="flex min-h-screen w-full flex-col lg:flex-row">
-                <!-- Left Side: Hero & Social Proof -->
+                {/* Left Side: Hero & Social Proof */}
                 <div className="relative hidden lg:flex lg:w-1/2 flex-col justify-between bg-primary p-12 text-white overflow-hidden">
-                    <!-- Subtle background pattern -->
+                    {/* Subtle background pattern */}
                     <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(255,255,255,0.15) 1px, transparent 0)', backgroundSize: '24px 24px' }}></div>
                     
-                    <!-- Header/Logo Area -->
+                    {/* Header/Logo Area */}
                     <div className="relative z-10 flex items-center gap-3">
                         <div className="size-8">
                             <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
@@ -60,7 +61,7 @@ const BusinessLoginPage: React.FC = () => {
                         <h2 className="text-xl font-bold leading-tight tracking-tight">QROYAL Business</h2>
                     </div>
 
-                    <!-- Main Value Prop -->
+                    {/* Main Value Prop */}
                     <div className="relative z-10 max-w-lg">
                         <h1 className="text-5xl font-black leading-tight tracking-[-0.033em] mb-6">
                             Elevate Customer Loyalty with QROYAL
@@ -68,7 +69,7 @@ const BusinessLoginPage: React.FC = () => {
                         <p className="text-lg font-normal leading-relaxed text-white/90 mb-8">
                             Manage rewards, track engagement, and grow your brand with our all-in-one B2B loyalty engine. Join thousands of brands scaling their customer relationships.
                         </p>
-                        <!-- Social Proof Widget -->
+                        {/* Social Proof Widget */}
                         <div className="flex flex-col gap-4">
                             <p className="text-sm font-medium uppercase tracking-widest text-white/70">Trusted by 500+ global brands</p>
                             <div className="flex items-center gap-6 opacity-60 grayscale brightness-200">
@@ -79,17 +80,17 @@ const BusinessLoginPage: React.FC = () => {
                         </div>
                     </div>
 
-                    <!-- Footer Quote -->
+                    {/* Footer Quote */}
                     <div className="relative z-10 border-l-4 border-white/30 pl-6 py-2">
                         <p className="italic text-white/80">"QROYAL transformed how we interact with our top-tier clients. The automation is seamless."</p>
                         <p className="mt-2 font-bold text-sm">— Sarah Jenkins, Head of Growth at GlobalTech</p>
                     </div>
                 </div>
 
-                <!-- Right Side: Login Form -->
+                {/* Right Side: Login Form */}
                 <div className="flex flex-1 flex-col justify-center px-6 py-12 lg:px-24 bg-white dark:bg-background-dark">
                     <div className="mx-auto w-full max-w-[440px]">
-                        <!-- Mobile Logo -->
+                        {/* Mobile Logo */}
                         <div className="flex lg:hidden items-center gap-3 mb-10">
                             <div className="size-8 text-primary">
                                 <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
@@ -105,7 +106,7 @@ const BusinessLoginPage: React.FC = () => {
                         </div>
 
                         <form onSubmit={handleLogin} className="space-y-6">
-                            <!-- Email Field -->
+                            {/* Email Field */}
                             <div className="flex flex-col gap-2">
                                 <label className="text-[#111318] dark:text-white text-sm font-semibold leading-normal">{t('email')}</label>
                                 <div className="relative">
@@ -119,7 +120,7 @@ const BusinessLoginPage: React.FC = () => {
                                     />
                                 </div>
                             </div>
-                            <!-- Password Field -->
+                            {/* Password Field */}
                             <div className="flex flex-col gap-2">
                                 <div className="flex items-center justify-between">
                                     <label className="text-[#111318] dark:text-white text-sm font-semibold leading-normal">{t('password')}</label>
@@ -139,7 +140,7 @@ const BusinessLoginPage: React.FC = () => {
                             
                             {error && <p className="text-red-500 text-sm text-center font-medium">{error}</p>}
                             
-                            <!-- Sign In Button -->
+                            {/* Sign In Button */}
                             <button 
                                 type="submit" 
                                 disabled={loading}
@@ -165,7 +166,7 @@ const BusinessLoginPage: React.FC = () => {
                             </div>
                         </div>
 
-                        <!-- Footer Links -->
+                        {/* Footer Links */}
                         <div className="mt-12 flex justify-center gap-6 text-[12px] text-[#616f89] dark:text-gray-500">
                             <a className="hover:underline" href="/">Back to Home</a>
                             <a className="hover:underline" href="#">Privacy Policy</a>
@@ -174,7 +175,7 @@ const BusinessLoginPage: React.FC = () => {
                     </div>
                 </div>
             </div>
-            <!-- Onboarding Chat Trigger (Floating UI) -->
+            {/* Onboarding Chat Trigger (Floating UI) */}
             <div className="fixed bottom-6 right-6 z-50">
                 <button onClick={handleOpenChat} className="flex size-14 items-center justify-center rounded-full bg-primary text-white shadow-xl hover:scale-105 transition-transform">
                     <span className="material-symbols-outlined text-[28px]">support_agent</span>

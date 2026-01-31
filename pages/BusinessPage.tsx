@@ -15,10 +15,6 @@ const ScreensaverIcon: React.FC<{ className?: string }> = ({ className }) => (
     <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
 );
 
-const HideIcon: React.FC<{ className?: string }> = ({ className }) => (
-    <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" /></svg>
-);
-
 // Main Page Component
 const BusinessPage: React.FC = () => {
     const { t } = useLanguage();
@@ -121,13 +117,11 @@ const AnalyticsDashboard: React.FC<{business: Business, onBusinessUpdate: (b: Bu
     const [dailyData, setDailyData] = useState<DailyAnalyticsData[]>([]);
     const [isScannerModalOpen, setIsScannerModalOpen] = useState(false);
     const [isEditMode, setIsEditMode] = useState(false);
-    const [isRestoreMenuOpen, setIsRestoreMenuOpen] = useState(false);
     const layoutStorageKey = `qroyal-dashboard-layout-v3-${business.id}`;
     
     const componentKeys = { NEW_MEMBERS: 'newMembers', POINTS_AWARDED: 'pointsAwarded', TOTAL_CUSTOMERS: 'totalCustomers', LOYALTY_SETTINGS: 'loyaltySettings', QUICK_ACTIONS: 'quickActions', LOGIN_QR: 'loginQr' };
     const [componentOrder, setComponentOrder] = useState<string[]>(Object.values(componentKeys));
     const [hiddenComponents, setHiddenComponents] = useState<Set<string>>(new Set());
-    const componentTitles: Record<string, string> = { [componentKeys.NEW_MEMBERS]: 'New Members', [componentKeys.POINTS_AWARDED]: 'Points Awarded', [componentKeys.TOTAL_CUSTOMERS]: t('totalCustomers'), [componentKeys.QUICK_ACTIONS]: 'Quick Actions', [componentKeys.LOYALTY_SETTINGS]: t('loyaltyProgram'), [componentKeys.LOGIN_QR]: 'Business Login QR' };
 
     useEffect(() => {
         const savedLayout = localStorage.getItem(layoutStorageKey);
@@ -142,7 +136,6 @@ const AnalyticsDashboard: React.FC<{business: Business, onBusinessUpdate: (b: Bu
 
     const handleSaveLayout = () => { localStorage.setItem(layoutStorageKey, JSON.stringify({ order: componentOrder, hidden: Array.from(hiddenComponents) })); setIsEditMode(false); };
     const handleHideComponent = (key: string) => setHiddenComponents(prev => new Set(prev).add(key));
-    const handleUnhideComponent = (key: string) => setHiddenComponents(prev => { const newSet = new Set(prev); newSet.delete(key); return newSet; });
 
     const dragItem = useRef<number | null>(null);
     const dragOverItem = useRef<number | null>(null);
@@ -329,7 +322,7 @@ const PostsManager: React.FC<{business: Business}> = ({ business }) => {
         const result = editingPost ? await updatePost(editingPost.id, formState) : await createPost({ ...formState, business_id: business.id });
         if (result) { fetchPosts(); setEditingPost(null); }
     };
-    
+
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             <div className="lg:col-span-1 space-y-6">
@@ -337,7 +330,9 @@ const PostsManager: React.FC<{business: Business}> = ({ business }) => {
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <InputField label={t('title')} name="title" value={formState.title} onChange={handleFormChange} />
                         <SelectField label={t('postType')} name="post_type" value={formState.post_type} onChange={handleFormChange} options={[ {value: 'standard', label: t('standardPost')}, {value: 'discount', label: t('discountOffer')} ]} />
-                        <MarkdownEditor label={t('content')} name="content" value={formState.content || ''} onChange={handleMarkdownChange} />
+                        <div className="relative">
+                            <MarkdownEditor label={t('content')} name="content" value={formState.content || ''} onChange={handleMarkdownChange} />
+                        </div>
                         <InputField label={t('imageUrl')} name="image_url" value={formState.image_url || ''} onChange={handleFormChange} />
                         <div className="flex gap-3 pt-4">
                             <button type="submit" className="flex-grow bg-indigo-600 text-white font-bold py-4 rounded-2xl hover:bg-indigo-700 shadow-lg shadow-indigo-100 active:scale-95 transition-all">{editingPost ? t('updatePost') : t('createPost')}</button>
@@ -472,10 +467,20 @@ const LoyaltySettingsEditor: React.FC<{business: Business, onUpdate: (b: Busines
     const { t } = useLanguage();
     const [points, setPoints] = useState(business.points_per_scan || 1);
     const [threshold, setThreshold] = useState(business.reward_threshold || 5);
+    const [rewardMessage, setRewardMessage] = useState(business.reward_message || '');
     const [isSaving, setIsSaving] = useState(false);
     
-    const handleSave = async () => { setIsSaving(true); const updated = await updateBusiness(business.id, { points_per_scan: points, reward_threshold: threshold }); if (updated) onUpdate({...business, ...updated}); setIsSaving(false); };
-    
+    const handleSave = async () => { 
+        setIsSaving(true); 
+        const updated = await updateBusiness(business.id, { 
+            points_per_scan: points, 
+            reward_threshold: threshold,
+            reward_message: rewardMessage
+        }); 
+        if (updated) onUpdate({...business, ...updated}); 
+        setIsSaving(false); 
+    };
+
     return (
         <div className="bg-white p-8 rounded-3xl shadow-sm h-full border border-slate-100 flex flex-col justify-between">
             <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6">{t('loyaltyProgram')}</h3>
@@ -496,8 +501,21 @@ const LoyaltySettingsEditor: React.FC<{business: Business, onUpdate: (b: Busines
                         <button onClick={() => setThreshold(t => t + 1)} className="w-8 h-8 rounded-xl bg-slate-100 text-slate-600 font-black hover:bg-slate-200">+</button>
                     </div>
                 </div>
+                <div className="relative group">
+                    <InputField 
+                        label={t('rewardMessage')} 
+                        name="reward_message" 
+                        value={rewardMessage} 
+                        onChange={(e: any) => setRewardMessage(e.target.value)} 
+                        placeholder={t('rewardMessagePlaceholder')} 
+                    />
+                </div>
             </div>
-            <button onClick={handleSave} disabled={isSaving || (points === business.points_per_scan && threshold === business.reward_threshold)} className="w-full mt-8 bg-indigo-600 text-white font-bold py-3.5 rounded-2xl hover:bg-indigo-700 disabled:bg-slate-100 disabled:text-slate-400 disabled:shadow-none shadow-lg shadow-indigo-100 transition-all active:scale-95">
+            <button 
+                onClick={handleSave} 
+                disabled={isSaving || (points === business.points_per_scan && threshold === business.reward_threshold && rewardMessage === business.reward_message)} 
+                className="w-full mt-8 bg-indigo-600 text-white font-bold py-3.5 rounded-2xl hover:bg-indigo-700 disabled:bg-slate-100 disabled:text-slate-400 disabled:shadow-none shadow-lg shadow-indigo-100 transition-all active:scale-95"
+            >
                 {isSaving ? '...' : t('save')}
             </button>
         </div>
