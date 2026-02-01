@@ -3,7 +3,7 @@ import React, { useState, useRef } from 'react';
 import { Customer } from '../../types';
 import { updateCustomer, deleteCustomerAccount, uploadProfilePicture } from '../../services/api';
 import { useLanguage } from '../../context/LanguageContext';
-import { Spinner, DeleteAccountModal, InputField } from '../../components/common';
+import { Spinner, DeleteAccountModal } from '../../components/common';
 
 interface CustomerProfilePageProps {
     customer: Customer;
@@ -15,152 +15,81 @@ const CustomerProfilePage: React.FC<CustomerProfilePageProps> = ({ customer, onU
     const { t } = useLanguage();
     const [name, setName] = useState(customer.name);
     const [phone, setPhone] = useState(customer.phone_number);
-    const [pfpFile, setPfpFile] = useState<File | null>(null);
     const [pfpPreview, setPfpPreview] = useState<string | null>(customer.profile_picture_url || null);
     const [loading, setLoading] = useState(false);
-    const [message, setMessage] = useState('');
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
-    
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            setPfpFile(file);
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setPfpPreview(reader.result as string);
-            };
-            reader.readAsDataURL(file);
-        }
-    };
-    
+
     const handleUpdate = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
-        setMessage('');
-
-        let finalPfpUrl = customer.profile_picture_url;
-
-        if (pfpFile) {
-            const uploadedUrl = await uploadProfilePicture(customer.id, pfpFile);
-            if (uploadedUrl) {
-                finalPfpUrl = uploadedUrl;
-            } else {
-                setMessage('Failed to upload image.');
-                setLoading(false);
-                return;
-            }
-        }
-
-        const updated = await updateCustomer(customer.id, { name, phone_number: phone, profile_picture_url: finalPfpUrl || undefined });
+        const updated = await updateCustomer(customer.id, { name, phone_number: phone });
         setLoading(false);
-        if (updated) {
-            onUpdate(updated);
-            setPfpFile(null); // Reset file input state
-            setMessage(t('updateSuccess'));
-            setTimeout(() => setMessage(''), 3000);
-        }
-    };
-
-    const handleDeleteAccount = async () => {
-        const result = await deleteCustomerAccount(customer.id);
-        if (result.success) {
-            alert(t('deleteSuccess'));
-            window.location.href = '/'; // Log out and redirect
-        } else {
-            alert(t('deleteAccountError'));
-            setIsDeleteModalOpen(false);
-        }
+        if (updated) onUpdate(updated);
     };
 
     return (
-        <div className="px-8 pt-16 animate-in fade-in duration-700">
-            <DeleteAccountModal
-                isOpen={isDeleteModalOpen}
-                onClose={() => setIsDeleteModalOpen(false)}
-                customerPhoneNumber={customer.phone_number}
-                onConfirm={handleDeleteAccount}
-            />
+        <div className="flex flex-col bg-white min-h-screen text-[#111813] pb-24" style={{ fontFamily: 'Manrope, "Noto Sans", sans-serif' }}>
+            <DeleteAccountModal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} customerPhoneNumber={customer.phone_number} onConfirm={async () => { await deleteCustomerAccount(customer.id); window.location.href='/'; }} />
             
-            <h1 className="text-4xl font-black tracking-tight text-slate-900 mb-10">Account.</h1>
-            
-            <div className="space-y-12">
-                {/* ID Card Section */}
-                <section>
-                    <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 mb-6">Universal Digital ID</h2>
-                    <div className="bg-slate-50 p-10 rounded-[3rem] border border-slate-100 shadow-inner flex flex-col items-center gap-8">
-                        <div className="bg-white p-6 rounded-[2rem] shadow-xl border-4 border-white">
-                            <img src={customer.qr_data_url} alt="ID" className="size-48 rounded-xl"/>
-                        </div>
-                        <div className="text-center space-y-1">
-                            <p className="text-xl font-black text-slate-900 tracking-tight">{customer.name}</p>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{customer.qr_token}</p>
+            <div className="flex items-center bg-white p-4 pb-2 justify-between">
+                <h2 className="text-[#111813] text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pl-12">{t('profile')}</h2>
+                <div className="flex w-12 items-center justify-end">
+                    <button className="text-[#111813] p-2"><span className="material-symbols-outlined">settings</span></button>
+                </div>
+            </div>
+
+            <div className="flex p-4 items-center flex-col gap-4">
+                <div 
+                    className="size-32 rounded-full bg-center bg-cover bg-no-repeat border border-slate-100 shadow-sm"
+                    style={{ backgroundImage: `url("${pfpPreview || 'https://i.postimg.cc/8zRZt9pM/user.png'}")` }}
+                />
+                <div className="text-center">
+                    <p className="text-[#111813] text-[22px] font-bold leading-tight tracking-[-0.015em]">{customer.name}</p>
+                    <p className="text-[#61896f] text-base font-normal leading-normal">Edit Profile</p>
+                </div>
+            </div>
+
+            <div className="p-4">
+                <div className="flex flex-col items-stretch justify-start rounded-lg border border-[#f0f4f2] overflow-hidden">
+                    <div className="w-full aspect-square bg-[#f0f4f2] flex items-center justify-center p-6">
+                        <img src={customer.qr_data_url} alt="QR" className="w-full h-full object-contain rounded-xl shadow-lg border-4 border-white" />
+                    </div>
+                    <div className="flex w-full flex-col gap-1 p-4 bg-white">
+                        <p className="text-[#111813] text-lg font-bold leading-tight">My Identity Code</p>
+                        <div className="flex items-end gap-3 justify-between">
+                            <p className="text-[#61896f] text-sm font-normal">Scan this code at participating stores to earn points.</p>
+                            <button className="flex min-w-[84px] items-center justify-center rounded-lg h-8 px-4 bg-[#2bee6c] text-[#111813] text-sm font-medium">Print</button>
                         </div>
                     </div>
-                </section>
-
-                {/* Edit Section */}
-                <section>
-                    <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 mb-8">Personal Details</h2>
-                    <form onSubmit={handleUpdate} className="space-y-8">
-                        <div className="flex items-center gap-6">
-                            <img
-                                src={pfpPreview || 'https://i.postimg.cc/8zRZt9pM/user.png'}
-                                alt="P"
-                                className="size-20 rounded-[2rem] object-cover bg-slate-50 border-2 border-white shadow-lg"
-                            />
-                            <div className="space-y-2">
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Avatar Image</p>
-                                <input type="file" accept="image/*" onChange={handleFileChange} ref={fileInputRef} className="hidden" />
-                                <button
-                                    type="button"
-                                    onClick={() => fileInputRef.current?.click()}
-                                    className="text-[10px] font-black uppercase tracking-[0.2em] bg-slate-50 py-3 px-6 rounded-2xl border border-slate-200 hover:bg-white hover:border-primary/30 transition-all"
-                                >
-                                    {t('uploadImage')}
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className="space-y-6">
-                            <InputField label={t('name')} name="profile-name" value={name} onChange={(e: any) => setName(e.target.value)} />
-                            <InputField label={t('phoneNumber')} name="profile-phone" type="tel" value={phone} onChange={(e: any) => setPhone(e.target.value)} />
-                        </div>
-
-                        {message && <p className="text-emerald-600 text-xs font-black text-center animate-pulse uppercase tracking-widest">{message}</p>}
-                        
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="w-full bg-primary text-white font-black py-5 rounded-[1.5rem] shadow-xl shadow-primary/20 active:scale-95 disabled:bg-slate-200 transition-all"
-                        >
-                           {loading ? <Spinner className="size-6 text-white mx-auto" /> : t('save')}
-                        </button>
-                    </form>
-                </section>
-
-                {/* Elite Actions */}
-                <section className="pt-10 border-t border-slate-50 space-y-4">
-                     <button
-                        onClick={onContactUs}
-                        className="w-full text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 py-4 hover:text-slate-900 transition-colors"
-                     >
-                         {t('contactUs')}
-                     </button>
-                     <button
-                        onClick={() => setIsDeleteModalOpen(true)}
-                        className="w-full bg-rose-50 text-rose-600 font-black py-5 rounded-[1.5rem] hover:bg-rose-100 transition-all uppercase tracking-[0.2em] text-[10px] active:scale-95"
-                     >
-                         {t('deleteAccount')}
-                     </button>
-                     <a
-                        href="/"
-                        className="block w-full text-slate-300 text-center font-black uppercase tracking-[0.4em] text-[8px] py-8 hover:text-slate-900"
-                    >
-                        Sign Out Gateway
-                    </a>
-                </section>
+                </div>
             </div>
+
+            <form onSubmit={handleUpdate} className="px-4 space-y-4 mt-4">
+                <label className="flex flex-col w-full">
+                    <p className="text-[#111813] text-base font-medium pb-2">Name</p>
+                    <input
+                        className="form-input flex w-full border-none bg-[#f0f4f2] rounded-lg h-14 p-4 text-[#111813] focus:ring-0"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                    />
+                </label>
+                <label className="flex flex-col w-full">
+                    <p className="text-[#111813] text-base font-medium pb-2">Phone</p>
+                    <input
+                        className="form-input flex w-full border-none bg-[#f0f4f2] rounded-lg h-14 p-4 text-[#111813] focus:ring-0"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                    />
+                </label>
+                <button type="submit" disabled={loading} className="w-full bg-[#2bee6c] text-[#0d1b12] font-black h-14 rounded-lg active:scale-95 transition-all">
+                    {loading ? <Spinner className="size-6 text-[#0d1b12] mx-auto" /> : 'Save Profile'}
+                </button>
+            </form>
+
+            <button onClick={() => setIsDeleteModalOpen(true)} className="text-[#61896f] text-sm font-normal leading-normal py-8 text-center underline w-full">
+                Delete Account
+            </button>
         </div>
     );
 };
