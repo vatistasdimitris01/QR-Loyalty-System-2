@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { LanguageProvider } from './context/LanguageContext';
 import LandingPage from './pages/LandingPage';
 import BusinessLoginPage from './pages/BusinessLoginPage';
@@ -8,12 +8,26 @@ import BusinessSignupPage from './pages/BusinessSignupPage';
 import CustomerSignupPage from './pages/CustomerSignupPage';
 import AdminPage from './pages/AdminPage';
 import BusinessScannerPage from './pages/BusinessScannerPage';
-import { DeviceGuard } from './components/common';
+import { DeviceGuard, PageLoader } from './components/common';
 
 const App: React.FC = () => {
   const path = window.location.pathname;
   const searchParams = new URLSearchParams(window.location.search);
-  const isMobile = window.innerWidth < 1024;
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 1024);
+    window.addEventListener('resize', handleResize);
+    // Simulate initial platform check
+    const timer = setTimeout(() => setLoading(false), 800);
+    return () => {
+        window.removeEventListener('resize', handleResize);
+        clearTimeout(timer);
+    };
+  }, []);
+
+  if (loading) return <PageLoader />;
 
   const renderPage = () => {
     if (path === '/admin') {
@@ -23,7 +37,7 @@ const App: React.FC = () => {
     if (path === '/customer' && searchParams.has('token')) {
       return (
         <DeviceGuard target="mobile">
-          <div className="flex justify-center bg-mint-white min-h-screen">
+          <div className="flex justify-center bg-mint-white min-h-screen animate-in fade-in duration-700">
             <div className="w-full max-w-md bg-white min-h-screen relative overflow-hidden">
                <CustomerPage qrToken={searchParams.get('token')!} />
             </div>
@@ -34,7 +48,7 @@ const App: React.FC = () => {
     if (path === '/signup/customer') {
       return (
         <DeviceGuard target="mobile">
-          <div className="flex justify-center bg-mint-white min-h-screen">
+          <div className="flex justify-center bg-mint-white min-h-screen animate-in fade-in duration-700">
             <div className="w-full max-w-md bg-white min-h-screen">
               <CustomerSignupPage />
             </div>
@@ -45,25 +59,26 @@ const App: React.FC = () => {
 
     if (path === '/business') {
         const isLoggedIn = sessionStorage.getItem('isBusinessLoggedIn') === 'true';
-        if (isLoggedIn && isMobile) return <BusinessScannerPage />;
-        return <DeviceGuard target="pc">{isLoggedIn ? <BusinessPage /> : <BusinessLoginPage />}</DeviceGuard>;
+        if (isLoggedIn) {
+            return isMobile ? <BusinessScannerPage /> : <BusinessPage />;
+        }
+        return <BusinessLoginPage />;
     }
     
-    // Scanner is now mobile-only interface or accessible via Mobile terminal
     if (path === '/business/scanner') {
         const isLoggedIn = sessionStorage.getItem('isBusinessLoggedIn') === 'true';
         return <DeviceGuard target="mobile">{isLoggedIn ? <BusinessScannerPage /> : <BusinessLoginPage />}</DeviceGuard>;
     }
 
     if (path === '/business/login') {
-      return <BusinessLoginPage />;
+      return <div className="animate-in fade-in duration-700"><BusinessLoginPage /></div>;
     }
     
     if (path === '/signup/business') {
-        return <DeviceGuard target="pc"><BusinessSignupPage /></DeviceGuard>;
+        return <DeviceGuard target="pc"><div className="animate-in fade-in duration-700"><BusinessSignupPage /></div></DeviceGuard>;
     }
 
-    return <LandingPage />;
+    return <div className="animate-in fade-in duration-700"><LandingPage /></div>;
   };
 
   return (

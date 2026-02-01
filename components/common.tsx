@@ -15,6 +15,31 @@ export const Spinner: React.FC<{ className?: string }> = ({ className = 'h-8 w-8
   </div>
 );
 
+export const PageLoader: React.FC = () => (
+    <div className="fixed inset-0 z-[999] bg-white flex flex-col items-center justify-center space-y-8 animate-in fade-in duration-500">
+        <div className="relative">
+            <div className="size-24 bg-[#2bee6c] rounded-[2rem] flex items-center justify-center p-4 animate-pulse">
+                <svg viewBox="0 0 256 256" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className="w-full h-full text-[#163a24]">
+                    <path d="M216,40H56A16,16,0,0,0,40,56V216a8,8,0,0,0,16,0V144h80l8.3,16.6a8.23,8.23,0,0,0,7.2,4.4H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40Zm0,112H154.9l-8.3-16.6a8.23,8.23,0,0,0-7.2-4.4H56V56H216Z"></path>
+                </svg>
+            </div>
+            <div className="absolute inset-[-12px] border-2 border-[#2bee6c]/20 rounded-[2.5rem] animate-[ping_2s_infinite]"></div>
+        </div>
+        <div className="flex flex-col items-center gap-2">
+            <p className="text-[10px] font-black uppercase tracking-[0.5em] text-[#163a24] animate-pulse">Initializing Identity</p>
+            <div className="w-32 h-1 bg-slate-100 rounded-full overflow-hidden">
+                <div className="h-full bg-[#2bee6c] animate-[loading_2s_ease-in-out_infinite]" style={{ width: '40%' }}></div>
+            </div>
+        </div>
+        <style>{`
+            @keyframes loading {
+                0% { transform: translateX(-100%); }
+                100% { transform: translateX(250%); }
+            }
+        `}</style>
+    </div>
+);
+
 export const Logo: React.FC<{ className?: string }> = ({ className = "size-8" }) => (
     <div className={`${className} bg-[#2bee6c] rounded-xl flex items-center justify-center p-1.5`}>
         <svg viewBox="0 0 256 256" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className="w-full h-full text-[#163a24]">
@@ -69,7 +94,7 @@ export const DeviceGuard: React.FC<{ children: React.ReactNode; target: 'mobile'
     if (isWrongDevice) {
         return (
             <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#ffffff] p-6 font-display">
-                <div className="w-full max-w-md bg-white rounded-[3rem] border border-slate-100 p-10 text-center space-y-8">
+                <div className="w-full max-w-md bg-white rounded-[3rem] border border-slate-100 p-10 text-center space-y-8 animate-in zoom-in-95 duration-500">
                     <div className="size-20 bg-[#163a24] text-[#2bee6c] rounded-[1.5rem] flex items-center justify-center mx-auto mb-6">
                         <FlagLogo className="size-12 !bg-transparent" />
                     </div>
@@ -120,14 +145,14 @@ export const SelectField: React.FC<{label: string, name: string, value: string, 
     </div>
 );
 
-interface ModalProps {
+export interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   children: React.ReactNode;
   title: string;
 }
 
-const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, title }) => {
+export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, title }) => {
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 bg-[#163a24]/20 backdrop-blur-sm z-[110] flex justify-center items-center p-4 animate-in fade-in duration-300">
@@ -175,7 +200,7 @@ export const CustomerSetupModal: React.FC<{ isOpen: boolean; onSave: (details: {
         <div className="space-y-8">
             <InputField label={t('name')} name="setup-name" value={name} onChange={(e: any) => setName(e.target.value)} placeholder="Full Name" />
             <InputField label={t('phoneNumber')} name="setup-phone" type="tel" value={phone} onChange={(e: any) => setPhone(e.target.value)} placeholder="+30 ..." />
-            <button onClick={handleSave} disabled={!name.trim() || !phone.trim()} className="w-full bg-[#2bee6c] text-[#163a24] font-black py-4 px-6 rounded-2xl active:scale-95 disabled:opacity-30">
+            <button onClick={handleSave} disabled={!name.trim() || !phone.trim()} className="w-full bg-[#2bee6c] text-[#163a24] font-black py-4 px-6 rounded-2xl active:scale-95 disabled:opacity-30 transition-all">
                 {t('save')}
             </button>
         </div>
@@ -254,13 +279,13 @@ export const DeleteAccountModal: React.FC<{ isOpen: boolean; onClose: () => void
     useEffect(() => { if (!isOpen) setInputValue(''); }, [isOpen]);
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={t('deleteAccountConfirmTitle')}>
-            <div className="space-y-8">
+            <div className="space-y-8 animate-in zoom-in-95 duration-300">
                 <div className="bg-rose-50 p-8 rounded-[2.5rem] border border-rose-100">
                     <p className="text-xs font-black text-rose-600 uppercase tracking-widest mb-2">{t('deleteAccountWarning')}</p>
                     <p className="text-slate-600 text-sm font-medium leading-relaxed">{t('deleteAccountPrompt')}</p>
                 </div>
                 <InputField label="Verify Mobile" name="del-phone" value={inputValue} onChange={(e: any) => setInputValue(e.target.value)} placeholder={customerPhoneNumber} />
-                <button onClick={handleDelete} disabled={!isMatch || isDeleting} className="w-full py-4 bg-rose-600 text-white rounded-2xl font-black disabled:opacity-30">
+                <button onClick={handleDelete} disabled={!isMatch || isDeleting} className="w-full py-4 bg-rose-600 text-white rounded-2xl font-black disabled:opacity-30 transition-all">
                     {isDeleting ? 'Deleting...' : t('deleteAccount')}
                 </button>
             </div>
@@ -271,6 +296,6 @@ export const DeleteAccountModal: React.FC<{ isOpen: boolean; onClose: () => void
 export const MarkdownEditor: React.FC<{ label: string; name: string; value: string; onChange: (name: string, value: string) => void }> = ({ label, name, value, onChange }) => (
     <div className="group">
         <label className="block text-[10px] font-black text-[#4c9a66] uppercase tracking-[0.2em] mb-3 transition-colors pl-1">{label}</label>
-        <textarea name={name} value={value} onChange={(e) => onChange(name, e.target.value)} rows={5} className="w-full p-8 bg-white border border-slate-100 rounded-[3rem] focus:outline-none focus:border-[#2bee6c] text-[#163a24] font-medium" />
+        <textarea name={name} value={value} onChange={(e) => onChange(name, e.target.value)} rows={5} className="w-full p-8 bg-white border border-slate-100 rounded-[3rem] focus:outline-none focus:border-[#2bee6c] text-[#163a24] font-medium transition-all" />
     </div>
 );

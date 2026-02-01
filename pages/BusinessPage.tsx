@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useCallback, useDeferredValue, useRef } from 'react';
 import { useLanguage } from '../context/LanguageContext';
-import { Membership, Business, Post, Discount, DailyAnalyticsData, BusinessAnalytics } from '../types';
+import { Membership, Business, Post, Discount, DailyAnalyticsData, BusinessAnalytics, Customer } from '../types';
 import { 
     searchMembershipsForBusiness, getBusinessAnalytics, getDailyAnalytics,
     updateBusiness, getPostsForBusiness, deletePost,
     getDiscountsForBusiness, deleteDiscount, uploadBusinessAsset
 } from '../services/api';
 import { generateQrCode } from '../services/qrGenerator';
-import { Spinner, FlagLogo, InputField, TextAreaField, SelectField } from '../components/common';
+import { Spinner, FlagLogo, InputField, TextAreaField, SelectField, Modal, PageLoader } from '../components/common';
 
 type DashboardTab = 'analytics' | 'customers' | 'posts' | 'discounts' | 'settings';
 
@@ -33,14 +33,7 @@ const BusinessPage: React.FC = () => {
         setBusiness(updatedBusiness); sessionStorage.setItem('business', JSON.stringify(updatedBusiness));
     }
 
-    if (loading || !business) return (
-        <div className="flex justify-center items-center h-screen bg-white">
-            <div className="text-center space-y-4">
-                <Spinner className="size-12 text-[#2bee6c]" />
-                <p className="text-[#163a24] font-display font-bold tracking-tight">Accessing Business Hub...</p>
-            </div>
-        </div>
-    );
+    if (loading || !business) return <PageLoader />;
 
     const navItems = [
         { label: t('analytics'), icon: 'dashboard', id: 'analytics' as DashboardTab },
@@ -63,7 +56,7 @@ const BusinessPage: React.FC = () => {
                         
                         <button onClick={() => setSidebarCollapsed(true)} className="p-2 text-[#4c9a66] hover:text-[#163a24] transition-colors">
                             <svg width="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path fill-rule="evenodd" clip-rule="evenodd" d="M9.35719 3H14.6428C15.7266 2.99999 16.6007 2.99998 17.3086 3.05782C18.0375 3.11737 18.6777 3.24318 19.27 3.54497C20.2108 4.02433 20.9757 4.78924 21.455 5.73005C21.7568 6.32234 21.8826 6.96253 21.9422 7.69138C22 8.39925 22 9.27339 22 10.3572V13.6428C22 14.7266 22 15.6008 21.9422 16.3086C21.8826 17.0375 21.7568 17.6777 21.455 18.27C20.9757 19.2108 20.2108 19.9757 19.27 20.455C18.6777 20.7568 18.0375 20.8826 17.3086 20.9422C16.6008 21 15.7266 21 14.6428 21H9.35717C8.27339 21 7.39925 21 6.69138 20.9422C5.96253 20.8826 5.32234 20.7568 4.73005 20.455C3.78924 19.9757 3.02433 19.2108 2.54497 18.27C2.24318 17.6777 2.11737 17.0375 2.05782 16.3086C1.99998 15.6007 1.99999 14.7266 2 13.6428V10.3572C1.99999 9.27341 1.99998 8.39926 2.05782 7.69138C2.11737 6.96253 2.24318 6.32234 2.54497 5.73005C3.02433 4.78924 3.78924 4.02433 4.73005 3.54497C5.32234 3.24318 5.96253 3.11737 6.69138 3.05782C7.39926 2.99998 8.27341 2.99999 9.35719 3ZM6.85424 5.05118C6.24907 5.10062 5.90138 5.19279 5.63803 5.32698C5.07354 5.6146 4.6146 6.07354 4.32698 6.63803C4.19279 6.90138 4.10062 7.24907 4.05118 7.85424C4.00078 8.47108 4 9.26339 4 10.4V13.6C4 14.7366 4.00078 15.5289 4.05118 16.1458C4.10062 16.7509 4.19279 17.0986 4.32698 17.362C4.6146 17.9265 5.07354 18.3854 5.63803 18.673C5.90138 18.8072 6.24907 18.8994 6.85424 18.9488C7.47108 18.9992 8.26339 19 9.4 19H14.6C15.7366 19 16.5289 18.9992 17.1458 18.9488C17.7509 18.8994 18.0986 18.8072 18.362 18.673C18.9265 18.3854 19.3854 17.9265 19.673 17.362C19.8072 17.0986 19.8994 16.7509 19.9488 16.1458C19.9992 15.5289 20 14.7366 20 13.6V10.4C20 9.26339 19.9992 8.47108 19.9488 7.85424C19.8994 7.24907 19.8072 6.90138 19.673 6.63803C19.3854 6.07354 18.9265 5.6146 18.362 5.32698C18.0986 5.19279 17.7509 5.10062 17.1458 5.05118C16.5289 5.00078 15.7366 5 14.6 5H9.4C8.26339 5 7.47108 5.00078 6.85424 5.05118ZM7 7C7.55229 7 8 7.44772 8 8V16C8 16.5523 7.55229 17 7 17C6.44772 17 6 16.5523 6 16V8C6 7.44772 6.44772 7 7 7Z" fill="currentColor"></path>
+                                <path fillRule="evenodd" clipRule="evenodd" d="M9.35719 3H14.6428C15.7266 2.99999 16.6007 2.99998 17.3086 3.05782C18.0375 3.11737 18.6777 3.24318 19.27 3.54497C20.2108 4.02433 20.9757 4.78924 21.455 5.73005C21.7568 6.32234 21.8826 6.96253 21.9422 7.69138C22 8.39925 22 9.27339 22 10.3572V13.6428C22 14.7266 22 15.6008 21.9422 16.3086C21.8826 17.0375 21.7568 17.6777 21.455 18.27C20.9757 19.2108 20.2108 19.9757 19.27 20.455C18.6777 20.7568 18.0375 20.8826 17.3086 20.9422C16.6008 21 15.7266 21 14.6428 21H9.35717C8.27339 21 7.39925 21 6.69138 20.9422C5.96253 20.8826 5.32234 20.7568 4.73005 20.455C3.78924 19.9757 3.02433 19.2108 2.54497 18.27C2.24318 17.6777 2.11737 17.0375 2.05782 16.3086C1.99998 15.6007 1.99999 14.7266 2 13.6428V10.3572C1.99999 9.27341 1.99998 8.39926 2.05782 7.69138C2.11737 6.96253 2.24318 6.32234 2.54497 5.73005C3.02433 4.78924 3.78924 4.02433 4.73005 3.54497C5.32234 3.24318 5.96253 3.11737 6.69138 3.05782C7.39926 2.99998 8.27341 2.99999 9.35719 3ZM6.85424 5.05118C6.24907 5.10062 5.90138 5.19279 5.63803 5.32698C5.07354 5.6146 4.6146 6.07354 4.32698 6.63803C4.19279 6.90138 4.10062 7.24907 4.05118 7.85424C4.00078 8.47108 4 9.26339 4 10.4V13.6C4 14.7366 4.00078 15.5289 4.05118 16.1458C4.10062 16.7509 4.19279 17.0986 4.32698 17.362C4.6146 17.9265 5.07354 18.3854 5.63803 18.673C5.90138 18.8072 6.24907 18.8994 6.85424 18.9488C7.47108 18.9992 8.26339 19 9.4 19H14.6C15.7366 19 16.5289 18.9992 17.1458 18.9488C17.7509 18.8994 18.0986 18.8072 18.362 18.673C18.9265 18.3854 19.3854 17.9265 19.673 17.362C19.8072 17.0986 19.8994 16.7509 19.9488 16.1458C19.9992 15.5289 20 14.7366 20 13.6V10.4C20 9.26339 19.9992 8.47108 19.9488 7.85424C19.8994 7.24907 19.8072 6.90138 19.673 6.63803C19.3854 6.07354 18.9265 5.6146 18.362 5.32698C18.0986 5.19279 17.7509 5.10062 17.1458 5.05118C16.5289 5.00078 15.7366 5 14.6 5H9.4C8.26339 5 7.47108 5.00078 6.85424 5.05118ZM7 7C7.55229 7 8 7.44772 8 8V16C8 16.5523 7.55229 17 7 17C6.44772 17 6 16.5523 6 16V8C6 7.44772 6.44772 7 7 7Z" fill="currentColor"></path>
                             </svg>
                         </button>
                     </div>
@@ -81,7 +74,7 @@ const BusinessPage: React.FC = () => {
                     </nav>
 
                     <div className="mt-auto pt-6 border-t border-slate-100">
-                        <button onClick={handleLogout} className="flex items-center gap-4 w-full p-4 rounded-2xl text-rose-500 font-bold hover:bg-rose-50 transition-all">
+                        <button onClick={handleLogout} className="flex items-center gap-4 w-full p-4 rounded-2xl text-rose-500 font-bold hover:bg-rose-50 transition-all active:scale-95">
                             <span className="material-icons-round">logout</span>
                             <span>{t('logout')}</span>
                         </button>
@@ -96,7 +89,7 @@ const BusinessPage: React.FC = () => {
                         {sidebarCollapsed && (
                             <button onClick={() => setSidebarCollapsed(false)} className="p-2 text-[#4c9a66] hover:text-[#163a24] transition-colors">
                                 <svg width="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M9.35719 3H14.6428C15.7266 2.99999 16.6007 2.99998 17.3086 3.05782C18.0375 3.11737 18.6777 3.24318 19.27 3.54497C20.2108 4.02433 20.9757 4.78924 21.455 5.73005C21.7568 6.32234 21.8826 6.96253 21.9422 7.69138C22 8.39925 22 9.27339 22 10.3572V13.6428C22 14.7266 22 15.6008 21.9422 16.3086C21.8826 17.0375 21.7568 17.6777 21.455 18.27C20.9757 19.2108 20.2108 19.9757 19.27 20.455C18.6777 20.7568 18.0375 20.8826 17.3086 20.9422C16.6008 21 15.7266 21 14.6428 21H9.35717C8.27339 21 7.39925 21 6.69138 20.9422C5.96253 20.8826 5.32234 20.7568 4.73005 20.455C3.78924 19.9757 3.02433 19.2108 2.54497 18.27C2.24318 17.6777 2.11737 17.0375 2.05782 16.3086C1.99998 15.6007 1.99999 14.7266 2 13.6428V10.3572C1.99999 9.27341 1.99998 8.39926 2.05782 7.69138C2.11737 6.96253 2.24318 6.32234 2.54497 5.73005C3.02433 4.78924 3.78924 4.02433 4.73005 3.54497C5.32234 3.24318 5.96253 3.11737 6.69138 3.05782C7.39926 2.99998 8.27341 2.99999 9.35719 3ZM6.85424 5.05118C6.24907 5.10062 5.90138 5.19279 5.63803 5.32698C5.07354 5.6146 4.6146 6.07354 4.32698 6.63803C4.19279 6.90138 4.10062 7.24907 4.05118 7.85424C4.00078 8.47108 4 9.26339 4 10.4V13.6C4 14.7366 4.00078 15.5289 4.05118 16.1458C4.10062 16.7509 4.19279 17.0986 4.32698 17.362C4.6146 17.9265 5.07354 18.3854 5.63803 18.673C5.90138 18.8072 6.24907 18.8994 6.85424 18.9488C7.17922 18.9754 7.55292 18.9882 8 18.9943V5.0057C7.55292 5.01184 7.17922 5.02462 6.85424 5.05118ZM10 5V19H14.6C15.7366 19 16.5289 18.9992 17.1458 18.9488C17.7509 18.8994 18.0986 18.8072 18.362 18.673C18.9265 18.3854 19.3854 17.9265 19.673 17.362C19.8072 17.0986 19.8994 16.7509 19.9488 16.1458C19.9992 15.5289 20 14.7366 20 13.6V10.4C20 9.26339 19.9992 8.47108 19.9488 7.85424C19.8994 7.24907 19.8072 6.90138 19.673 6.63803C19.3854 6.07354 18.9265 5.6146 18.362 5.32698C18.0986 5.19279 17.7509 5.10062 17.1458 5.05118C16.5289 5.00078 15.7366 5 14.6 5H10Z" fill="currentColor"></path>
+                                    <path fillRule="evenodd" clipRule="evenodd" d="M9.35719 3H14.6428C15.7266 2.99999 16.6007 2.99998 17.3086 3.05782C18.0375 3.11737 18.6777 3.24318 19.27 3.54497C20.2108 4.02433 20.9757 4.78924 21.455 5.73005C21.7568 6.32234 21.8826 6.96253 21.9422 7.69138C22 8.39925 22 9.27339 22 10.3572V13.6428C22 14.7266 22 15.6008 21.9422 16.3086C21.8826 17.0375 21.7568 17.6777 21.455 18.27C20.9757 19.2108 20.2108 19.9757 19.27 20.455C18.6777 20.7568 18.0375 20.8826 17.3086 20.9422C16.6008 21 15.7266 21 14.6428 21H9.35717C8.27339 21 7.39925 21 6.69138 20.9422C5.96253 20.8826 5.32234 20.7568 4.73005 20.455C3.78924 19.9757 3.02433 19.2108 2.54497 18.27C2.24318 17.6777 2.11737 17.0375 2.05782 16.3086C1.99998 15.6007 1.99999 14.7266 2 13.6428V10.3572C1.99999 9.27341 1.99998 8.39926 2.05782 7.69138C2.11737 6.96253 2.24318 6.32234 2.54497 5.73005C3.02433 4.78924 3.78924 4.02433 4.73005 3.54497C5.32234 3.24318 5.96253 3.11737 6.69138 3.05782C7.39926 2.99998 8.27341 2.99999 9.35719 3ZM6.85424 5.05118C6.24907 5.10062 5.90138 5.19279 5.63803 5.32698C5.07354 5.6146 4.6146 6.07354 4.32698 6.63803C4.19279 6.90138 4.10062 7.24907 4.05118 7.85424C4.00078 8.47108 4 9.26339 4 10.4V13.6C4 14.7366 4.00078 15.5289 4.05118 16.1458C4.10062 16.7509 4.19279 17.0986 4.32698 17.362C4.6146 17.9265 5.07354 18.3854 5.63803 18.673C5.90138 18.8072 6.24907 18.8994 6.85424 18.9488C7.17922 18.9754 7.55292 18.9882 8 18.9943V5.0057C7.55292 5.01184 7.17922 5.02462 6.85424 5.05118ZM10 5V19H14.6C15.7366 19 16.5289 18.9992 17.1458 18.9488C17.7509 18.8994 18.0986 18.8072 18.362 18.673C18.9265 18.3854 19.3854 17.9265 19.673 17.362C19.8072 17.0986 19.8994 16.7509 19.9488 16.1458C19.9992 15.5289 20 14.7366 20 13.6V10.4C20 9.26339 19.9992 8.47108 19.9488 7.85424C19.8994 7.24907 19.8072 6.90138 19.673 6.63803C19.3854 6.07354 18.9265 5.6146 18.362 5.32698C18.0986 5.19279 17.7509 5.10062 17.1458 5.05118C16.5289 5.00078 15.7366 5 14.6 5H10Z" fill="currentColor"></path>
                                 </svg>
                             </button>
                         )}
@@ -110,7 +103,7 @@ const BusinessPage: React.FC = () => {
                     </div>
                 </header>
 
-                <main className="p-10 max-w-7xl w-full mx-auto animate-in fade-in duration-700">
+                <main className="p-10 max-w-7xl w-full mx-auto animate-in fade-in slide-in-from-bottom-2 duration-700">
                     {activeTab === 'analytics' && <AnalyticsDashboard business={business} onBusinessUpdate={handleBusinessUpdate} />}
                     {activeTab === 'customers' && <CustomersList business={business} />}
                     {activeTab === 'posts' && <PostsManager business={business} />}
@@ -141,7 +134,7 @@ const AnalyticsDashboard: React.FC<{business: Business, onBusinessUpdate: (b: Bu
     useEffect(() => { fetchData(); }, [fetchData]);
 
     return (
-        <div className="space-y-12">
+        <div className="space-y-12 animate-in fade-in duration-500">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <StatCard title="Active Members" value={analytics?.total_customers ?? '...'} />
                 <StatCard title="7D Intake" value={analytics?.new_members_7d ?? '...'} highlight />
@@ -217,11 +210,11 @@ const LoyaltySettingsInline: React.FC<{business: Business, onUpdate: (b: Busines
             <div className="space-y-4">
                 <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500">{t('pointsPerScan')}</label>
                 <div className="flex items-center justify-between bg-white/5 p-2 rounded-xl border border-white/5">
-                    <button onClick={() => setPoints(p => Math.max(1, p - 1))} className="w-10 h-10 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center">
+                    <button onClick={() => setPoints(p => Math.max(1, p - 1))} className="w-10 h-10 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center transition-all">
                         <span className="material-icons-round text-lg">remove</span>
                     </button>
                     <span className="text-2xl font-bold font-display">{points}</span>
-                    <button onClick={() => setPoints(p => p + 1)} className="w-10 h-10 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center">
+                    <button onClick={() => setPoints(p => p + 1)} className="w-10 h-10 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center transition-all">
                         <span className="material-icons-round text-lg">add</span>
                     </button>
                 </div>
@@ -229,16 +222,16 @@ const LoyaltySettingsInline: React.FC<{business: Business, onUpdate: (b: Busines
              <div className="space-y-4">
                 <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 leading-tight">{t('rewardThreshold')}</label>
                 <div className="flex items-center justify-between bg-white/5 p-2 rounded-xl border border-white/5">
-                    <button onClick={() => setThreshold(t => Math.max(points, t - 1))} className="w-10 h-10 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center">
+                    <button onClick={() => setThreshold(t => Math.max(points, t - 1))} className="w-10 h-10 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center transition-all">
                         <span className="material-icons-round text-lg">remove</span>
                     </button>
                     <span className="text-2xl font-bold font-display">{threshold}</span>
-                    <button onClick={() => setThreshold(t => t + 1)} className="w-10 h-10 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center">
+                    <button onClick={() => setThreshold(t => t + 1)} className="w-10 h-10 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center transition-all">
                         <span className="material-icons-round text-lg">add</span>
                     </button>
                 </div>
             </div>
-            <button onClick={handleSave} disabled={isSaving} className="w-full mt-4 py-4 bg-[#2bee6c] text-[#163a24] font-bold rounded-xl active:scale-[0.98]">
+            <button onClick={handleSave} disabled={isSaving} className="w-full mt-4 py-4 bg-[#2bee6c] text-[#163a24] font-bold rounded-xl active:scale-[0.98] transition-all">
                 {isSaving ? 'Saving...' : 'Update Rules'}
             </button>
         </div>
@@ -250,6 +243,7 @@ const CustomersList: React.FC<{business: Business}> = ({ business }) => {
     const [memberships, setMemberships] = useState<Membership[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [selectedMember, setSelectedMember] = useState<Membership | null>(null);
     const deferredSearch = useDeferredValue(searchTerm);
     
     useEffect(() => {
@@ -262,14 +256,14 @@ const CustomersList: React.FC<{business: Business}> = ({ business }) => {
     }, [business.id, deferredSearch]);
     
     return (
-        <div className="bg-white p-12 rounded-[2.5rem] border border-slate-100 space-y-12">
+        <div className="bg-white p-12 rounded-[2.5rem] border border-slate-100 space-y-12 animate-in fade-in duration-500">
             <div className="flex flex-col md:flex-row justify-between items-center gap-8">
                 <div>
                     <h2 className="text-3xl font-bold font-display tracking-tight text-[#163a24]">Directory</h2>
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.4em] mt-1">{memberships.length} Active Records</p>
                 </div>
                 <div className="relative w-full md:w-1/2">
-                    <input type="text" placeholder={t('searchByName')} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full py-4 pl-6 pr-14 border border-slate-200 rounded-2xl bg-white focus:ring-[#2bee6c] focus:border-[#2bee6c] font-medium" />
+                    <input type="text" placeholder={t('searchByName')} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full py-4 pl-6 pr-14 border border-slate-200 rounded-2xl bg-white focus:ring-[#2bee6c] focus:border-[#2bee6c] font-medium transition-all" />
                 </div>
             </div>
             <div className="overflow-hidden border border-slate-100 rounded-3xl">
@@ -289,7 +283,7 @@ const CustomersList: React.FC<{business: Business}> = ({ business }) => {
                                         <div className="size-10 rounded-full bg-[#e7f3eb] flex items-center justify-center font-black text-[#4c9a66]">{m.customers.name?.charAt(0)}</div>
                                         <div className="min-w-0">
                                             <p className="font-bold text-[#163a24] text-sm truncate">{m.customers.name}</p>
-                                            <p className="text-[10px] font-bold text-[#4c9a66] tracking-widest">{m.customers.phone_number || 'STITCH ID'}</p>
+                                            <p className="text-[10px] font-bold text-[#4c9a66] tracking-widest uppercase">{m.customers.phone_number || 'STITCH ID'}</p>
                                         </div>
                                     </div>
                                 </td>
@@ -297,16 +291,65 @@ const CustomersList: React.FC<{business: Business}> = ({ business }) => {
                                     <span className="text-sm font-bold text-[#2bee6c] bg-[#2bee6c]/5 px-3 py-1 rounded-full">{m.points} pts</span>
                                 </td>
                                 <td className="px-6 py-4 text-right">
-                                    <button className="text-slate-400 hover:text-[#163a24] transition-colors material-icons-round">more_vert</button>
+                                    <button onClick={() => setSelectedMember(m)} className="text-slate-400 hover:text-[#163a24] transition-all material-icons-round active:scale-90">more_vert</button>
                                 </td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
             </div>
+            
+            <CustomerPreviewModal 
+                membership={selectedMember} 
+                onClose={() => setSelectedMember(null)} 
+            />
         </div>
     )
 }
+
+const CustomerPreviewModal: React.FC<{ membership: Membership | null; onClose: () => void }> = ({ membership, onClose }) => {
+    const { t } = useLanguage();
+    const [qrUrl, setQrUrl] = useState('');
+    
+    useEffect(() => {
+        if (membership?.customers?.qr_token) {
+            generateQrCode(membership.customers.qr_token).then(setQrUrl);
+        }
+    }, [membership]);
+
+    if (!membership) return null;
+
+    return (
+        <Modal isOpen={!!membership} onClose={onClose} title="Identity Passport">
+            <div className="text-center space-y-8 animate-in zoom-in-95 duration-300">
+                <div className="space-y-2">
+                    <h4 className="text-3xl font-black text-[#163a24] tracking-tighter leading-none">{membership.customers.name}</h4>
+                    <p className="text-xs font-bold text-[#4c9a66] uppercase tracking-[0.3em]">{membership.customers.phone_number || 'Universal Identifier'}</p>
+                </div>
+                
+                <div className="relative group inline-block">
+                    <div className="absolute inset-0 bg-[#2bee6c]/5 blur-3xl rounded-full scale-150 pointer-events-none"></div>
+                    <div className="bg-white p-8 rounded-[3rem] border border-slate-50 relative z-10">
+                        {qrUrl ? <img src={qrUrl} alt="QR" className="w-64 h-64 rounded-xl" /> : <Spinner />}
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
+                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Equity</p>
+                        <p className="text-2xl font-black text-[#163a24]">{membership.points} PTS</p>
+                    </div>
+                    <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
+                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Status</p>
+                        <p className="text-2xl font-black text-[#2bee6c]">ACTIVE</p>
+                    </div>
+                </div>
+
+                <button onClick={onClose} className="w-full py-5 bg-[#163a24] text-[#2bee6c] rounded-2xl font-black text-xs uppercase tracking-[0.3em] active:scale-95 transition-all">Close Passport</button>
+            </div>
+        </Modal>
+    );
+};
 
 const PostsManager: React.FC<{business: Business}> = ({ business }) => {
     const { t } = useLanguage();
@@ -314,7 +357,7 @@ const PostsManager: React.FC<{business: Business}> = ({ business }) => {
     const fetch = useCallback(async () => { setPosts(await getPostsForBusiness(business.id)); }, [business.id]);
     useEffect(() => { fetch(); }, [fetch]);
     return (
-        <div className="bg-white p-12 rounded-[2.5rem] border border-slate-100">
+        <div className="bg-white p-12 rounded-[2.5rem] border border-slate-100 animate-in fade-in duration-500">
             <div className="flex justify-between items-center mb-12">
                 <h3 className="text-3xl font-bold font-display tracking-tight">Marketing Portal</h3>
                 <button className="flex items-center gap-2 bg-[#2bee6c] text-[#163a24] px-6 py-3 rounded-2xl font-bold active:scale-95 transition-all">
@@ -333,8 +376,8 @@ const PostsManager: React.FC<{business: Business}> = ({ business }) => {
                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">{new Date(p.created_at).toLocaleDateString()}</p>
                             <h4 className="text-xl font-bold text-[#163a24] leading-tight mb-6">{p.title}</h4>
                             <div className="flex justify-end gap-2 border-t border-slate-50 pt-4">
-                                <button className="p-2 text-slate-400 hover:text-[#163a24] transition-colors material-icons-round">edit</button>
-                                <button onClick={async () => { if(window.confirm('Delete?')){ await deletePost(p.id); fetch(); } }} className="p-2 text-rose-400 hover:text-rose-600 transition-colors material-icons-round">delete</button>
+                                <button className="p-2 text-slate-400 hover:text-[#163a24] transition-colors material-icons-round active:scale-90">edit</button>
+                                <button onClick={async () => { if(window.confirm('Delete?')){ await deletePost(p.id); fetch(); } }} className="p-2 text-rose-400 hover:text-rose-600 transition-colors material-icons-round active:scale-90">delete</button>
                             </div>
                         </div>
                     </div>
@@ -349,7 +392,7 @@ const DiscountsManager: React.FC<{business: Business}> = ({ business }) => {
     const fetch = useCallback(async () => { setDiscounts(await getDiscountsForBusiness(business.id)); }, [business.id]);
     useEffect(() => { fetch(); }, [fetch]);
     return (
-        <div className="bg-white p-12 rounded-[2.5rem] border border-slate-100">
+        <div className="bg-white p-12 rounded-[2.5rem] border border-slate-100 animate-in fade-in duration-500">
             <div className="flex justify-between items-center mb-12">
                 <h3 className="text-3xl font-bold font-display tracking-tight">Active Rewards</h3>
                 <button className="bg-[#2bee6c] text-[#163a24] font-bold px-6 py-3 rounded-2xl flex items-center gap-2 active:scale-95 transition-all">
@@ -407,7 +450,7 @@ const BusinessSettingsTab: React.FC<{business: Business, onBusinessUpdate: (b: B
     };
 
     return (
-        <div className="bg-white p-12 rounded-[2.5rem] border border-slate-100">
+        <div className="bg-white p-12 rounded-[2.5rem] border border-slate-100 animate-in fade-in duration-500">
             <div className="flex flex-col md:flex-row justify-between items-center mb-12 gap-8">
                 <div className="flex gap-10 border-b border-slate-100 w-full md:w-auto">
                     <TabButton label="Public Profile" isActive={activeSubTab === 'profile'} onClick={() => setActiveSubTab('profile')} />
@@ -419,7 +462,7 @@ const BusinessSettingsTab: React.FC<{business: Business, onBusinessUpdate: (b: B
                 </button>
             </div>
 
-            <div className="space-y-10">
+            <div className="space-y-10 animate-in slide-in-from-left-2 duration-300">
                 {activeSubTab === 'profile' && <ProfileEditor formState={formState} setFormState={setFormState} onFileSelect={(type: any, file: any) => setStagedFiles(prev => ({...prev, [type]: file}))} />}
                 {activeSubTab === 'branding' && <BrandingEditor formState={formState} setFormState={setFormState} business={business} />}
                 {activeSubTab === 'location' && <LocationEditor formState={formState} setFormState={setFormState} />}
@@ -483,8 +526,8 @@ const LocationEditor: React.FC<any> = ({ formState, setFormState }) => {
         <div className="space-y-10">
             <InputField label={t('address')} name="address_text" value={formState.address_text || ''} onChange={handleChange} placeholder="Physical store address..." />
             {formState.address_text && (
-                 <div className="rounded-[3rem] overflow-hidden border border-slate-100 grayscale contrast-125 opacity-80">
-                    <iframe className="w-full h-96" loading="lazy" src={`https://www.google.com/maps?q=${encodeURIComponent(formState.address_text)}&output=embed`}></iframe>
+                 <div className="rounded-[3rem] overflow-hidden border border-slate-100 grayscale contrast-125 opacity-80 transition-all">
+                    <iframe className="w-full h-96" title="Map" loading="lazy" src={`https://www.google.com/maps?q=${encodeURIComponent(formState.address_text)}&output=embed`}></iframe>
                 </div>
             )}
         </div>
