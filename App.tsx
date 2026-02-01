@@ -8,25 +8,34 @@ import BusinessSignupPage from './pages/BusinessSignupPage';
 import CustomerSignupPage from './pages/CustomerSignupPage';
 import AdminPage from './pages/AdminPage';
 import BusinessScannerPage from './pages/BusinessScannerPage';
-import { DeviceGuard, PageLoader } from './components/common';
+import { DeviceGuard, PageLoader, SplashScreen } from './components/common';
 
 const App: React.FC = () => {
   const path = window.location.pathname;
   const searchParams = new URLSearchParams(window.location.search);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
   const [loading, setLoading] = useState(true);
+  const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 1024);
     window.addEventListener('resize', handleResize);
-    // Simulate initial platform check
+    
+    // Initial app readiness check (e.g. font loading, config checks)
     const timer = setTimeout(() => setLoading(false), 800);
+    
     return () => {
         window.removeEventListener('resize', handleResize);
         clearTimeout(timer);
     };
   }, []);
 
+  // Handle Splash Screen completion
+  const handleSplashComplete = () => {
+    setShowSplash(false);
+  };
+
+  if (showSplash) return <SplashScreen onComplete={handleSplashComplete} />;
   if (loading) return <PageLoader />;
 
   const renderPage = () => {
