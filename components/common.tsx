@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { Customer, ScanResult, Post } from '../types';
@@ -17,21 +16,19 @@ export const Spinner: React.FC<{ className?: string }> = ({ className = 'h-8 w-8
 );
 
 export const Logo: React.FC<{ className?: string }> = ({ className = "size-8" }) => (
-  <div className={`${className} bg-primary rounded-2xl flex items-center justify-center p-1.5`}>
+  <div className={`${className} bg-primary rounded-2xl flex items-center justify-center p-1.5 shadow-sm`}>
     <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full text-forest">
       <path d="M10 14C18 8 30 20 38 14V34C30 40 18 28 10 34V14Z" fill="currentColor" />
     </svg>
   </div>
 );
 
-// Added TrashIcon for use in Editor and Admin pages
 export const TrashIcon: React.FC<{ className?: string }> = ({ className = "size-5" }) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
     <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
   </svg>
 );
 
-// Added PencilIcon for use in Admin page
 export const PencilIcon: React.FC<{ className?: string }> = ({ className = "size-5" }) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
     <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
@@ -48,9 +45,11 @@ export const BackButton: React.FC<{ onClick?: () => void; className?: string }> 
     return (
         <button 
             onClick={handleBack} 
-            className={`group flex items-center gap-2 px-5 py-2.5 bg-forest/5 border border-forest/5 rounded-2xl text-forest font-bold text-sm hover:bg-forest/10 transition-all active:scale-95 ${className}`}
+            className={`group flex items-center gap-2 px-5 py-2.5 bg-forest/5 rounded-2xl text-forest font-bold text-sm hover:bg-forest/10 transition-all active:scale-95 ${className}`}
         >
-            <span className="material-symbols-outlined text-[20px] transition-transform group-hover:-translate-x-1">arrow_back</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 256 256" className="transition-transform group-hover:-translate-x-1">
+                <path d="M224,128a8,8,0,0,1-8,8H59.31l58.35,58.34a8,8,0,0,1-11.32,11.32l-72-72a8,8,0,0,1,0-11.32l72-72a8,8,0,0,1,11.32,11.32L59.31,120H216A8,8,0,0,1,224,128Z"></path>
+            </svg>
             {t('back')}
         </button>
     );
@@ -70,19 +69,19 @@ export const DeviceGuard: React.FC<{ children: React.ReactNode; target: 'mobile'
 
     if (isWrongDevice) {
         return (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#f8fcf9] p-6 font-sans">
-                <div className="w-full max-w-md bg-white rounded-[2.5rem] border border-[#e7f3eb] p-10 text-center space-y-8 animate-in zoom-in-95 duration-500">
+            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#ffffff] p-6 font-sans">
+                <div className="w-full max-w-md bg-white rounded-[3rem] border border-slate-100 p-10 text-center space-y-8 animate-in zoom-in-95 duration-500">
                     <div className="size-20 bg-forest text-primary rounded-[1.5rem] flex items-center justify-center mx-auto mb-6">
                         <span className="material-symbols-outlined text-[40px]">{target === 'pc' ? 'desktop_windows' : 'smartphone'}</span>
                     </div>
                     <div className="space-y-3">
                         <h2 className="text-3xl font-black text-[#0d1b12] tracking-tighter">
-                            {target === 'pc' ? 'PC Exclusive' : 'Mobile Experience'}
+                            {target === 'pc' ? 'PC Gateway' : 'Mobile Access'}
                         </h2>
                         <p className="text-[#4c9a66] font-medium leading-relaxed">
                             {target === 'pc' 
-                                ? 'The QRoyal Business Portal is designed for enterprise desktops. Please switch to a larger display.' 
-                                : 'The Customer Wallet is optimized for mobile browsers. Please scan your ID on your smartphone.'}
+                                ? 'The QRoyal Business Terminal is designed for enterprise desktops.' 
+                                : 'The Digital Wallet is optimized for mobile browsers. Please scan on your smartphone.'}
                         </p>
                     </div>
                     <div className="pt-6">
@@ -96,55 +95,32 @@ export const DeviceGuard: React.FC<{ children: React.ReactNode; target: 'mobile'
     return <>{children}</>;
 };
 
-// --- Form Components ---
 export const InputField: React.FC<{label: string, name: string, value: string, onChange: any, placeholder?: string, type?: string}> = ({label, name, value, onChange, placeholder, type = 'text'}) => (
     <div className="group">
-        <label htmlFor={name} className="block text-[10px] font-black text-[#4c9a66] uppercase tracking-[0.2em] mb-2 group-focus-within:text-[#2bee6c] transition-colors pl-1">{label}</label>
-        <input 
-          id={name} 
-          name={name} 
-          type={type} 
-          value={value} 
-          onChange={onChange} 
-          placeholder={placeholder} 
-          className="mt-1 block w-full px-5 py-4 bg-[#f8fcf9] border border-[#e7f3eb] rounded-2xl focus:outline-none focus:border-[#2bee6c] focus:ring-0 transition-all text-[#0d1b12] placeholder:text-[#4c9a66]/40 font-medium" 
-        />
+        <label htmlFor={name} className="block text-[10px] font-black text-[#4c9a66] uppercase tracking-[0.2em] mb-3 transition-colors pl-1">{label}</label>
+        <input id={name} name={name} type={type} value={value} onChange={onChange} placeholder={placeholder} className="mt-1 block w-full px-6 py-4 bg-white border border-slate-100 rounded-2xl focus:outline-none focus:border-[#2bee6c] focus:ring-0 transition-all text-[#0d1b12] placeholder:text-[#4c9a66]/30 font-medium" />
     </div>
 );
 
 export const TextAreaField: React.FC<{label: string, name: string, value: string, onChange: any}> = ({label, name, value, onChange}) => (
     <div className="group">
-        <label htmlFor={name} className="block text-[10px] font-black text-[#4c9a66] uppercase tracking-[0.2em] mb-2 group-focus-within:text-[#2bee6c] transition-colors pl-1">{label}</label>
-        <textarea 
-          id={name} 
-          name={name} 
-          value={value} 
-          onChange={onChange} 
-          rows={3} 
-          className="mt-1 block w-full px-5 py-4 bg-[#f8fcf9] border border-[#e7f3eb] rounded-2xl focus:outline-none focus:border-[#2bee6c] focus:ring-0 transition-all text-[#0d1b12] placeholder:text-[#4c9a66]/40 font-medium"
-        ></textarea>
+        <label htmlFor={name} className="block text-[10px] font-black text-[#4c9a66] uppercase tracking-[0.2em] mb-3 transition-colors pl-1">{label}</label>
+        <textarea id={name} name={name} value={value} onChange={onChange} rows={4} className="mt-1 block w-full px-6 py-4 bg-white border border-slate-100 rounded-2xl focus:outline-none focus:border-[#2bee6c] focus:ring-0 transition-all text-[#0d1b12] placeholder:text-[#4c9a66]/30 font-medium"></textarea>
     </div>
 );
 
 export const SelectField: React.FC<{label: string, name: string, value: string, onChange: any, options: {value: string, label: string}[]}> = ({label, name, value, onChange, options}) => (
     <div className="group">
-        <label htmlFor={name} className="block text-[10px] font-black text-[#4c9a66] uppercase tracking-[0.2em] mb-2 group-focus-within:text-[#2bee6c] transition-colors pl-1">{label}</label>
+        <label htmlFor={name} className="block text-[10px] font-black text-[#4c9a66] uppercase tracking-[0.2em] mb-3 transition-colors pl-1">{label}</label>
         <div className="relative">
-            <select 
-                id={name} 
-                name={name} 
-                value={value} 
-                onChange={onChange} 
-                className="mt-1 block w-full pl-5 pr-12 py-4 bg-[#f8fcf9] border border-[#e7f3eb] focus:outline-none focus:border-[#2bee6c] transition-all text-[#0d1b12] rounded-2xl appearance-none font-bold"
-            >
+            <select id={name} name={name} value={value} onChange={onChange} className="mt-1 block w-full pl-6 pr-12 py-4 bg-white border border-slate-100 focus:outline-none focus:border-[#2bee6c] transition-all text-[#0d1b12] rounded-2xl appearance-none font-bold">
                 {options.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
             </select>
-            <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-[#4c9a66] pointer-events-none">expand_more</span>
+            <span className="material-icons-round absolute right-4 top-1/2 -translate-y-1/2 text-[#4c9a66] pointer-events-none">expand_more</span>
         </div>
     </div>
 );
 
-// --- Modals ---
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -155,12 +131,12 @@ interface ModalProps {
 const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, title }) => {
   if (!isOpen) return null;
   return (
-    <div className="fixed inset-0 bg-[#0d1b12]/60 backdrop-blur-md z-[110] flex justify-center items-center p-4 animate-in fade-in duration-300">
-      <div className="bg-white rounded-[2.5rem] w-full max-w-md animate-in zoom-in-95 slide-in-from-bottom-10 duration-400 overflow-hidden border border-[#e7f3eb]">
-        <div className="flex justify-between items-center p-8 border-b border-[#f8fcf9]">
+    <div className="fixed inset-0 bg-[#0d1b12]/40 backdrop-blur-md z-[110] flex justify-center items-center p-4 animate-in fade-in duration-300">
+      <div className="bg-white rounded-[3rem] w-full max-w-md animate-in zoom-in-95 slide-in-from-bottom-10 duration-400 overflow-hidden border border-slate-100 shadow-sm">
+        <div className="flex justify-between items-center p-10 border-b border-slate-50">
           <h3 className="text-2xl font-black text-[#0d1b12] tracking-tighter">{title}</h3>
-          <button onClick={onClose} className="text-[#4c9a66] hover:text-[#0d1b12] p-2 rounded-full hover:bg-[#f8fcf9] transition-all">
-             <span className="material-symbols-outlined text-[28px]">close</span>
+          <button onClick={onClose} className="text-[#4c9a66] hover:text-[#0d1b12] p-2 rounded-full hover:bg-slate-50 transition-all">
+             <span className="material-icons-round text-[28px]">close</span>
           </button>
         </div>
         <div className="p-10 max-h-[80vh] overflow-y-auto no-scrollbar">
@@ -177,9 +153,9 @@ export const CreateCustomerModal: React.FC<{ isOpen: boolean; onClose: () => voi
         <Modal isOpen={isOpen} onClose={onClose} title={t('newCustomerQrModalTitle')}>
             <div className="text-center space-y-8">
                 <p className="text-[#4c9a66] font-medium leading-relaxed">{t('newCustomerQrModalDesc')}</p>
-                <div className="bg-white p-6 rounded-[2rem] border border-[#e7f3eb] inline-block mx-auto">
+                <div className="bg-white p-8 rounded-[3rem] border border-slate-50 inline-block mx-auto">
                   {qrDataUrl ? (
-                      <img src={qrDataUrl} alt="New Customer QR Code" className="w-64 h-64 mx-auto rounded-xl" />
+                      <img src={qrDataUrl} alt="QR" className="w-64 h-64 mx-auto rounded-xl" />
                   ) : (
                       <div className="flex justify-center items-center h-64 w-64"><Spinner /></div>
                   )}
@@ -200,7 +176,7 @@ export const CustomerSetupModal: React.FC<{ isOpen: boolean; onSave: (details: {
         <div className="space-y-8">
             <InputField label={t('name')} name="setup-name" value={name} onChange={(e: any) => setName(e.target.value)} placeholder="Full Name" />
             <InputField label={t('phoneNumber')} name="setup-phone" type="tel" value={phone} onChange={(e: any) => setPhone(e.target.value)} placeholder="+30 ..." />
-            <button onClick={handleSave} disabled={!name.trim() || !phone.trim()} className="w-full bg-[#2bee6c] text-[#0d1b12] font-black py-4 px-6 rounded-2xl active:scale-95 disabled:bg-[#e7f3eb] disabled:text-[#4c9a66]">
+            <button onClick={handleSave} disabled={!name.trim() || !phone.trim()} className="w-full bg-[#2bee6c] text-[#0d1b12] font-black py-4 px-6 rounded-2xl active:scale-95 disabled:opacity-30">
                 {t('save')}
             </button>
         </div>
@@ -280,11 +256,11 @@ export const DeleteAccountModal: React.FC<{ isOpen: boolean; onClose: () => void
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={t('deleteAccountConfirmTitle')}>
             <div className="space-y-8">
-                <div className="bg-rose-50 p-6 rounded-[1.5rem] border border-rose-100">
+                <div className="bg-rose-50 p-8 rounded-[2.5rem] border border-rose-100">
                     <p className="text-xs font-black text-rose-600 uppercase tracking-widest mb-2">{t('deleteAccountWarning')}</p>
                     <p className="text-slate-600 text-sm font-medium leading-relaxed">{t('deleteAccountPrompt')}</p>
                 </div>
-                <InputField label="Confirm Phone" name="del-phone" value={inputValue} onChange={(e: any) => setInputValue(e.target.value)} placeholder={customerPhoneNumber} />
+                <InputField label="Verify Mobile" name="del-phone" value={inputValue} onChange={(e: any) => setInputValue(e.target.value)} placeholder={customerPhoneNumber} />
                 <button onClick={handleDelete} disabled={!isMatch || isDeleting} className="w-full py-4 bg-rose-600 text-white rounded-2xl font-black disabled:opacity-30">
                     {isDeleting ? 'Deleting...' : t('deleteAccount')}
                 </button>
@@ -295,7 +271,7 @@ export const DeleteAccountModal: React.FC<{ isOpen: boolean; onClose: () => void
 
 export const MarkdownEditor: React.FC<{ label: string; name: string; value: string; onChange: (name: string, value: string) => void }> = ({ label, name, value, onChange }) => (
     <div className="group">
-        <label className="block text-[10px] font-black text-[#4c9a66] uppercase tracking-[0.2em] mb-2 group-focus-within:text-[#2bee6c] transition-colors pl-1">{label}</label>
-        <textarea name={name} value={value} onChange={(e) => onChange(name, e.target.value)} rows={5} className="w-full p-6 bg-[#f8fcf9] border border-[#e7f3eb] rounded-[2rem] focus:outline-none focus:border-[#2bee6c] text-[#0d1b12] font-medium" />
+        <label className="block text-[10px] font-black text-[#4c9a66] uppercase tracking-[0.2em] mb-3 transition-colors pl-1">{label}</label>
+        <textarea name={name} value={value} onChange={(e) => onChange(name, e.target.value)} rows={5} className="w-full p-8 bg-white border border-slate-100 rounded-[3rem] focus:outline-none focus:border-[#2bee6c] text-[#0d1b12] font-medium" />
     </div>
 );

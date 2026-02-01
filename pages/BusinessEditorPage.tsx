@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Business, BusinessQrDesign, QrStyle } from '../types';
 import { useLanguage } from '../context/LanguageContext';
@@ -7,33 +6,26 @@ import {
     updateBusiness, getBusinessQrDesigns, createBusinessQrDesign, deleteBusinessQrDesign,
     uploadBusinessAsset
 } from '../services/api';
-import { Spinner, InputField, TextAreaField, SelectField, TrashIcon, BackButton } from '../components/common';
+import { Spinner, InputField, TextAreaField, SelectField, TrashIcon } from '../components/common';
 
 type EditorTab = 'profile' | 'branding' | 'location';
 type SaveStatus = 'idle' | 'typing' | 'saving' | 'saved' | 'error';
 
-
-// --- Custom Hooks & Helper Components ---
-
 const useDebounce = <T,>(value: T, delay: number): T => {
     const [debouncedValue, setDebouncedValue] = useState<T>(value);
     useEffect(() => {
-        const handler = setTimeout(() => {
-            setDebouncedValue(value);
-        }, delay);
-        return () => {
-            clearTimeout(handler);
-        };
+        const handler = setTimeout(() => { setDebouncedValue(value); }, delay);
+        return () => { clearTimeout(handler); };
     }, [value, delay]);
     return debouncedValue;
 };
 
 const SaveStatusIndicator: React.FC<{ status: SaveStatus }> = ({ status }) => {
     switch (status) {
-        case 'saving': return <div className="flex items-center gap-2 text-sm text-gray-500 font-bold"><Spinner className="h-4 w-4" /> Saving changes...</div>;
-        case 'saved': return <div className="text-sm text-green-600 font-bold flex items-center gap-2"><span className="material-symbols-outlined text-sm">check_circle</span> All changes saved</div>;
-        case 'error': return <div className="text-sm text-rose-600 font-bold">Save failed. Please try again.</div>;
-        case 'typing': return <div className="text-sm text-slate-400 font-bold">Unsaved changes...</div>;
+        case 'saving': return <div className="flex items-center gap-2 text-sm text-slate-500 font-bold"><Spinner className="h-4 w-4" /> Syncing...</div>;
+        case 'saved': return <div className="text-sm text-[#2bee6c] font-bold flex items-center gap-2"><span className="material-icons-round text-sm">check_circle</span> Cloud synced</div>;
+        case 'error': return <div className="text-sm text-rose-600 font-bold">Sync error</div>;
+        case 'typing': return <div className="text-sm text-slate-400 font-bold">Modified</div>;
         default: return <div className="h-5"></div>;
     }
 };
@@ -50,21 +42,13 @@ const ImageUploader: React.FC<{
 
     return (
         <div className="group">
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">{label}</label>
-            <div className="flex items-center gap-6 p-6 bg-slate-50 border border-slate-200 rounded-[2rem] group-hover:bg-white group-hover:border-primary/30 transition-all">
-                <img
-                    src={displayUrl || 'https://i.postimg.cc/8zRZt9pM/user.png'}
-                    alt="Preview"
-                    className="size-20 rounded-3xl object-cover bg-white shadow-md border-2 border-white"
-                />
-                <div className="space-y-2">
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Recommended: 800x800 PNG</p>
+            <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">{label}</label>
+            <div className="flex items-center gap-6 p-8 bg-white border border-slate-100 rounded-[2.5rem] hover:border-[#2bee6c]/30 transition-all">
+                <img src={displayUrl || 'https://i.postimg.cc/8zRZt9pM/user.png'} alt="P" className="size-20 rounded-3xl object-cover border-2 border-white shadow-sm" />
+                <div className="space-y-3">
+                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Recommended: 800px PNG</p>
                     <input type="file" accept="image/*" onChange={(e) => e.target.files && onFileSelect(e.target.files[0])} ref={fileInputRef} className="hidden" />
-                    <button
-                        type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        className="bg-white py-2 px-6 border border-slate-200 rounded-xl shadow-sm text-sm font-bold text-slate-700 hover:bg-slate-50 active:scale-95 transition-all"
-                    >
+                    <button type="button" onClick={() => fileInputRef.current?.click()} className="bg-[#0d1b12] py-2.5 px-6 rounded-xl text-xs font-black text-[#2bee6c] hover:opacity-90 active:scale-95 transition-all">
                         {t('uploadImage')}
                     </button>
                 </div>
@@ -73,28 +57,23 @@ const ImageUploader: React.FC<{
     );
 };
 
-
-// --- Main Component ---
-
 const BusinessEditorPage: React.FC = () => {
     const { t } = useLanguage();
     const [business, setBusiness] = useState<Business | null>(null);
     const [formState, setFormState] = useState<Partial<Business>>({});
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<EditorTab>('profile');
+    const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
-    // State for image uploads and auto-save
     const [stagedFiles, setStagedFiles] = useState<{ logo?: File, cover?: File }>({});
     const [previews, setPreviews] = useState<{ logo?: string, cover?: string }>({});
     const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
     const isSavingRef = useRef(false);
 
-    // Debounce state for auto-saving
     const debouncedFormState = useDebounce(formState, 1500);
     const debouncedStagedFiles = useDebounce(stagedFiles, 1500);
 
     useEffect(() => {
-        setLoading(true);
         const storedBusiness = sessionStorage.getItem('business');
         if (storedBusiness) {
             const parsed = JSON.parse(storedBusiness);
@@ -105,329 +84,183 @@ const BusinessEditorPage: React.FC = () => {
     }, []);
 
     useEffect(() => {
-        const newPreviews: { logo?: string, cover?: string } = {};
-        if (stagedFiles.logo) newPreviews.logo = URL.createObjectURL(stagedFiles.logo);
-        if (stagedFiles.cover) newPreviews.cover = URL.createObjectURL(stagedFiles.cover);
-        
-        if (Object.keys(newPreviews).length > 0) {
-            setPreviews(prev => ({...prev, ...newPreviews}));
-        }
-        
-        return () => {
-            if (newPreviews.logo) URL.revokeObjectURL(newPreviews.logo);
-            if (newPreviews.cover) URL.revokeObjectURL(newPreviews.cover);
-        };
-    }, [stagedFiles]);
-    
-    useEffect(() => {
         if (isSavingRef.current || loading) return;
         const hasFormChanges = JSON.stringify(formState) !== JSON.stringify(business);
         const hasFileChanges = Object.keys(stagedFiles).length > 0;
-        if (hasFormChanges || hasFileChanges) {
-            setSaveStatus('typing');
-        }
+        if (hasFormChanges || hasFileChanges) setSaveStatus('typing');
     }, [formState, stagedFiles, business, loading]);
-
 
     const performSave = useCallback(async () => {
         if (!business) return;
-        
         isSavingRef.current = true;
         setSaveStatus('saving');
-        
         let dataToUpdate = { ...formState };
-
         try {
             if (stagedFiles.logo) {
-                const newLogoUrl = await uploadBusinessAsset(business.id, stagedFiles.logo, 'logo');
-                if (newLogoUrl) dataToUpdate.logo_url = newLogoUrl;
-                else throw new Error('Logo upload failed');
+                const url = await uploadBusinessAsset(business.id, stagedFiles.logo, 'logo');
+                if (url) dataToUpdate.logo_url = url;
             }
-
             if (stagedFiles.cover) {
-                const newCoverUrl = await uploadBusinessAsset(business.id, stagedFiles.cover, 'cover');
-                if (newCoverUrl) dataToUpdate.cover_photo_url = newCoverUrl;
-                else throw new Error('Cover photo upload failed');
+                const url = await uploadBusinessAsset(business.id, stagedFiles.cover, 'cover');
+                if (url) dataToUpdate.cover_photo_url = url;
             }
-            
-            const updatedBusiness = await updateBusiness(business.id, dataToUpdate);
-
-            if (updatedBusiness) {
-                const newBusinessState = { ...business, ...updatedBusiness };
-                sessionStorage.setItem('business', JSON.stringify(newBusinessState));
-                setBusiness(newBusinessState);
-                setFormState(newBusinessState);
+            const updated = await updateBusiness(business.id, dataToUpdate);
+            if (updated) {
+                const newState = { ...business, ...updated };
+                sessionStorage.setItem('business', JSON.stringify(newState));
+                setBusiness(newState);
+                setFormState(newState);
                 setStagedFiles({});
                 setSaveStatus('saved');
                 setTimeout(() => setSaveStatus('idle'), 2000);
-            } else {
-                throw new Error('Business update failed');
             }
-        } catch (error) {
-            console.error('Failed to save settings:', error);
-            setSaveStatus('error');
-        } finally {
-            isSavingRef.current = false;
-        }
+        } catch (error) { setSaveStatus('error'); }
+        finally { isSavingRef.current = false; }
     }, [business, formState, stagedFiles]);
     
     useEffect(() => {
-        if (saveStatus === 'typing' && !isSavingRef.current) {
-            performSave();
-        }
+        if (saveStatus === 'typing' && !isSavingRef.current) performSave();
     }, [debouncedFormState, debouncedStagedFiles, saveStatus, performSave]);
     
-    if (loading) return <div className="flex justify-center items-center h-screen bg-[#f6f6f8]"><Spinner /></div>;
-    if (!business) return null;
+    if (loading || !business) return <div className="flex justify-center items-center h-screen bg-white"><Spinner /></div>;
+
+    const navItems = [
+        { label: t('analytics'), icon: 'dashboard', href: '/business' },
+        { label: t('customerList'), icon: 'group', href: '/business' },
+        { label: t('posts'), icon: 'campaign', href: '/business' },
+    ];
 
     return (
-        <div className="min-h-screen bg-[#f6f6f8] font-sans">
-            <header className="sticky top-0 z-30 bg-white/60 backdrop-blur-xl border-b border-slate-200 p-6 md:px-12">
-                <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-6">
-                    <div className="flex items-center gap-6">
-                        <BackButton onClick={() => window.location.href = '/business'} />
+        <div className="flex min-h-screen bg-[#ffffff] font-sans text-[#0d1b12] overflow-hidden">
+            <aside className={`hidden lg:flex flex-col bg-white sticky top-0 h-screen sidebar-transition overflow-hidden ${sidebarCollapsed ? 'w-0' : 'w-72'}`}>
+                <div className="p-8 flex flex-col h-full w-72">
+                    <div className="flex items-center justify-between mb-12">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-[#2bee6c] rounded-xl flex items-center justify-center text-black shadow-sm transition-transform hover:scale-105">
+                                <span className="material-icons-round">loyalty</span>
+                            </div>
+                            <span className="text-xl font-bold font-display tracking-tight text-[#0d1b12]">QROYAL</span>
+                        </div>
+                        <button onClick={() => setSidebarCollapsed(true)} className="p-2 text-[#4c9a66] hover:text-[#0d1b12] transition-colors">
+                             <svg width="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M9.35719 3H14.6428C15.7266 2.99999 16.6007 2.99998 17.3086 3.05782C18.0375 3.11737 18.6777 3.24318 19.27 3.54497C20.2108 4.02433 20.9757 4.78924 21.455 5.73005C21.7568 6.32234 21.8826 6.96253 21.9422 7.69138C22 8.39925 22 9.27339 22 10.3572V13.6428C22 14.7266 22 15.6008 21.9422 16.3086C21.8826 17.0375 21.7568 17.6777 21.455 18.27C20.9757 19.2108 20.2108 19.9757 19.27 20.455C18.6777 20.7568 18.0375 20.8826 17.3086 20.9422C16.6008 21 15.7266 21 14.6428 21H9.35717C8.27339 21 7.39925 21 6.69138 20.9422C5.96253 20.8826 5.32234 20.7568 4.73005 20.455C3.78924 19.9757 3.02433 19.2108 2.54497 18.27C2.24318 17.6777 2.11737 17.0375 2.05782 16.3086C1.99998 15.6007 1.99999 14.7266 2 13.6428V10.3572C1.99999 9.27341 1.99998 8.39926 2.05782 7.69138C2.11737 6.96253 2.24318 6.32234 2.54497 5.73005C3.02433 4.78924 3.78924 4.02433 4.73005 3.54497C5.32234 3.24318 5.96253 3.11737 6.69138 3.05782C7.39926 2.99998 8.27341 2.99999 9.35719 3ZM6.85424 5.05118C6.24907 5.10062 5.90138 5.19279 5.63803 5.32698C5.07354 5.6146 4.6146 6.07354 4.32698 6.63803C4.19279 6.90138 4.10062 7.24907 4.05118 7.85424C4.00078 8.47108 4 9.26339 4 10.4V13.6C4 14.7366 4.00078 15.5289 4.05118 16.1458C4.10062 16.7509 4.19279 17.0986 4.32698 17.362C4.6146 17.9265 5.07354 18.3854 5.63803 18.673C5.90138 18.8072 6.24907 18.8994 6.85424 18.9488C7.47108 18.9992 8.26339 19 9.4 19H14.6C15.7366 19 16.5289 18.9992 17.1458 18.9488C17.7509 18.8994 18.0986 18.8072 18.362 18.673C18.9265 18.3854 19.3854 17.9265 19.673 17.362C19.8072 17.0986 19.8994 16.7509 19.9488 16.1458C19.9992 15.5289 20 14.7366 20 13.6V10.4C20 9.26339 19.9992 8.47108 19.9488 7.85424C19.8994 7.24907 19.8072 6.90138 19.673 6.63803C19.3854 6.07354 18.9265 5.6146 18.362 5.32698C18.0986 5.19279 17.7509 5.10062 17.1458 5.05118C16.5289 5.00078 15.7366 5 14.6 5H9.4C8.26339 5 7.47108 5.00078 6.85424 5.05118ZM7 7C7.55229 7 8 7.44772 8 8V16C8 16.5523 7.55229 17 7 17C6.44772 17 6 16.5523 6 16V8C6 7.44772 6.44772 7 7 7Z" fill="currentColor"></path></svg>
+                        </button>
+                    </div>
+                    <nav className="flex flex-col gap-2 flex-grow">
+                        {navItems.map(item => (
+                            <button key={item.label} onClick={() => window.location.href = item.href} className="flex items-center gap-4 w-full p-4 rounded-2xl font-bold text-slate-400 hover:text-[#0d1b12] hover:bg-slate-50 transition-all">
+                                <span className="material-icons-round">{item.icon}</span>
+                                <span className="text-sm tracking-tight">{item.label}</span>
+                            </button>
+                        ))}
+                        <div className="mt-8 pt-8 border-t border-slate-100 flex flex-col gap-2">
+                            <button className="flex items-center gap-4 w-full p-4 rounded-2xl font-bold bg-[#0d1b12] text-[#2bee6c]">
+                                <span className="material-icons-round">settings</span>
+                                <span className="text-sm tracking-tight">{t('businessSettings')}</span>
+                            </button>
+                            <button onClick={() => window.location.href = '/business/scanner'} className="flex items-center gap-4 w-full p-4 rounded-2xl font-bold text-slate-400 hover:text-[#0d1b12] hover:bg-slate-50">
+                                <span className="material-icons-round">qr_code_scanner</span>
+                                <span className="text-sm tracking-tight">{t('kioskMode')}</span>
+                            </button>
+                        </div>
+                    </nav>
+                </div>
+            </aside>
+
+            <div className="flex-grow flex flex-col h-screen overflow-y-auto">
+                <header className="h-20 bg-white border-b border-slate-100 px-12 flex items-center justify-between sticky top-0 z-20">
+                    <div className="flex items-center gap-8">
+                        {sidebarCollapsed && (
+                            <button onClick={() => setSidebarCollapsed(false)} className="p-2 text-[#4c9a66] hover:text-[#0d1b12] transition-colors">
+                                <svg width="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M9.35719 3H14.6428C15.7266 2.99999 16.6007 2.99998 17.3086 3.05782C18.0375 3.11737 18.6777 3.24318 19.27 3.54497C20.2108 4.02433 20.9757 4.78924 21.455 5.73005C21.7568 6.32234 21.8826 6.96253 21.9422 7.69138C22 8.39925 22 9.27339 22 10.3572V13.6428C22 14.7266 22 15.6008 21.9422 16.3086C21.8826 17.0375 21.7568 17.6777 21.455 18.27C20.9757 19.2108 20.2108 19.9757 19.27 20.455C18.6777 20.7568 18.0375 20.8826 17.3086 20.9422C16.6008 21 15.7266 21 14.6428 21H9.35717C8.27339 21 7.39925 21 6.69138 20.9422C5.96253 20.8826 5.32234 20.7568 4.73005 20.455C3.78924 19.9757 3.02433 19.2108 2.54497 18.27C2.24318 17.6777 2.11737 17.0375 2.05782 16.3086C1.99998 15.6007 1.99999 14.7266 2 13.6428V10.3572C1.99999 9.27341 1.99998 8.39926 2.05782 7.69138C2.11737 6.96253 2.24318 6.32234 2.54497 5.73005C3.02433 4.78924 3.78924 4.02433 4.73005 3.54497C5.32234 3.24318 5.96253 3.11737 6.69138 3.05782C7.39926 2.99998 8.27341 2.99999 9.35719 3ZM6.85424 5.05118C6.24907 5.10062 5.90138 5.19279 5.63803 5.32698C5.07354 5.6146 4.6146 6.07354 4.32698 6.63803C4.19279 6.90138 4.10062 7.24907 4.05118 7.85424C4.00078 8.47108 4 9.26339 4 10.4V13.6C4 14.7366 4.00078 15.5289 4.05118 16.1458C4.10062 16.7509 4.19279 17.0986 4.32698 17.362C4.6146 17.9265 5.07354 18.3854 5.63803 18.673C5.90138 18.8072 6.24907 18.8994 6.85424 18.9488C7.17922 18.9754 7.55292 18.9882 8 18.9943V5.0057C7.55292 5.01184 7.17922 5.02462 6.85424 5.05118ZM10 5V19H14.6C15.7366 19 16.5289 18.9992 17.1458 18.9488C17.7509 18.8994 18.0986 18.8072 18.362 18.673C18.9265 18.3854 19.3854 17.9265 19.673 17.362C19.8072 17.0986 19.8994 16.7509 19.9488 16.1458C19.9992 15.5289 20 14.7366 20 13.6V10.4C20 9.26339 19.9992 8.47108 19.9488 7.85424C19.8994 7.24907 19.8072 6.90138 19.673 6.63803C19.3854 6.07354 18.9265 5.6146 18.362 5.32698C18.0986 5.19279 17.7509 5.10062 17.1458 5.05118C16.5289 5.00078 15.7366 5 14.6 5H10Z" fill="currentColor"></path></svg>
+                            </button>
+                        )}
                         <div className="flex flex-col gap-1">
-                            <h1 className="text-3xl font-black text-slate-900 tracking-tighter">{t('businessSettings')}</h1>
+                            <h2 className="text-2xl font-bold font-display tracking-tight text-[#0d1b12]">{t('businessSettings')}</h2>
                             <SaveStatusIndicator status={saveStatus} />
                         </div>
                     </div>
-                    <nav className="flex gap-2 bg-slate-100 p-1.5 rounded-2xl">
-                        <TabButton label={t('publicProfile')} isActive={activeTab === 'profile'} onClick={() => setActiveTab('profile')} />
-                        <TabButton label={t('qrCustomization')} isActive={activeTab === 'branding'} onClick={() => setActiveTab('branding')} />
-                        <TabButton label={t('location')} isActive={activeTab === 'location'} onClick={() => setActiveTab('location')} />
-                    </nav>
-                </div>
-            </header>
-            
-            <main className="p-8 md:p-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className="max-w-4xl mx-auto">
-                    {activeTab === 'profile' && 
-                        <ProfileSettings 
-                            formState={formState} 
-                            setFormState={setFormState}
-                            previews={previews}
-                            onFileSelect={(type, file) => setStagedFiles(prev => ({...prev, [type]: file}))}
-                        />}
-                    {activeTab === 'branding' && <BrandingSettings formState={formState} setFormState={setFormState} business={business} />}
-                    {activeTab === 'location' && <LocationSettings formState={formState} setFormState={setFormState} />}
-                </div>
-            </main>
-        </div>
-    );
-};
+                </header>
 
-// --- Child Components for Tabs ---
-
-const ProfileSettings: React.FC<{
-    formState: Partial<Business>, 
-    setFormState: React.Dispatch<React.SetStateAction<Partial<Business>>>,
-    previews: { logo?: string, cover?: string },
-    onFileSelect: (type: 'logo' | 'cover', file: File) => void
-}> = ({ formState, setFormState, previews, onFileSelect }) => {
-    const { t } = useLanguage();
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => setFormState(prev => ({...prev, [e.target.name]: e.target.value }));
-    
-    return (
-        <SettingsCard title={t('publicProfile')} description={t('publicProfileDesc')}>
-            <div className="space-y-10">
-                <InputField label={t('publicBusinessName')} name="public_name" value={formState.public_name || ''} onChange={handleChange} />
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <ImageUploader 
-                        label={t('logoUrl')} 
-                        currentImageUrl={formState.logo_url}
-                        previewUrl={previews.logo}
-                        onFileSelect={(file) => onFileSelect('logo', file)} 
-                    />
-                    <ImageUploader 
-                        label={t('coverPhotoUrl')} 
-                        currentImageUrl={formState.cover_photo_url}
-                        previewUrl={previews.cover}
-                        onFileSelect={(file) => onFileSelect('cover', file)} 
-                    />
-                </div>
-                <SelectField
-                    label={t('defaultProfileTab')}
-                    name="default_profile_tab"
-                    value={formState.default_profile_tab || 'posts'}
-                    onChange={handleChange}
-                    options={[
-                        { value: 'posts', label: t('posts') },
-                        { value: 'discounts', label: t('discounts') },
-                        { value: 'about', label: t('about') },
-                    ]}
-                />
-                <TextAreaField label={t('bio')} name="bio" value={formState.bio || ''} onChange={handleChange} />
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6 border-t border-slate-50">
-                    <InputField label={t('website')} name="website_url" value={formState.website_url || ''} onChange={handleChange} placeholder="https://..." />
-                    <InputField label={t('contactPhone')} name="public_phone_number" value={formState.public_phone_number || ''} onChange={handleChange} />
-                    <InputField label={t('facebook')} name="facebook_url" value={formState.facebook_url || ''} onChange={handleChange} placeholder="https://facebook.com/..." />
-                    <InputField label={t('instagram')} name="instagram_url" value={formState.instagram_url || ''} onChange={handleChange} placeholder="https://instagram.com/..." />
-                </div>
-            </div>
-        </SettingsCard>
-    );
-};
-
-const BrandingSettings: React.FC<{formState: Partial<Business>, setFormState: React.Dispatch<React.SetStateAction<Partial<Business>>>, business: Business}> = ({ formState, setFormState, business }) => {
-    const { t } = useLanguage();
-    const [previewQr, setPreviewQr] = useState('');
-    
-    useEffect(() => {
-        const qrOptions = {
-            qr_logo_url: formState.qr_logo_url,
-            qr_color: formState.qr_color,
-            qr_eye_shape: formState.qr_eye_shape,
-            qr_dot_style: formState.qr_dot_style,
-        };
-        generateQrCode(business.qr_token, qrOptions).then(setPreviewQr);
-    }, [business.qr_token, formState.qr_logo_url, formState.qr_color, formState.qr_eye_shape, formState.qr_dot_style]);
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setFormState(prev => ({...prev, [e.target.name]: e.target.value }));
-
-    return (
-        <div className="space-y-10">
-            <SettingsCard title={t('qrCustomization')} description={t('qrCustomizationDesc')}>
-                <div className="flex flex-col md:flex-row gap-12 items-center">
-                    <div className="flex-shrink-0 bg-slate-50 p-6 rounded-[2.5rem] border border-slate-100 shadow-inner">
-                        {previewQr ? <img src={previewQr} alt="QR Code Preview" className="w-56 h-56 rounded-2xl shadow-xl border-4 border-white"/> : <div className="w-56 h-56 bg-gray-200 rounded-2xl animate-pulse" />}
-                        <p className="text-center text-[10px] font-black uppercase tracking-widest text-slate-400 mt-6">Scan to test login</p>
+                <main className="p-12 max-w-5xl w-full mx-auto animate-in fade-in duration-700">
+                    <div className="flex gap-10 border-b border-slate-100 mb-12">
+                        <TabButton label="Public Profile" isActive={activeTab === 'profile'} onClick={() => setActiveTab('profile')} />
+                        <TabButton label="Visual Branding" isActive={activeTab === 'branding'} onClick={() => setActiveTab('branding')} />
+                        <TabButton label="Global Presence" isActive={activeTab === 'location'} onClick={() => setActiveTab('location')} />
                     </div>
-                    <div className="flex-grow space-y-8 w-full">
-                        <InputField label={t('logoUrl')} name="qr_logo_url" value={formState.qr_logo_url || ''} onChange={handleChange} placeholder="https://..." />
-                        <div className="group">
-                            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">{t('qrColor')}</label>
-                            <input type="color" name="qr_color" value={formState.qr_color || '#000000'} onChange={handleChange} className="h-14 w-full p-1 bg-slate-50 border border-slate-200 rounded-2xl cursor-pointer" />
-                        </div>
-                        <div className="grid grid-cols-2 gap-6">
-                           <SelectField label={t('eyeShape')} name="qr_eye_shape" value={formState.qr_eye_shape || 'square'} onChange={handleChange} options={[{value: 'square', label: 'Square'}, {value: 'rounded', label: 'Rounded'}]} />
-                           <SelectField label={t('dotStyle')} name="qr_dot_style" value={formState.qr_dot_style || 'square'} onChange={handleChange} options={[
-                                { value: 'square', label: 'Square' }, { value: 'dots', label: 'Dots' }, { value: 'rounded', label: 'Rounded' },
-                                { value: 'classy', label: 'Classy' }, { value: 'classy-rounded', label: 'Classy Rounded' }, { value: 'extra-rounded', label: 'Extra Rounded' }
-                           ]} />
-                        </div>
+
+                    <div className="space-y-10">
+                        {activeTab === 'profile' && <ProfileEditor formState={formState} setFormState={setFormState} previews={previews} onFileSelect={(type, file) => setStagedFiles(prev => ({...prev, [type]: file}))} />}
+                        {activeTab === 'branding' && <BrandingEditor formState={formState} setFormState={setFormState} business={business} />}
+                        {activeTab === 'location' && <LocationEditor formState={formState} setFormState={setFormState} />}
                     </div>
-                </div>
-            </SettingsCard>
-            <CustomerQrDesigns business={business} />
-        </div>
-    );
-};
-
-const LocationSettings: React.FC<{formState: Partial<Business>, setFormState: React.Dispatch<React.SetStateAction<Partial<Business>>>}> = ({ formState, setFormState }) => {
-    const { t } = useLanguage();
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => setFormState(prev => ({ ...prev, [e.target.name]: e.target.value }));
-    return (
-        <SettingsCard title={t('businessLocation')} description="Enter your full business address for the map.">
-            <div className="space-y-8">
-                <InputField label={t('address')} name="address_text" value={formState.address_text || ''} onChange={handleChange} placeholder="e.g., 1600 Amphitheatre Parkway, Mountain View, CA" />
-                {formState.address_text && (
-                     <div className="rounded-[2rem] overflow-hidden border border-slate-200 shadow-xl">
-                        <iframe className="w-full h-80 grayscale contrast-125" loading="lazy" src={`https://www.google.com/maps?q=${encodeURIComponent(formState.address_text)}&output=embed`}></iframe>
-                    </div>
-                )}
-            </div>
-        </SettingsCard>
-    );
-};
-
-const CustomerQrDesigns: React.FC<{business: Business}> = ({ business }) => {
-    const { t } = useLanguage();
-    const [designs, setDesigns] = useState<BusinessQrDesign[]>([]);
-    const [newDesign, setNewDesign] = useState<QrStyle>({ qr_color: '#000000', qr_dot_style: 'square', qr_eye_shape: 'square', qr_logo_url: '' });
-
-    const fetchDesigns = useCallback(async (businessId: string) => {
-        const fetchedDesigns = await getBusinessQrDesigns(businessId);
-        setDesigns(fetchedDesigns);
-    }, []);
-
-    useEffect(() => {
-        fetchDesigns(business.id);
-    }, [business.id, fetchDesigns]);
-
-    const handleNewDesignChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setNewDesign({ ...newDesign, [newDesign.qr_color ? 'qr_color' : e.target.name]: e.target.value });
-    
-    const handleAddDesign = async () => {
-        const result = await createBusinessQrDesign({ business_id: business.id, ...newDesign });
-        if (result) {
-            setDesigns([result, ...designs]);
-            setNewDesign({ qr_color: '#000000', qr_dot_style: 'square', qr_eye_shape: 'square', qr_logo_url: '' }); // Reset form
-        }
-    };
-
-    const handleDeleteDesign = async (designId: string) => {
-        const result = await deleteBusinessQrDesign(designId);
-        if (result.success) {
-            setDesigns(designs.filter(d => d.id !== designId));
-        }
-    };
-
-    return (
-        <SettingsCard title={t('customerQrDesigns')} description={t('customerQrDesignsDesc')}>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-                <div className="p-8 rounded-[2rem] space-y-6 bg-slate-50 border border-slate-100">
-                    <h3 className="font-black text-slate-800 text-lg tracking-tight uppercase">Add New Style</h3>
-                    <InputField label={t('logoUrl')} name="qr_logo_url" value={newDesign.qr_logo_url || ''} onChange={(e:any) => setNewDesign({...newDesign, qr_logo_url: e.target.value})} placeholder="https://..." />
-                    <div>
-                        <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">{t('qrColor')}</label>
-                        <input type="color" name="qr_color" value={newDesign.qr_color || '#000000'} onChange={(e:any) => setNewDesign({...newDesign, qr_color: e.target.value})} className="h-12 w-full p-1 border border-slate-200 rounded-xl cursor-pointer" />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <SelectField label={t('eyeShape')} name="qr_eye_shape" value={newDesign.qr_eye_shape || 'square'} onChange={(e:any) => setNewDesign({...newDesign, qr_eye_shape: e.target.value})} options={[{value: 'square', label: 'Square'}, {value: 'rounded', label: 'Rounded'}]} />
-                        <SelectField label={t('dotStyle')} name="qr_dot_style" value={newDesign.qr_dot_style || 'square'} onChange={(e:any) => setNewDesign({...newDesign, qr_dot_style: e.target.value})} options={[{ value: 'square', label: 'Square' }, { value: 'dots', label: 'Dots' }, { value: 'rounded', label: 'Rounded' }]} />
-                    </div>
-                    <button onClick={handleAddDesign} className="w-full bg-indigo-600 text-white font-black py-4 rounded-2xl hover:bg-indigo-700 shadow-lg shadow-indigo-100 active:scale-95 transition-all">{t('addDesign')}</button>
-                </div>
-                <div className="space-y-6">
-                    <h3 className="font-black text-slate-800 text-lg tracking-tight uppercase">Branded Library</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        {designs.length === 0 ? (
-                            <div className="col-span-full py-12 text-center text-slate-300 font-bold uppercase tracking-widest bg-slate-50 rounded-2xl border border-dashed border-slate-200">Empty</div>
-                        ) : designs.map(d => <QrDesignItem key={d.id} design={d} onDelete={handleDeleteDesign} />)}
-                    </div>
-                </div>
-            </div>
-        </SettingsCard>
-    );
-};
-
-
-// --- UI & Helper Components ---
-const QrDesignItem: React.FC<{ design: BusinessQrDesign, onDelete: (id: string) => void }> = ({ design, onDelete }) => {
-    const [preview, setPreview] = useState('');
-    useEffect(() => {
-        generateQrCode('preview', design).then(setPreview);
-    }, [design]);
-
-    return (
-        <div className="flex items-center gap-4 p-4 border border-slate-100 rounded-[1.5rem] bg-white hover:shadow-lg transition-all group">
-            <div className="relative">
-               {preview ? <img src={preview} alt="design" className="size-16 rounded-xl shadow-sm" /> : <div className="size-16 bg-slate-50 rounded-xl animate-pulse" />}
-               <button onClick={() => onDelete(design.id)} className="absolute -top-2 -right-2 size-8 bg-rose-50 text-rose-600 rounded-full border border-rose-100 flex items-center justify-center hover:bg-rose-600 hover:text-white transition-all opacity-0 group-hover:opacity-100 shadow-sm"><TrashIcon /></button>
-            </div>
-            <div className="min-w-0">
-                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">HEX</p>
-                <p className="text-xs font-bold text-slate-800 truncate">{design.qr_color}</p>
-                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-1">STYLE</p>
-                <p className="text-xs font-bold text-slate-800 truncate capitalize">{design.qr_dot_style}</p>
+                </main>
             </div>
         </div>
     );
 };
-
-const SettingsCard: React.FC<{title: string, description: string, children: React.ReactNode}> = ({ title, description, children }) => (
-    <div className="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100 space-y-10 mb-10">
-        <div>
-            <h2 className="text-3xl font-black text-slate-900 tracking-tighter">{title}</h2>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">{description}</p>
-        </div>
-        {children}
-    </div>
-);
 
 const TabButton: React.FC<{label: string, isActive: boolean, onClick: () => void}> = ({label, isActive, onClick}) => (
-    <button onClick={onClick} className={`py-3 px-6 rounded-xl font-bold text-sm transition-all ${isActive ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>
+    <button onClick={onClick} className={`pb-4 text-sm font-bold uppercase tracking-widest transition-all ${isActive ? 'text-[#2bee6c] border-b-2 border-[#2bee6c]' : 'text-slate-400 hover:text-[#0d1b12]'}`}>
         {label}
     </button>
 );
 
+const ProfileEditor: React.FC<any> = ({ formState, setFormState, previews, onFileSelect }) => {
+    const { t } = useLanguage();
+    const handleChange = (e: any) => setFormState((prev: any) => ({...prev, [e.target.name]: e.target.value }));
+    return (
+        <div className="space-y-12">
+            <InputField label={t('publicBusinessName')} name="public_name" value={formState.public_name || ''} onChange={handleChange} />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                <ImageUploader label={t('logoUrl')} currentImageUrl={formState.logo_url} previewUrl={previews.logo} onFileSelect={(file: any) => onFileSelect('logo', file)} />
+                <ImageUploader label={t('coverPhotoUrl')} currentImageUrl={formState.cover_photo_url} previewUrl={previews.cover} onFileSelect={(file: any) => onFileSelect('cover', file)} />
+            </div>
+            <TextAreaField label={t('bio')} name="bio" value={formState.bio || ''} onChange={handleChange} />
+        </div>
+    );
+}
+
+const BrandingEditor: React.FC<any> = ({ formState, setFormState, business }) => {
+    const { t } = useLanguage();
+    const [previewQr, setPreviewQr] = useState('');
+    useEffect(() => {
+        generateQrCode(business.qr_token, { qr_logo_url: formState.qr_logo_url, qr_color: formState.qr_color, qr_eye_shape: formState.qr_eye_shape, qr_dot_style: formState.qr_dot_style }).then(setPreviewQr);
+    }, [business.qr_token, formState.qr_logo_url, formState.qr_color, formState.qr_eye_shape, formState.qr_dot_style]);
+    const handleChange = (e: any) => setFormState((prev: any) => ({...prev, [e.target.name]: e.target.value }));
+    return (
+        <div className="flex flex-col md:flex-row gap-16 items-start">
+             <div className="flex-shrink-0 bg-white p-8 rounded-[3rem] border border-slate-100">
+                {previewQr ? <img src={previewQr} alt="QR" className="w-56 h-56 rounded-2xl border-4 border-white shadow-sm"/> : <div className="w-56 h-56 bg-slate-50 rounded-2xl animate-pulse" />}
+                <p className="text-center text-[10px] font-black uppercase tracking-widest text-slate-400 mt-6">Login Identity Code</p>
+            </div>
+            <div className="flex-grow space-y-10 w-full">
+                <div className="space-y-4">
+                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest pl-1">{t('qrColor')}</label>
+                    <input type="color" name="qr_color" value={formState.qr_color || '#000000'} onChange={handleChange} className="h-14 w-full p-1 bg-white border border-slate-100 rounded-2xl cursor-pointer" />
+                </div>
+                <div className="grid grid-cols-2 gap-8">
+                   <SelectField label={t('eyeShape')} name="qr_eye_shape" value={formState.qr_eye_shape || 'square'} onChange={handleChange} options={[{value: 'square', label: 'Square'}, {value: 'rounded', label: 'Rounded'}]} />
+                   <SelectField label={t('dotStyle')} name="qr_dot_style" value={formState.qr_dot_style || 'square'} onChange={handleChange} options={[{ value: 'square', label: 'Square' }, { value: 'dots', label: 'Dots' }, { value: 'rounded', label: 'Rounded' }]} />
+                </div>
+            </div>
+        </div>
+    );
+}
+
+const LocationEditor: React.FC<any> = ({ formState, setFormState }) => {
+    const { t } = useLanguage();
+    const handleChange = (e: any) => setFormState((prev: any) => ({ ...prev, [e.target.name]: e.target.value }));
+    return (
+        <div className="space-y-10">
+            <InputField label={t('address')} name="address_text" value={formState.address_text || ''} onChange={handleChange} placeholder="Physical store address..." />
+            {formState.address_text && (
+                 <div className="rounded-[3rem] overflow-hidden border border-slate-100 grayscale contrast-125 opacity-80">
+                    <iframe className="w-full h-96" loading="lazy" src={`https://www.google.com/maps?q=${encodeURIComponent(formState.address_text)}&output=embed`}></iframe>
+                </div>
+            )}
+        </div>
+    );
+}
+
+// FIX: Export correct component name
 export default BusinessEditorPage;
