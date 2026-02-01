@@ -32,11 +32,11 @@ const translations = {
     landingFooterTechnology: 'Technology',
     landingFooterCompany: 'Company',
     landingFooterSupport: 'Support',
-    
-    // Technical Pages
-    techApiRef: 'API Reference',
-    techScannerSdk: 'Scanner SDK',
-    techWalletProtocol: 'Wallet Protocol',
+    landingVersionLabel: 'Identity Infrastructure v2.5',
+    landingStitchLabel: 'STITCH ENGINE',
+    landingInfrastructureNav: 'Infrastructure',
+
+    // Technical Pages (Removed API/SDK)
     compPartners: 'Partners',
     compTerms: 'Terms of Service',
     compPrivacy: 'Privacy Hub',
@@ -303,11 +303,11 @@ const translations = {
     landingFooterTechnology: 'Τεχνολογία',
     landingFooterCompany: 'Εταιρεία',
     landingFooterSupport: 'Υποστήριξη',
+    landingVersionLabel: 'Υποδομή Ταυτοποίησης v2.5',
+    landingStitchLabel: 'ΜΗΧΑΝΗ STITCH',
+    landingInfrastructureNav: 'Υποδομή',
     
-    // Technical Pages EL
-    techApiRef: 'API Reference',
-    techScannerSdk: 'Scanner SDK',
-    techWalletProtocol: 'Wallet Protocol',
+    // Technical Pages (Removed API/SDK)
     compPartners: 'Συνεργάτες',
     compTerms: 'Όροι Χρήσης',
     compPrivacy: 'Κέντρο Απορρήτου',

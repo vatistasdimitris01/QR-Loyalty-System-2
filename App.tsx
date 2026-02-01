@@ -29,10 +29,7 @@ const AppContent: React.FC = () => {
   if (showSplash) return <SplashScreen onComplete={handleSplashComplete} />;
 
   const renderPage = () => {
-    // Info Pages Handlers with full translations
-    if (path === '/api-reference') return <InfoLayout category={t('landingFooterTechnology')} title={t('techApiRef')}><ApiContent /></InfoLayout>;
-    if (path === '/scanner-sdk') return <InfoLayout category={t('landingFooterTechnology')} title={t('techScannerSdk')}><SdkContent /></InfoLayout>;
-    if (path === '/wallet-protocol') return <InfoLayout category={t('landingFooterTechnology')} title={t('techWalletProtocol')}><ProtocolContent /></InfoLayout>;
+    // Basic Info Pages Handlers
     if (path === '/partners') return <InfoLayout category={t('landingFooterCompany')} title={t('compPartners')}><PartnersContent /></InfoLayout>;
     if (path === '/terms') return <InfoLayout category={t('landingFooterCompany')} title={t('compTerms')}><TermsContent /></InfoLayout>;
     if (path === '/privacy') return <InfoLayout category={t('landingFooterCompany')} title={t('compPrivacy')}><PrivacyContent /></InfoLayout>;
@@ -106,55 +103,14 @@ const App: React.FC = () => (
   </LanguageProvider>
 );
 
-// --- CONTENT COMPONENTS FOR INFO PAGES ---
-
-const ApiContent = () => (
-    <>
-        <h2>Overview</h2>
-        <p>The QRoyal REST API allows you to integrate our loyalty infrastructure into your own POS, Website, or Mobile App. All requests require a <code>Bearer Token</code> authorized from your Business Dashboard.</p>
-        <h3>Endpoints</h3>
-        <ul>
-            <li><code>GET /v2/customer/:id</code> - Retrieve identity metadata</li>
-            <li><code>POST /v2/scan</code> - Record a point transaction</li>
-            <li><code>POST /v2/redeem</code> - Validate and deduct rewards</li>
-        </ul>
-        <pre className="bg-slate-900 text-green-400 p-6 rounded-2xl overflow-x-auto text-sm font-mono">
-            {`curl -X POST https://api.qroyal.com/v2/scan \\
-  -H "Authorization: Bearer YOUR_TOKEN" \\
-  -d '{ "customer_id": "cust_82f1...", "points": 10 }'`}
-        </pre>
-    </>
-);
-
-const SdkContent = () => (
-    <>
-        <h2>Universal Scanner SDK</h2>
-        <p>Build your own scanning interface using our optimized WebGL-accelerated engine. The QRoyal SDK handles low-light conditions, glare, and rapid sequential scans.</p>
-        <h3>Key Features</h3>
-        <ul>
-            <li>Auto-focus correction</li>
-            <li>Real-time token validation</li>
-            <li>Zero-latency haptic feedback</li>
-        </ul>
-        <p>Available for React, Vue, and Native iOS/Android.</p>
-    </>
-);
-
-const ProtocolContent = () => (
-    <>
-        <h2>The Digital Wallet Protocol</h2>
-        <p>QRoyal identities are built on a proprietary decentralized ledger to ensure that customer privacy is maintained while providing verifiable transaction history.</p>
-        <h3>Encryption</h3>
-        <p>All QR tokens are AES-256 encrypted and rotate every 120 seconds for maximum security if used in High-Risk mode.</p>
-    </>
-);
+// --- CONTENT COMPONENTS ---
 
 const PartnersContent = () => (
     <>
         <h2>Join the Ecosystem</h2>
         <p>We work with point-of-sale providers, marketing agencies, and enterprise retail chains to provide a unified loyalty experience.</p>
         <h3>Tier 1 Partners</h3>
-        <p>Our Tier 1 partners receive priority API access, custom co-branding, and 24/7 dedicated engineering support.</p>
+        <p>Our Tier 1 partners receive priority access, custom co-branding, and 24/7 dedicated account support.</p>
     </>
 );
 
@@ -184,9 +140,9 @@ const StatusContent = () => (
             <p className="font-bold text-green-700 m-0">All Systems Operational (99.99% Uptime)</p>
         </div>
         <ul className="mt-8">
-            <li><strong>Database Cluster:</strong> Normal</li>
+            <li><strong>Identity Ledger:</strong> Normal</li>
             <li><strong>QR Generation:</strong> Normal</li>
-            <li><strong>Email Gateways:</strong> Normal</li>
+            <li><strong>System Gateways:</strong> Normal</li>
         </ul>
     </>
 );
@@ -194,12 +150,12 @@ const StatusContent = () => (
 const DocsContent = () => (
     <>
         <h2>Getting Started</h2>
-        <p>Welcome to the QRoyal Documentation Hub. Whether you are a small business or an enterprise architect, we have guides to help you scale.</p>
+        <p>Welcome to the QRoyal Documentation Hub. Whether you are a small business or an enterprise, we have guides to help you scale.</p>
         <h3>Guides</h3>
         <ul>
             <li>Dashboard Quickstart</li>
             <li>Custom Branding Guide</li>
-            <li>Advanced Analytics Integration</li>
+            <li>Customer Engagement Best Practices</li>
         </ul>
     </>
 );

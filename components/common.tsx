@@ -44,11 +44,12 @@ const LogoDrawingLoader: React.FC<{ size?: number }> = ({ size = 128 }) => {
             strokeLinejoin="round"
             d="M50,220 V50 H210 V150 H145 L135,130 H50"
             style={{
-              strokeDasharray: len,
-              strokeDashoffset: len,
-              '--path-length': len,
+              strokeDasharray: len || 2000,
+              strokeDashoffset: len || 2000,
+              '--path-length': len || 2000,
+              opacity: len > 0 ? 1 : 0
             } as any}
-            className="logo-draw-anim"
+            className="logo-draw-anim transition-opacity duration-300"
           />
         </g>
       </svg>

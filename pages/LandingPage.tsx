@@ -67,7 +67,7 @@ const LandingPage: React.FC = () => {
                     
                     <nav className="hidden lg:flex items-center gap-12">
                         <a href="#solutions" className="text-xs font-black uppercase tracking-[0.3em] text-slate-400 hover:text-[#2bee6c] transition-colors">{t('landingSolutionsTitle')}</a>
-                        <a href="#infrastructure" className="text-xs font-black uppercase tracking-[0.3em] text-slate-400 hover:text-[#2bee6c] transition-colors">{t('landingFooterTechnology')}</a>
+                        <a href="#infrastructure" className="text-xs font-black uppercase tracking-[0.3em] text-slate-400 hover:text-[#2bee6c] transition-colors">{t('landingInfrastructureNav')}</a>
                         <button onClick={() => setLanguage(language === 'en' ? 'el' : 'en')} className="text-xs font-black uppercase tracking-[0.3em] text-[#4c9a66] hover:text-[#2bee6c] transition-all">
                             {language === 'en' ? 'EL' : 'EN'}
                         </button>
@@ -89,7 +89,7 @@ const LandingPage: React.FC = () => {
                     <div className="max-w-7xl mx-auto flex flex-col items-center text-center space-y-10 md:space-y-12">
                         <div className="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-green-50 border border-green-100">
                             <span className="size-2 rounded-full bg-[#2bee6c]"></span>
-                            <span className="text-[9px] md:text-[10px] font-black tracking-[0.4em] text-[#4c9a66] uppercase">Identity Infrastructure v2.5</span>
+                            <span className="text-[9px] md:text-[10px] font-black tracking-[0.4em] text-[#4c9a66] uppercase">{t('landingVersionLabel')}</span>
                         </div>
                         
                         <div className="space-y-6 md:space-y-8 max-w-4xl">
@@ -145,7 +145,7 @@ const LandingPage: React.FC = () => {
                                     <p className="text-[#163a24]/60 text-sm md:text-base font-medium">{t('landingBentoAutomatedDesc')}</p>
                                 </div>
                                 <div className="pt-8 md:pt-10 border-t border-[#163a24]/10 flex items-center justify-between">
-                                    <span className="text-[9px] md:text-[10px] font-black tracking-[0.5em] uppercase">STITCH ENGINE</span>
+                                    <span className="text-[9px] md:text-[10px] font-black tracking-[0.5em] uppercase">{t('landingStitchLabel')}</span>
                                     <span className="material-icons-round text-xl md:text-2xl">bolt</span>
                                 </div>
                             </div>
@@ -196,7 +196,7 @@ const LandingPage: React.FC = () => {
             </main>
 
             <footer className="bg-white py-24 md:py-32 border-t border-slate-100 px-6 md:px-8">
-                <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-12 md:gap-20">
+                <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-3 gap-12 md:gap-20">
                     <div className="col-span-2 md:col-span-1 space-y-6 md:space-y-8">
                         <div className="flex items-center gap-3">
                             <FlagLogo className="w-8 h-8" />
@@ -205,15 +205,6 @@ const LandingPage: React.FC = () => {
                         <p className="text-slate-400 text-[10px] md:text-xs font-bold uppercase tracking-[0.4em]">{t('landingFooterTagline')}</p>
                     </div>
                     
-                    <div className="space-y-4 md:space-y-6">
-                        <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.4em] text-[#163a24]">{t('landingFooterTechnology')}</p>
-                        <ul className="space-y-2 md:space-y-3 text-xs md:text-sm font-medium text-slate-400">
-                            <li><a href="/api-reference" className="hover:text-[#2bee6c] transition-colors">{t('techApiRef')}</a></li>
-                            <li><a href="/scanner-sdk" className="hover:text-[#2bee6c] transition-colors">{t('techScannerSdk')}</a></li>
-                            <li><a href="/wallet-protocol" className="hover:text-[#2bee6c] transition-colors">{t('techWalletProtocol')}</a></li>
-                        </ul>
-                    </div>
-
                     <div className="space-y-4 md:space-y-6">
                         <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.4em] text-[#163a24]">{t('landingFooterCompany')}</p>
                         <ul className="space-y-2 md:space-y-3 text-xs md:text-sm font-medium text-slate-400">
