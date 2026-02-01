@@ -76,31 +76,32 @@ const CustomerPage: React.FC<CustomerPageProps> = ({ qrToken }) => {
   if (viewingBusiness) return <BusinessProfilePage business={viewingBusiness} customerId={customer.id} onBack={() => setViewingBusiness(null)} onLeaveSuccess={() => { setViewingBusiness(null); fetchData(); }} />;
 
   return (
-    <div className="min-h-screen bg-white text-slate-900 font-sans">
+    <div className="min-h-screen bg-[#f8fcf9] text-slate-900 font-sans">
         <CustomerSetupModal isOpen={isSetupModalOpen} onSave={handleSetupSave} />
         <CustomerQRModal isOpen={isQrModalOpen} onClose={() => setIsQrModalOpen(false)} customer={customer} />
         
-        <main className="pb-36 pt-4 animate-in fade-in duration-500">
+        <main className="pb-36 animate-in fade-in duration-500">
             {activeTab === 'home' && <CustomerHomePage customer={customer} memberships={memberships} onViewBusiness={setViewingBusiness} onShowMyQr={() => setIsQrModalOpen(true)} />}
             {activeTab === 'search' && <CustomerSearchPage customer={customer} onJoinSuccess={() => fetchData(false)} />}
             {activeTab === 'profile' && <CustomerProfilePage customer={customer} onUpdate={setCustomer} onContactUs={() => window.tidioChatApi?.open()} />}
         </main>
 
-        <nav className="fixed bottom-10 left-1/2 -translate-x-1/2 w-[92%] max-w-sm bg-slate-900/90 backdrop-blur-2xl p-2.5 rounded-[2.5rem] shadow-2xl z-50 flex justify-between items-center ring-8 ring-white">
-            <NavItem icon="home" label="Home" active={activeTab === 'home'} onClick={() => setActiveTab('home')} />
-            <NavItem icon="explore" label="Explore" active={activeTab === 'search'} onClick={() => setActiveTab('search')} />
-            <button onClick={() => setIsQrModalOpen(true)} className="size-14 bg-white text-slate-900 rounded-full flex items-center justify-center shadow-xl active:scale-90 transition-all"><span className="material-symbols-outlined text-[28px]">qr_code_2</span></button>
-            <NavItem icon="person" label="Profile" active={activeTab === 'profile'} onClick={() => setActiveTab('profile')} />
-            <NavItem icon="support_agent" label="Help" active={false} onClick={() => window.tidioChatApi?.open()} />
+        <nav className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-[#e7f3eb] px-4 pb-8 pt-2 z-50 flex justify-between items-center shadow-[0_-4px_20px_rgba(0,0,0,0.03)]">
+            <NavItem icon="house" label={t('home')} active={activeTab === 'home'} onClick={() => setActiveTab('home')} />
+            <NavItem icon="barcode_scanner" label="Scan" active={false} onClick={() => setIsQrModalOpen(true)} />
+            <NavItem icon="explore" label={t('search')} active={activeTab === 'search'} onClick={() => setActiveTab('search')} />
+            <NavItem icon="person" label={t('profile')} active={activeTab === 'profile'} onClick={() => setActiveTab('profile')} />
         </nav>
     </div>
   );
 };
 
 const NavItem: React.FC<{ icon: string, label: string, active: boolean, onClick: () => void }> = ({ icon, label, active, onClick }) => (
-    <button onClick={onClick} className={`flex flex-col items-center gap-1 flex-1 transition-all ${active ? 'text-white' : 'text-slate-500 hover:text-slate-300'}`}>
-        <span className="material-symbols-outlined text-[24px]" style={{ fontVariationSettings: active ? "'FILL' 1" : "'FILL' 0" }}>{icon}</span>
-        <span className="text-[8px] font-black uppercase tracking-widest">{label}</span>
+    <button onClick={onClick} className={`flex flex-col items-center gap-1 flex-1 transition-all ${active ? 'text-[#0d1b12]' : 'text-[#4c9a66] hover:text-[#0d1b12]'}`}>
+        <div className="h-8 flex items-center justify-center">
+            <span className="material-symbols-outlined text-[28px]" style={{ fontVariationSettings: active ? "'FILL' 1" : "'FILL' 0" }}>{icon}</span>
+        </div>
+        <span className="text-[10px] font-bold uppercase tracking-widest scale-75 origin-top">{label}</span>
     </button>
 );
 
