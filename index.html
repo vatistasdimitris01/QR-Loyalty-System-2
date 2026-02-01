@@ -10,7 +10,7 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Manrope:wght@200..800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&family=Noto+Sans:wght@400;500;700;900&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
     
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
@@ -23,31 +23,30 @@
         theme: {
           extend: {
             colors: {
-              "primary": "#135bec",
-              "accent-gold": "#C5A059",
-              "background-light": "#f8fcf9",
-              "background-dark": "#101622",
+              "primary": "#2bee6c",
+              "forest": "#0d1b12",
+              "mint-white": "#f8fcf9",
+              "mint-border": "#e7f3eb",
+              "muted-green": "#4c9a66",
             },
             fontFamily: {
-              "sans": ["Inter", "Manrope", "sans-serif"],
-              "display": ["Inter", "sans-serif"]
+              "sans": ["Manrope", "Noto Sans", "sans-serif"],
             },
           },
         },
       }
     </script>
     <style>
-      body { background-color: #ffffff; color: #0f172a; }
+      body { background-color: #f8fcf9; color: #0d1b12; }
       .no-scrollbar::-webkit-scrollbar { display: none; }
       .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-      .gold-gradient-text {
-        background: linear-gradient(to right, #C5A059, #E2C275);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-      }
       /* Hide Tidio on mobile */
       @media (max-width: 768px) {
         #tidio-chat-iframe, .tidio-chat-widget { display: none !important; }
+      }
+      .form-input:focus {
+        border-color: #2bee6c !important;
+        ring-color: #2bee6c !important;
       }
     </style>
     
@@ -67,7 +66,7 @@
 </script>
 <script src="//code.tidio.co/lbmfxqsklq19pkniyajxaxzjguaddmtv.js" async></script>
 </head>
-  <body class="font-sans antialiased overflow-x-hidden selection:bg-blue-100">
+  <body class="font-sans antialiased overflow-x-hidden selection:bg-green-100">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
   </body>

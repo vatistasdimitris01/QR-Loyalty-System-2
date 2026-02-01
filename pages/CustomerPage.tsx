@@ -45,26 +45,20 @@ const CustomerPage: React.FC<CustomerPageProps> = ({ qrToken }) => {
     fetchData(true);
     const id = setInterval(() => fetchData(false), 30000);
 
-    // Hide chatbot on mobile dashboard pages
-    const hideChat = () => {
-        if ((window as any).tidioChatApi) {
-            (window as any).tidioChatApi.hide();
-        }
+    // Logic to hide chatbot specifically on mobile
+    const handleChatbot = () => {
+      if ((window as any).tidioChatApi) {
+        (window as any).tidioChatApi.hide();
+      }
     };
-    hideChat();
-    // In case tidio loads late
-    const tidioInterval = setInterval(() => {
-        if ((window as any).tidioChatApi) {
-            (window as any).tidioChatApi.hide();
-            clearInterval(tidioInterval);
-        }
-    }, 1000);
+    handleChatbot();
+    const tidioInterval = setInterval(handleChatbot, 1000);
 
     return () => {
         clearInterval(id);
         clearInterval(tidioInterval);
         if ((window as any).tidioChatApi) {
-            (window as any).tidioChatApi.show();
+          (window as any).tidioChatApi.show();
         }
     };
   }, [fetchData]);
@@ -86,7 +80,7 @@ const CustomerPage: React.FC<CustomerPageProps> = ({ qrToken }) => {
     }
   };
 
-  if (loading) return <div className="h-screen flex items-center justify-center bg-[#f8fcf9]"><Spinner className="size-10 text-[#4c9a66]/40" /></div>;
+  if (loading) return <div className="h-screen flex items-center justify-center bg-[#f8fcf9]"><Spinner className="size-10 text-[#2bee6c]" /></div>;
   if (error || !customer) return <div className="h-screen flex items-center justify-center p-12 text-center text-slate-400 font-bold uppercase tracking-widest bg-[#f8fcf9]">{error || 'Session Expired'}</div>;
   
   if (viewingBusiness) return <BusinessProfilePage business={viewingBusiness} customerId={customer.id} onBack={() => setViewingBusiness(null)} onLeaveSuccess={() => { setViewingBusiness(null); fetchData(); }} />;
@@ -99,7 +93,6 @@ const CustomerPage: React.FC<CustomerPageProps> = ({ qrToken }) => {
             {activeTab === 'home' && <CustomerHomePage customer={customer} memberships={memberships} onViewBusiness={setViewingBusiness} />}
             {activeTab === 'qr' && <CustomerQRPage customer={customer} />}
             {activeTab === 'search' && <CustomerSearchPage customer={customer} onJoinSuccess={() => fetchData(false)} />}
-            {/* FIX: Removed onContactUs prop which was not defined in CustomerProfilePageProps */}
             {activeTab === 'profile' && <CustomerProfilePage customer={customer} onUpdate={setCustomer} />}
         </main>
 

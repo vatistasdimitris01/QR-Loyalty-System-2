@@ -38,75 +38,97 @@ const BusinessScannerPage: React.FC = () => {
     };
 
     const formatTime = (date: Date) => {
-        return date.toLocaleTimeString(language === 'el' ? 'el-GR' : 'en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+        return date.toLocaleTimeString(language === 'el' ? 'el-GR' : 'en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
     };
 
-    if (!business) return <div className="min-h-screen bg-black flex justify-center items-center"><Spinner className="size-10 text-primary" /></div>;
+    // FIX: Changed 'class' to 'className' to resolve React error.
+    if (!business) return <div className="min-h-screen bg-[#f8fcf9] flex justify-center items-center"><Spinner className="size-10 text-[#2bee6c]" /></div>;
 
     return (
-        <div className="min-h-screen bg-[#050505] text-white flex flex-col font-sans selection:bg-primary selection:text-white relative overflow-hidden">
-            <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, #135bec 1px, transparent 0)', backgroundSize: '40px 40px' }}></div>
-            
-            <header className="relative z-10 p-8 flex justify-between items-center">
-                <BackButton onClick={() => window.location.href = '/business'} className="bg-white/5 border-white/10 text-white hover:bg-white/10" />
-                <div className="text-right">
-                    <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500 mb-1">Terminal Active</p>
-                    <p className="text-xs font-bold text-slate-300">{business.public_name}</p>
-                </div>
-            </header>
+        <div className="relative flex h-auto min-h-screen w-full flex-col bg-[#f8fcf9] justify-between group/design-root overflow-x-hidden font-sans">
+            <div>
+                <header className="flex items-center bg-[#f8fcf9] p-4 pb-2 justify-between">
+                    <BackButton onClick={() => window.location.href = '/business'} className="bg-transparent border-none text-[#0d1b12]" />
+                    <h2 className="text-[#0d1b12] text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-12">Kiosk Mode</h2>
+                </header>
 
-            <main className="flex-grow flex flex-col items-center justify-center p-8 relative z-10">
-                <div className="text-center space-y-4 mb-20">
-                    <p className="text-[10px] font-black uppercase tracking-[0.5em] text-primary mb-6 animate-pulse">System Live</p>
-                    <h1 className="text-[140px] md:text-[200px] font-black tracking-[-0.08em] leading-none text-white/90 drop-shadow-2xl">
-                        {formatTime(currentTime)}
-                    </h1>
-                    <p className="text-lg font-black uppercase tracking-[0.3em] text-slate-500">
-                        {new Intl.DateTimeFormat(language === 'el' ? 'el-GR' : 'en-US', { weekday: 'long', day: 'numeric', month: 'long' }).format(currentTime)}
-                    </p>
+                <div className="flex items-center justify-center gap-6 p-4 mt-8">
+                    <button onClick={() => window.location.href='/business'} className="flex shrink-0 items-center justify-center rounded-full size-10 bg-black/5 text-[#0d1b12]">
+                        <span className="material-symbols-outlined">settings</span>
+                    </button>
+                    <button onClick={() => setIsScannerOpen(true)} className="flex shrink-0 items-center justify-center rounded-full size-24 bg-[#0d1b12] text-[#2bee6c] shadow-2xl shadow-green-500/20 active:scale-95 transition-transform">
+                        <span className="material-symbols-outlined text-[48px]" style={{ fontVariationSettings: "'FILL' 1" }}>qr_code_scanner</span>
+                    </button>
+                    <button onClick={handleCreateQr} className="flex shrink-0 items-center justify-center rounded-full size-10 bg-black/5 text-[#0d1b12]">
+                        <span className="material-symbols-outlined">person_add</span>
+                    </button>
                 </div>
 
-                <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <ScannerAction 
-                        onClick={() => setIsScannerOpen(true)}
-                        icon="qr_code_scanner"
-                        title="Scan Member"
-                        desc="Award points or claim gifts"
-                        variant="primary"
-                    />
-                    <ScannerAction 
-                        onClick={handleCreateQr}
-                        icon="person_add"
-                        title="New Member"
-                        desc="Provision instant digital ID"
-                        variant="secondary"
-                    />
+                <div className="flex gap-4 py-12 px-4 justify-center">
+                    <TimeBlock value={currentTime.getHours().toString().padStart(2, '0')} label="Hours" />
+                    <TimeBlock value={currentTime.getMinutes().toString().padStart(2, '0')} label="Minutes" />
+                    <TimeBlock value={currentTime.getSeconds().toString().padStart(2, '0')} label="Seconds" />
                 </div>
-            </main>
+
+                {/* FIX: Changed 'class' to 'className' to resolve React error. */}
+                <div className="flex justify-center mt-4">
+                    <div className="flex flex-1 gap-3 flex-wrap px-4 py-3 max-w-[480px] justify-center">
+                        <button
+                            onClick={() => setIsScannerOpen(true)}
+                            className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-6 bg-[#e7f3eb] text-[#0d1b12] text-sm font-bold leading-normal tracking-[0.015em] grow"
+                        >
+                            <span className="truncate">Scan Member</span>
+                        </button>
+                        <button
+                            onClick={handleCreateQr}
+                            className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-6 bg-[#e7f3eb] text-[#0d1b12] text-sm font-bold leading-normal tracking-[0.015em] grow"
+                        >
+                            <span className="truncate">Register Guest</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
 
             {lastScanResult && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/60 backdrop-blur-2xl animate-in fade-in duration-500">
-                    <div className={`w-full max-w-md p-12 rounded-[3.5rem] border-4 text-center space-y-8 shadow-[0_0_100px_rgba(0,0,0,0.5)] animate-in zoom-in-95 duration-500 ${lastScanResult.success ? 'bg-emerald-600 border-white/20' : 'bg-rose-600 border-white/20'}`}>
-                        <div className="size-24 bg-white/20 rounded-full flex items-center justify-center mx-auto border-2 border-white/30">
-                            <span className="material-symbols-outlined text-[48px] text-white">{lastScanResult.success ? 'check' : 'warning'}</span>
-                        </div>
-                        <div className="space-y-2">
-                             <h2 className="text-4xl font-black tracking-tighter text-white">{lastScanResult.success ? lastScanResult.customer?.name : 'Error'}</h2>
-                             <p className="text-white/80 font-bold uppercase tracking-widest text-xs">{lastScanResult.message}</p>
-                        </div>
-                        {lastScanResult.success && (
-                            <div className="text-7xl font-black text-white tracking-tighter leading-none py-6 border-y border-white/10">
-                                {lastScanResult.newPointsTotal} <span className="text-lg uppercase tracking-widest block opacity-60">Balance</span>
+                <div className="fixed inset-0 z-[100] flex flex-col justify-end items-stretch bg-[#141414]/40 animate-in fade-in duration-300">
+                    <div className="flex flex-col items-stretch bg-[#f8fcf9] rounded-t-[2.5rem] shadow-2xl animate-in slide-in-from-bottom-full duration-500">
+                        <button onClick={() => setLastScanResult(null)} className="flex h-8 w-full items-center justify-center pt-2">
+                            <div className="h-1.5 w-12 rounded-full bg-[#cfe7d7]"></div>
+                        </button>
+                        <div className="flex-1 pb-10 px-6">
+                            <h1 className="text-[#0d1b12] text-[22px] font-bold leading-tight tracking-[-0.015em] text-center pt-5">
+                                {lastScanResult.success ? 'Points Awarded!' : 'Scan Error'}
+                            </h1>
+                            {lastScanResult.success && (
+                                <h2 className="text-[#0d1b12] tracking-tight text-[42px] font-black leading-tight text-center py-4">
+                                    +{business.points_per_scan} Points
+                                </h2>
+                            )}
+                            <p className="text-[#4c9a66] text-base font-medium leading-normal text-center mb-8">
+                                {lastScanResult.message}
+                            </p>
+                            
+                            {lastScanResult.success && (
+                                <div className="flex flex-col items-center justify-center bg-[#e7f3eb] p-6 rounded-2xl border border-[#cfe7d7]">
+                                    <p className="text-[#0d1b12] text-2xl font-black leading-tight">{lastScanResult.newPointsTotal} Points</p>
+                                    <p className="text-[#4c9a66] text-sm font-bold uppercase tracking-widest mt-1">Updated Wallet Balance</p>
+                                </div>
+                            )}
+
+                            <div className="flex pt-10">
+                                <button
+                                    onClick={() => setLastScanResult(null)}
+                                    className="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl h-14 bg-[#2bee6c] text-[#0d1b12] text-lg font-black leading-normal tracking-[0.015em] shadow-xl shadow-green-200"
+                                >
+                                    <span className="truncate">Confirm & Done</span>
+                                </button>
                             </div>
-                        )}
-                        <button onClick={() => setLastScanResult(null)} className="w-full py-5 bg-white text-black font-black rounded-3xl active:scale-95 transition-all">Clear Screen</button>
+                        </div>
                     </div>
                 </div>
             )}
 
-            <footer className="p-8 text-center relative z-10">
-                 <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-700">QRoyal Kiosk Engine v2.4</p>
-            </footer>
+            <div className="h-10 bg-[#f8fcf9]"></div>
             
             <BusinessScannerModal isOpen={isScannerOpen} onClose={() => setIsScannerOpen(false)} businessId={business.id} onScanSuccess={handleScanSuccess} />
             <CreateCustomerModal isOpen={isCreateQrOpen} onClose={() => setIsCreateQrOpen(false)} qrDataUrl={newCustomerQr} />
@@ -114,19 +136,14 @@ const BusinessScannerPage: React.FC = () => {
     );
 };
 
-const ScannerAction: React.FC<{ onClick: () => void, icon: string, title: string, desc: string, variant: 'primary' | 'secondary' }> = ({ onClick, icon, title, desc, variant }) => (
-    <button 
-        onClick={onClick}
-        className={`group p-10 rounded-[3rem] text-left transition-all active:scale-95 flex items-center gap-8 ${variant === 'primary' ? 'bg-primary text-white shadow-2xl shadow-primary/30' : 'bg-white/5 border border-white/10 text-white hover:bg-white/10'}`}
-    >
-        <div className={`size-20 rounded-[1.5rem] flex items-center justify-center ${variant === 'primary' ? 'bg-white/20' : 'bg-primary/20 text-primary'}`}>
-            <span className="material-symbols-outlined text-[40px]">{icon}</span>
+const TimeBlock: React.FC<{ value: string; label: string }> = ({ value, label }) => (
+    // FIX: Changed 'class' to 'className' to resolve React error.
+    <div className="flex grow basis-0 flex-col items-stretch gap-2">
+        <div className="flex h-20 grow items-center justify-center rounded-2xl px-3 bg-[#e7f3eb] border border-[#cfe7d7]">
+            <p className="text-[#0d1b12] text-3xl font-black leading-tight tracking-tighter">{value}</p>
         </div>
-        <div>
-            <h3 className="text-2xl font-black tracking-tight">{title}</h3>
-            <p className={`text-sm font-medium ${variant === 'primary' ? 'text-white/70' : 'text-slate-500'}`}>{desc}</p>
-        </div>
-    </button>
+        <div className="flex items-center justify-center"><p className="text-[#4c9a66] text-xs font-bold uppercase tracking-widest">{label}</p></div>
+    </div>
 );
 
 export default BusinessScannerPage;

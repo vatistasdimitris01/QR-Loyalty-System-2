@@ -54,59 +54,48 @@ const CustomerSearchPage: React.FC<CustomerSearchPageProps> = ({ customer, onJoi
     };
 
     return (
-        <div className="flex flex-col bg-white min-h-screen text-[#111813]" style={{ fontFamily: 'Manrope, "Noto Sans", sans-serif' }}>
-            <div className="flex items-center bg-white p-4 pb-2 justify-between">
-                <h2 className="text-[#111813] text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center">Loyalty</h2>
+        <div className="flex flex-col bg-[#f8fcf9] min-h-screen text-[#0d1b12]" style={{ fontFamily: 'Manrope, "Noto Sans", sans-serif' }}>
+            <div className="flex items-center bg-[#f8fcf9] p-4 pb-2 justify-between">
+                <h2 className="text-[#0d1b12] text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center">Loyalty</h2>
             </div>
 
             <div className="px-4 py-3">
-                <label className="flex flex-col min-w-40 h-12 w-full">
-                    <div className="flex w-full flex-1 items-stretch rounded-lg h-full overflow-hidden">
-                        <div className="text-[#61896f] flex bg-[#f0f4f2] items-center justify-center pl-4 rounded-l-lg border-none">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
-                                <path d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"></path>
-                            </svg>
-                        </div>
-                        <input
-                            className="form-input flex w-full min-w-0 flex-1 border-none bg-[#f0f4f2] focus:ring-0 h-full placeholder:text-[#61896f] px-4 text-base font-normal"
-                            placeholder="Search"
-                            value={searchTerm}
-                            onChange={(e) => handleSearch(e.target.value)}
-                        />
-                        {searchTerm && (
-                            <div className="flex items-center justify-center rounded-r-lg bg-[#f0f4f2] pr-4">
-                                <button onClick={() => handleSearch('')} className="text-[#61896f]">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
-                                        <path d="M165.66,101.66,139.31,128l26.35,26.34a8,8,0,0,1-11.32,11.32L128,139.31l-26.34,26.35a8,8,0,0,1-11.32-11.32L116.69,128,90.34,101.66a8,8,0,0,1,11.32-11.32L128,116.69l26.34-26.35a8,8,0,0,1,11.32,11.32ZM232,128A104,104,0,1,1,128,24,104.11,104.11,0,0,1,232,128Zm-16,0a88,88,0,1,0-88,88A88.1,88.1,0,0,0,216,128Z"></path>
-                                    </svg>
-                                </button>
-                            </div>
-                        )}
+                <div className="flex w-full h-12 items-stretch rounded-xl bg-[#e7f3eb] overflow-hidden">
+                    <div className="text-[#4c9a66] flex items-center justify-center pl-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" fill="currentColor" viewBox="0 0 256 256">
+                            <path d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"></path>
+                        </svg>
                     </div>
-                </label>
+                    <input
+                        className="flex w-full min-w-0 flex-1 border-none bg-transparent focus:ring-0 h-full placeholder:text-[#4c9a66] px-4 text-base font-normal"
+                        placeholder="Search for businesses..."
+                        value={searchTerm}
+                        onChange={(e) => handleSearch(e.target.value)}
+                    />
+                </div>
             </div>
 
-            <div className="pb-3">
-                <div className="flex border-b border-[#dbe6df] px-4 gap-8">
-                    <button onClick={() => setActiveTab('popular')} className={`flex flex-col items-center justify-center border-b-[3px] pb-[13px] pt-4 transition-all ${activeTab === 'popular' ? 'border-b-[#111813] text-[#111813]' : 'border-b-transparent text-[#61896f]'}`}>
+            <div className="pb-3 border-b border-[#e7f3eb]">
+                <div className="flex px-4 gap-8">
+                    <button onClick={() => setActiveTab('popular')} className={`flex flex-col items-center justify-center border-b-[3px] pb-2 pt-4 transition-all ${activeTab === 'popular' ? 'border-b-[#2bee6c] text-[#0d1b12]' : 'border-b-transparent text-[#4c9a66]'}`}>
                         <p className="text-sm font-bold leading-normal tracking-[0.015em]">Popular</p>
                     </button>
-                    <button onClick={() => setActiveTab('nearby')} className={`flex flex-col items-center justify-center border-b-[3px] pb-[13px] pt-4 transition-all ${activeTab === 'nearby' ? 'border-b-[#111813] text-[#111813]' : 'border-b-transparent text-[#61896f]'}`}>
+                    <button onClick={() => setActiveTab('nearby')} className={`flex flex-col items-center justify-center border-b-[3px] pb-2 pt-4 transition-all ${activeTab === 'nearby' ? 'border-b-[#2bee6c] text-[#0d1b12]' : 'border-b-transparent text-[#4c9a66]'}`}>
                         <p className="text-sm font-bold leading-normal tracking-[0.015em]">Nearby</p>
                     </button>
                 </div>
             </div>
 
-            <main className="p-4 space-y-8 pb-24">
+            <main className="p-4 space-y-6 pb-24">
                 {loading ? (
-                    <div className="flex justify-center py-10"><Spinner className="size-8 text-[#4c9a66]" /></div>
+                    <div className="flex justify-center py-10"><Spinner className="size-8 text-[#2bee6c]" /></div>
                 ) : (
                     results.map(biz => (
-                        <div key={biz.id} className="flex items-stretch justify-between gap-4 rounded-lg">
-                            <div className="flex flex-[2_2_0px] flex-col gap-4">
+                        <div key={biz.id} className="flex items-stretch justify-between gap-4">
+                            <div className="flex flex-[2_2_0px] flex-col gap-3 py-1">
                                 <div className="flex flex-col gap-1">
-                                    <p className="text-[#111813] text-base font-bold leading-tight">{biz.public_name}</p>
-                                    <p className="text-[#61896f] text-sm font-normal leading-normal truncate">{biz.bio || 'Retail'}</p>
+                                    <p className="text-[#0d1b12] text-lg font-black leading-tight">{biz.public_name}</p>
+                                    <p className="text-[#4c9a66] text-sm font-normal leading-normal truncate">{biz.bio || 'Local Favorite'}</p>
                                 </div>
                                 <button
                                     onClick={async () => {
@@ -115,13 +104,13 @@ const CustomerSearchPage: React.FC<CustomerSearchPageProps> = ({ customer, onJoi
                                         refreshMems();
                                     }}
                                     disabled={joinedIds.has(biz.id)}
-                                    className={`flex min-w-[84px] items-center justify-center overflow-hidden rounded-lg h-8 px-4 bg-[#f0f4f2] text-[#111813] text-sm font-medium leading-normal w-fit ${joinedIds.has(biz.id) ? 'opacity-50' : ''}`}
+                                    className={`flex min-w-[84px] items-center justify-center rounded-lg h-9 px-4 text-sm font-bold leading-normal w-fit transition-all ${joinedIds.has(biz.id) ? 'bg-[#e7f3eb] text-[#4c9a66]' : 'bg-[#2bee6c] text-[#0d1b12] shadow-sm active:scale-95'}`}
                                 >
                                     <span className="truncate">{joinedIds.has(biz.id) ? 'Joined' : 'Join'}</span>
                                 </button>
                             </div>
                             <div
-                                className="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-lg flex-1 border border-[#f0f4f2]"
+                                className="w-full bg-center bg-no-repeat aspect-[4/3] bg-cover rounded-2xl flex-1 border border-[#e7f3eb]"
                                 style={{ backgroundImage: `url("${biz.logo_url || 'https://i.postimg.cc/8zRZt9pM/user.png'}")` }}
                             ></div>
                         </div>
