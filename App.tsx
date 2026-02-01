@@ -10,13 +10,15 @@ import AdminPage from './pages/AdminPage';
 import BusinessScannerPage from './pages/BusinessScannerPage';
 import { DeviceGuard, SplashScreen } from './components/common';
 
+// Info Pages
+import { InfoLayout } from './components/InfoLayout';
+
 const App: React.FC = () => {
   const path = window.location.pathname;
   const searchParams = new URLSearchParams(window.location.search);
   const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
-    // If the user has seen the splash this session, don't show it again on internal navigations
     const hasSeenSplash = sessionStorage.getItem('hasSeenSplash');
     if (hasSeenSplash) {
       setShowSplash(false);
@@ -31,6 +33,17 @@ const App: React.FC = () => {
   if (showSplash) return <SplashScreen onComplete={handleSplashComplete} />;
 
   const renderPage = () => {
+    // Info Pages Handlers
+    if (path === '/api-reference') return <InfoLayout category="Technology" title="API Reference"><ApiContent /></InfoLayout>;
+    if (path === '/scanner-sdk') return <InfoLayout category="Technology" title="Scanner SDK"><SdkContent /></InfoLayout>;
+    if (path === '/wallet-protocol') return <InfoLayout category="Technology" title="Wallet Protocol"><ProtocolContent /></InfoLayout>;
+    if (path === '/partners') return <InfoLayout category="Company" title="Partners"><PartnersContent /></InfoLayout>;
+    if (path === '/terms') return <InfoLayout category="Company" title="Terms of Service"><TermsContent /></InfoLayout>;
+    if (path === '/privacy') return <InfoLayout category="Company" title="Privacy Hub"><PrivacyContent /></InfoLayout>;
+    if (path === '/status') return <InfoLayout category="Support" title="System Status"><StatusContent /></InfoLayout>;
+    if (path === '/documentation') return <InfoLayout category="Support" title="Documentation"><DocsContent /></InfoLayout>;
+    if (path === '/contact') return <InfoLayout category="Support" title="Επικοινωνία"><ContactContent /></InfoLayout>;
+
     if (path === '/admin') {
       return <DeviceGuard target="pc"><AdminPage /></DeviceGuard>;
     }
@@ -92,5 +105,120 @@ const App: React.FC = () => {
     </LanguageProvider>
   );
 };
+
+// --- CONTENT COMPONENTS FOR INFO PAGES ---
+
+const ApiContent = () => (
+    <>
+        <h2>Overview</h2>
+        <p>The QRoyal REST API allows you to integrate our loyalty infrastructure into your own POS, Website, or Mobile App. All requests require a <code>Bearer Token</code> authorized from your Business Dashboard.</p>
+        <h3>Endpoints</h3>
+        <ul>
+            <li><code>GET /v2/customer/:id</code> - Retrieve identity metadata</li>
+            <li><code>POST /v2/scan</code> - Record a point transaction</li>
+            <li><code>POST /v2/redeem</code> - Validate and deduct rewards</li>
+        </ul>
+        <pre className="bg-slate-900 text-green-400 p-6 rounded-2xl overflow-x-auto text-sm font-mono">
+            {`curl -X POST https://api.qroyal.com/v2/scan \\
+  -H "Authorization: Bearer YOUR_TOKEN" \\
+  -d '{ "customer_id": "cust_82f1...", "points": 10 }'`}
+        </pre>
+    </>
+);
+
+const SdkContent = () => (
+    <>
+        <h2>Universal Scanner SDK</h2>
+        <p>Build your own scanning interface using our optimized WebGL-accelerated engine. The QRoyal SDK handles low-light conditions, glare, and rapid sequential scans.</p>
+        <h3>Key Features</h3>
+        <ul>
+            <li>Auto-focus correction</li>
+            <li>Real-time token validation</li>
+            <li>Zero-latency haptic feedback</li>
+        </ul>
+        <p>Available for React, Vue, and Native iOS/Android.</p>
+    </>
+);
+
+const ProtocolContent = () => (
+    <>
+        <h2>The Digital Wallet Protocol</h2>
+        <p>QRoyal identities are built on a proprietary decentralized ledger to ensure that customer privacy is maintained while providing verifiable transaction history.</p>
+        <h3>Encryption</h3>
+        <p>All QR tokens are AES-256 encrypted and rotate every 120 seconds for maximum security if used in High-Risk mode.</p>
+    </>
+);
+
+const PartnersContent = () => (
+    <>
+        <h2>Join the Ecosystem</h2>
+        <p>We work with point-of-sale providers, marketing agencies, and enterprise retail chains to provide a unified loyalty experience.</p>
+        <h3>Tier 1 Partners</h3>
+        <p>Our Tier 1 partners receive priority API access, custom co-branding, and 24/7 dedicated engineering support.</p>
+    </>
+);
+
+const TermsContent = () => (
+    <>
+        <h2>Standard Service Agreement</h2>
+        <p>By using QRoyal, businesses agree to maintain the privacy of their customers and honor the rewards promised within the platform.</p>
+        <h3>Fees</h3>
+        <p>Standard transactional fees apply based on point volume. Enterprise customers can opt for fixed-fee monthly infrastructure plans.</p>
+    </>
+);
+
+const PrivacyContent = () => (
+    <>
+        <h2>Privacy is Paramount</h2>
+        <p>QRoyal does not sell user data. Customers have full control over which businesses can see their profile and can delete their identity instantly.</p>
+        <h3>GDPR Compliance</h3>
+        <p>We are fully compliant with GDPR and CCPA. Users can request a full data export from their Profile Settings.</p>
+    </>
+);
+
+const StatusContent = () => (
+    <>
+        <h2>System Status</h2>
+        <div className="p-8 bg-green-50 rounded-2xl border border-green-100 flex items-center gap-4">
+            <div className="size-4 bg-green-500 rounded-full animate-pulse"></div>
+            <p className="font-bold text-green-700 m-0">All Systems Operational (99.99% Uptime)</p>
+        </div>
+        <ul className="mt-8">
+            <li><strong>Database Cluster:</strong> Normal</li>
+            <li><strong>QR Generation:</strong> Normal</li>
+            <li><strong>Email Gateways:</strong> Normal</li>
+        </ul>
+    </>
+);
+
+const DocsContent = () => (
+    <>
+        <h2>Getting Started</h2>
+        <p>Welcome to the QRoyal Documentation Hub. Whether you are a small business or an enterprise architect, we have guides to help you scale.</p>
+        <h3>Guides</h3>
+        <ul>
+            <li>Dashboard Quickstart</li>
+            <li>Custom Branding Guide</li>
+            <li>Advanced Analytics Integration</li>
+        </ul>
+    </>
+);
+
+const ContactContent = () => (
+    <>
+        <h2>Get in Touch</h2>
+        <p>We are here to support your loyalty journey. Reach out to the specific department you need below.</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 not-prose mt-8">
+            <div className="p-8 bg-white border border-slate-100 rounded-3xl">
+                <h4 className="font-black text-[#163a24] uppercase tracking-widest text-xs mb-2">Technical Support</h4>
+                <a href="mailto:vatistasdim.dev@icloud.com" className="text-xl font-bold text-[#2bee6c]">Contact Engineers</a>
+            </div>
+            <div className="p-8 bg-white border border-slate-100 rounded-3xl">
+                <h4 className="font-black text-[#163a24] uppercase tracking-widest text-xs mb-2">Sales & Partnerships</h4>
+                <a href="mailto:vatistasdim.dev@icloud.com" className="text-xl font-bold text-[#2bee6c]">Request Demo</a>
+            </div>
+        </div>
+    </>
+);
 
 export default App;
