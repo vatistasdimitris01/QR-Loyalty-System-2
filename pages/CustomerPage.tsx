@@ -99,7 +99,8 @@ const CustomerPage: React.FC<CustomerPageProps> = ({ qrToken }) => {
             {activeTab === 'home' && <CustomerHomePage customer={customer} memberships={memberships} onViewBusiness={setViewingBusiness} />}
             {activeTab === 'qr' && <CustomerQRPage customer={customer} />}
             {activeTab === 'search' && <CustomerSearchPage customer={customer} onJoinSuccess={() => fetchData(false)} />}
-            {activeTab === 'profile' && <CustomerProfilePage customer={customer} onUpdate={setCustomer} onContactUs={() => {}} />}
+            {/* FIX: Removed onContactUs prop which was not defined in CustomerProfilePageProps */}
+            {activeTab === 'profile' && <CustomerProfilePage customer={customer} onUpdate={setCustomer} />}
         </main>
 
         <nav className="fixed bottom-0 left-0 right-0 bg-[#f8fcf9] border-t border-[#e7f3eb] px-4 pb-8 pt-2 z-50 flex justify-between items-center">

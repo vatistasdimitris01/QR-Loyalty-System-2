@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -24,7 +25,7 @@
             colors: {
               "primary": "#135bec",
               "accent-gold": "#C5A059",
-              "background-light": "#f6f6f8",
+              "background-light": "#f8fcf9",
               "background-dark": "#101622",
             },
             fontFamily: {
@@ -43,6 +44,10 @@
         background: linear-gradient(to right, #C5A059, #E2C275);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
+      }
+      /* Hide Tidio on mobile */
+      @media (max-width: 768px) {
+        #tidio-chat-iframe, .tidio-chat-widget { display: none !important; }
       }
     </style>
     
