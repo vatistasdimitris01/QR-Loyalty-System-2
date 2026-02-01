@@ -54,13 +54,13 @@ const BusinessSignupPage: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-white font-sans flex flex-col lg:flex-row relative">
-            <div className="absolute top-8 left-8 z-50">
-                <BackButton />
-            </div>
-
+            {/* Desktop Side Panel */}
             <div className="relative hidden lg:flex lg:w-1/2 flex-col justify-between bg-[#163a24] p-16 text-white overflow-hidden">
+                <div className="absolute top-8 left-8 z-50">
+                    <BackButton className="bg-white/10 hover:bg-white/20 text-[#2bee6c]" />
+                </div>
                 <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(255,255,255,0.15) 1px, transparent 0)', backgroundSize: '32px 32px' }}></div>
-                <div className="relative z-10 flex items-center gap-3">
+                <div className="relative z-10 flex items-center gap-3 pt-12">
                    <Logo className="size-10 text-[#2bee6c]" />
                     <h2 className="text-2xl font-black tracking-tighter">QROYAL</h2>
                 </div>
@@ -75,6 +75,16 @@ const BusinessSignupPage: React.FC = () => {
                 <div className="relative z-10 pt-10 border-t border-slate-800">
                     <p className="text-[#4c9a66] font-bold uppercase tracking-[0.2em] text-xs">Standard Partner Plan</p>
                 </div>
+            </div>
+
+            {/* Mobile Header */}
+            <div className="lg:hidden flex items-center justify-between p-6 border-b border-slate-50 bg-white sticky top-0 z-50">
+                <BackButton />
+                <div className="flex items-center gap-2">
+                    <Logo className="size-8" />
+                    <span className="font-black text-[#163a24] tracking-tighter">QROYAL</span>
+                </div>
+                <div className="w-10"></div> {/* Spacer */}
             </div>
 
             <div className="flex-grow flex flex-col justify-center px-8 lg:px-24 py-16 bg-white">
