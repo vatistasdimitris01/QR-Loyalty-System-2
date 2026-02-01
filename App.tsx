@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { LanguageProvider } from './context/LanguageContext';
+import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import LandingPage from './pages/LandingPage';
 import BusinessLoginPage from './pages/BusinessLoginPage';
 import BusinessPage from './pages/BusinessPage';
@@ -13,17 +13,13 @@ import { DeviceGuard, SplashScreen } from './components/common';
 // Info Pages
 import { InfoLayout } from './components/InfoLayout';
 
-const App: React.FC = () => {
+const AppContent: React.FC = () => {
+  const { t } = useLanguage();
   const path = window.location.pathname;
   const searchParams = new URLSearchParams(window.location.search);
-  const [showSplash, setShowSplash] = useState(true);
-
-  useEffect(() => {
-    const hasSeenSplash = sessionStorage.getItem('hasSeenSplash');
-    if (hasSeenSplash) {
-      setShowSplash(false);
-    }
-  }, []);
+  
+  // CRITICAL FIX: Initialize from sessionStorage immediately to prevent the flicker frame
+  const [showSplash, setShowSplash] = useState(() => !sessionStorage.getItem('hasSeenSplash'));
 
   const handleSplashComplete = () => {
     setShowSplash(false);
@@ -33,16 +29,16 @@ const App: React.FC = () => {
   if (showSplash) return <SplashScreen onComplete={handleSplashComplete} />;
 
   const renderPage = () => {
-    // Info Pages Handlers
-    if (path === '/api-reference') return <InfoLayout category="Technology" title="API Reference"><ApiContent /></InfoLayout>;
-    if (path === '/scanner-sdk') return <InfoLayout category="Technology" title="Scanner SDK"><SdkContent /></InfoLayout>;
-    if (path === '/wallet-protocol') return <InfoLayout category="Technology" title="Wallet Protocol"><ProtocolContent /></InfoLayout>;
-    if (path === '/partners') return <InfoLayout category="Company" title="Partners"><PartnersContent /></InfoLayout>;
-    if (path === '/terms') return <InfoLayout category="Company" title="Terms of Service"><TermsContent /></InfoLayout>;
-    if (path === '/privacy') return <InfoLayout category="Company" title="Privacy Hub"><PrivacyContent /></InfoLayout>;
-    if (path === '/status') return <InfoLayout category="Support" title="System Status"><StatusContent /></InfoLayout>;
-    if (path === '/documentation') return <InfoLayout category="Support" title="Documentation"><DocsContent /></InfoLayout>;
-    if (path === '/contact') return <InfoLayout category="Support" title="Επικοινωνία"><ContactContent /></InfoLayout>;
+    // Info Pages Handlers with full translations
+    if (path === '/api-reference') return <InfoLayout category={t('landingFooterTechnology')} title={t('techApiRef')}><ApiContent /></InfoLayout>;
+    if (path === '/scanner-sdk') return <InfoLayout category={t('landingFooterTechnology')} title={t('techScannerSdk')}><SdkContent /></InfoLayout>;
+    if (path === '/wallet-protocol') return <InfoLayout category={t('landingFooterTechnology')} title={t('techWalletProtocol')}><ProtocolContent /></InfoLayout>;
+    if (path === '/partners') return <InfoLayout category={t('landingFooterCompany')} title={t('compPartners')}><PartnersContent /></InfoLayout>;
+    if (path === '/terms') return <InfoLayout category={t('landingFooterCompany')} title={t('compTerms')}><TermsContent /></InfoLayout>;
+    if (path === '/privacy') return <InfoLayout category={t('landingFooterCompany')} title={t('compPrivacy')}><PrivacyContent /></InfoLayout>;
+    if (path === '/status') return <InfoLayout category={t('landingFooterSupport')} title={t('suppStatus')}><StatusContent /></InfoLayout>;
+    if (path === '/documentation') return <InfoLayout category={t('landingFooterSupport')} title={t('suppDocs')}><DocsContent /></InfoLayout>;
+    if (path === '/contact') return <InfoLayout category={t('landingFooterSupport')} title={t('suppContact')}><ContactContent /></InfoLayout>;
 
     if (path === '/admin') {
       return <DeviceGuard target="pc"><AdminPage /></DeviceGuard>;
@@ -98,13 +94,17 @@ const App: React.FC = () => {
   };
 
   return (
-    <LanguageProvider>
-      <div className="antialiased selection:bg-green-100">
-        {renderPage()}
-      </div>
-    </LanguageProvider>
+    <div className="antialiased selection:bg-green-100">
+      {renderPage()}
+    </div>
   );
 };
+
+const App: React.FC = () => (
+  <LanguageProvider>
+    <AppContent />
+  </LanguageProvider>
+);
 
 // --- CONTENT COMPONENTS FOR INFO PAGES ---
 

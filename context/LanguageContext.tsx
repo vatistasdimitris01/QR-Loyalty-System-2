@@ -32,6 +32,18 @@ const translations = {
     landingFooterTechnology: 'Technology',
     landingFooterCompany: 'Company',
     landingFooterSupport: 'Support',
+    
+    // Technical Pages
+    techApiRef: 'API Reference',
+    techScannerSdk: 'Scanner SDK',
+    techWalletProtocol: 'Wallet Protocol',
+    compPartners: 'Partners',
+    compTerms: 'Terms of Service',
+    compPrivacy: 'Privacy Hub',
+    suppStatus: 'Status Page',
+    suppContact: 'Contact Us',
+    suppDocs: 'Documentation',
+
     howItWorks: 'How it Works',
     howStep1: 'Business Creates Program',
     howStep1Desc: 'Sign up, customize your profile, and set your loyalty rules in minutes.',
@@ -291,6 +303,18 @@ const translations = {
     landingFooterTechnology: 'Τεχνολογία',
     landingFooterCompany: 'Εταιρεία',
     landingFooterSupport: 'Υποστήριξη',
+    
+    // Technical Pages EL
+    techApiRef: 'API Reference',
+    techScannerSdk: 'Scanner SDK',
+    techWalletProtocol: 'Wallet Protocol',
+    compPartners: 'Συνεργάτες',
+    compTerms: 'Όροι Χρήσης',
+    compPrivacy: 'Κέντρο Απορρήτου',
+    suppStatus: 'Κατάσταση Συστήματος',
+    suppContact: 'Επικοινωνία',
+    suppDocs: 'Τεκμηρίωση',
+
     howItWorks: 'Πώς Λειτουργεί',
     howStep1: 'Η Επιχείρηση Δημιουργεί Πρόγραμμα',
     howStep1Desc: 'Εγγραφείτε, προσαρμόστε το προφίλ σας και ορίστε τους κανόνες πιστότητας σε λίγα λεπτά.',

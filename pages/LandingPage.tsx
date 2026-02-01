@@ -159,7 +159,7 @@ const LandingPage: React.FC = () => {
                             <div className="md:col-span-8 bg-white border border-green-100 rounded-[2.5rem] md:rounded-[3.5rem] p-8 md:p-12 flex flex-col md:flex-row items-start md:items-center gap-8 md:gap-12 group">
                                 <div className="flex-1 space-y-4 md:space-y-6">
                                     <span className="material-icons-round text-3xl md:text-4xl text-green-200">brush</span>
-                                    <h4 className="text-xl md:text-3xl font-bold font-display tracking-tight text-[#163a24]">{t('landingBentoBrandingTitle')}</h4>
+                                    <h4 className="text-xl md:text-2xl font-bold font-display tracking-tight text-[#163a24]">{t('landingBentoBrandingTitle')}</h4>
                                     <p className="text-slate-400 text-sm md:text-base font-medium leading-relaxed">{t('landingBentoBrandingDesc')}</p>
                                 </div>
                                 <div className="size-28 md:size-40 bg-green-50 rounded-full flex items-center justify-center shrink-0 mx-auto md:mx-0">
@@ -208,27 +208,27 @@ const LandingPage: React.FC = () => {
                     <div className="space-y-4 md:space-y-6">
                         <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.4em] text-[#163a24]">{t('landingFooterTechnology')}</p>
                         <ul className="space-y-2 md:space-y-3 text-xs md:text-sm font-medium text-slate-400">
-                            <li><a href="/api-reference" className="hover:text-[#2bee6c]">API Reference</a></li>
-                            <li><a href="/scanner-sdk" className="hover:text-[#2bee6c]">Scanner SDK</a></li>
-                            <li><a href="/wallet-protocol" className="hover:text-[#2bee6c]">Wallet Protocol</a></li>
+                            <li><a href="/api-reference" className="hover:text-[#2bee6c] transition-colors">{t('techApiRef')}</a></li>
+                            <li><a href="/scanner-sdk" className="hover:text-[#2bee6c] transition-colors">{t('techScannerSdk')}</a></li>
+                            <li><a href="/wallet-protocol" className="hover:text-[#2bee6c] transition-colors">{t('techWalletProtocol')}</a></li>
                         </ul>
                     </div>
 
                     <div className="space-y-4 md:space-y-6">
                         <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.4em] text-[#163a24]">{t('landingFooterCompany')}</p>
                         <ul className="space-y-2 md:space-y-3 text-xs md:text-sm font-medium text-slate-400">
-                            <li><a href="/partners" className="hover:text-[#2bee6c]">Partners</a></li>
-                            <li><a href="/terms" className="hover:text-[#2bee6c]">Terms of Service</a></li>
-                            <li><a href="/privacy" className="hover:text-[#2bee6c]">Privacy Hub</a></li>
+                            <li><a href="/partners" className="hover:text-[#2bee6c] transition-colors">{t('compPartners')}</a></li>
+                            <li><a href="/terms" className="hover:text-[#2bee6c] transition-colors">{t('compTerms')}</a></li>
+                            <li><a href="/privacy" className="hover:text-[#2bee6c] transition-colors">{t('compPrivacy')}</a></li>
                         </ul>
                     </div>
 
                     <div className="space-y-4 md:space-y-6">
                         <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.4em] text-[#163a24]">{t('landingFooterSupport')}</p>
                         <ul className="space-y-2 md:space-y-3 text-xs md:text-sm font-medium text-slate-400">
-                            <li><a href="/status" className="hover:text-[#2bee6c]">Status Page</a></li>
-                            <li><a href="/contact" className="hover:text-[#2bee6c]">{t('contactUs')}</a></li>
-                            <li><a href="/documentation" className="hover:text-[#2bee6c]">Documentation</a></li>
+                            <li><a href="/status" className="hover:text-[#2bee6c] transition-colors">{t('suppStatus')}</a></li>
+                            <li><a href="/contact" className="hover:text-[#2bee6c] transition-colors">{t('suppContact')}</a></li>
+                            <li><a href="/documentation" className="hover:text-[#2bee6c] transition-colors">{t('suppDocs')}</a></li>
                         </ul>
                     </div>
                 </div>
