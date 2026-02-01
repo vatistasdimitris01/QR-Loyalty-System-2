@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useLanguage } from '../context/LanguageContext';
-import { Customer, ScanResult, Post } from '../types';
+import { Customer, ScanResult, Post, Membership, Business } from '../types';
 import { awardPoints, createPost } from '../services/api';
 
 declare const Html5Qrcode: any;
@@ -15,13 +15,61 @@ export const Spinner: React.FC<{ className?: string }> = ({ className = 'h-8 w-8
   </div>
 );
 
+const LogoDrawingLoader: React.FC<{ size?: number }> = ({ size = 128 }) => {
+  const pathRef = useRef<SVGPathElement>(null);
+  const [len, setLen] = useState(0);
+
+  useEffect(() => {
+    if (pathRef.current) {
+      setLen(pathRef.current.getTotalLength());
+    }
+  }, []);
+
+  return (
+    <div className="flex flex-col items-center justify-center">
+      <svg width={size} height={size} viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <clipPath id="logo-mask-loader">
+            <path d="M216,40H56A16,16,0,0,0,40,56V216a8,8,0,0,0,16,0V144h80l8.3,16.6a8.23,8.23,0,0,0,7.2,4.4H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40Zm0,112H154.9l-8.3-16.6a8.23,8.23,0,0,0-7.2-4.4H56V56H216Z" />
+          </clipPath>
+        </defs>
+        <rect fill="#2bee6c" width="256" height="256" rx="48" />
+        <g clipPath="url(#logo-mask-loader)">
+          <path
+            ref={pathRef}
+            fill="none"
+            stroke="#163a24"
+            strokeWidth="120"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M50,220 V50 H210 V150 H145 L135,130 H50"
+            style={{
+              strokeDasharray: len,
+              strokeDashoffset: len,
+              '--path-length': len,
+            } as any}
+            className="logo-draw-anim"
+          />
+        </g>
+      </svg>
+      <style>{`
+        .logo-draw-anim {
+          animation: draw-line-comp 3s infinite cubic-bezier(0.65, 0, 0.35, 1);
+        }
+        @keyframes draw-line-comp {
+          0% { stroke-dashoffset: var(--path-length); }
+          48% { stroke-dashoffset: 0; }
+          52% { stroke-dashoffset: 0; }
+          100% { stroke-dashoffset: calc(var(--path-length) * -1); }
+        }
+      `}</style>
+    </div>
+  );
+};
+
 export const PageLoader: React.FC = () => (
-    <div className="fixed inset-0 z-[999] bg-white flex flex-col items-center justify-center space-y-6">
-        <div className="size-20 bg-[#2bee6c] rounded-3xl flex items-center justify-center p-4 shadow-sm">
-            <svg viewBox="0 0 256 256" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className="w-full h-full text-[#163a24]">
-                <path d="M216,40H56A16,16,0,0,0,40,56V216a8,8,0,0,0,16,0V144h80l8.3,16.6a8.23,8.23,0,0,0,7.2,4.4H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40Zm0,112H154.9l-8.3-16.6a8.23,8.23,0,0,0-7.2-4.4H56V56H216Z"></path>
-            </svg>
-        </div>
+    <div className="fixed inset-0 z-[999] bg-white flex flex-col items-center justify-center space-y-8">
+        <LogoDrawingLoader size={80} />
         <div className="text-[10px] font-black uppercase tracking-[0.5em] text-[#163a24] opacity-40">
             Establishing Link
         </div>
@@ -30,21 +78,15 @@ export const PageLoader: React.FC = () => (
 
 export const SplashScreen: React.FC<{ onComplete: () => void }> = ({ onComplete }) => {
     useEffect(() => {
-        const timer = setTimeout(onComplete, 1200);
+        const timer = setTimeout(onComplete, 3000);
         return () => clearTimeout(timer);
     }, [onComplete]);
 
     return (
         <div className="fixed inset-0 z-[1000] bg-white flex flex-col items-center justify-center">
-            <div className="relative">
-                <div className="size-32 bg-[#2bee6c] rounded-[2.5rem] flex items-center justify-center p-6 shadow-sm">
-                    <svg viewBox="0 0 256 256" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className="w-full h-full text-[#163a24]">
-                        <path d="M216,40H56A16,16,0,0,0,40,56V216a8,8,0,0,0,16,0V144h80l8.3,16.6a8.23,8.23,0,0,0,7.2,4.4H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40Zm0,112H154.9l-8.3-16.6a8.23,8.23,0,0,0-7.2-4.4H56V56H216Z"></path>
-                    </svg>
-                </div>
-                <div className="absolute -bottom-16 left-1/2 -translate-x-1/2 w-max">
-                   <h1 className="text-2xl font-black tracking-[0.4em] text-[#163a24] uppercase">QROYAL</h1>
-                </div>
+            <LogoDrawingLoader size={160} />
+            <div className="mt-12">
+               <h1 className="text-2xl font-black tracking-[0.4em] text-[#163a24] uppercase">QROYAL</h1>
             </div>
         </div>
     );
