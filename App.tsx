@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { LanguageProvider } from './context/LanguageContext';
 import LandingPage from './pages/LandingPage';
@@ -26,7 +25,7 @@ const App: React.FC = () => {
       return (
         <DeviceGuard target="mobile">
           <div className="flex justify-center bg-mint-white min-h-screen">
-            <div className="w-full max-w-md bg-white shadow-2xl min-h-screen relative overflow-hidden">
+            <div className="w-full max-w-md bg-white min-h-screen relative overflow-hidden">
                <CustomerPage qrToken={searchParams.get('token')!} />
             </div>
           </div>
@@ -37,7 +36,7 @@ const App: React.FC = () => {
       return (
         <DeviceGuard target="mobile">
           <div className="flex justify-center bg-mint-white min-h-screen">
-            <div className="w-full max-w-md bg-white shadow-2xl min-h-screen">
+            <div className="w-full max-w-md bg-white min-h-screen">
               <CustomerSignupPage />
             </div>
           </div>
@@ -52,10 +51,12 @@ const App: React.FC = () => {
     }
     if (path === '/business/editor') {
         const isLoggedIn = sessionStorage.getItem('isBusinessLoggedIn') === 'true';
+        // PC only for editor
         return <DeviceGuard target="pc">{isLoggedIn ? <BusinessEditorPage /> : <BusinessLoginPage />}</DeviceGuard>;
     }
     if (path === '/business/scanner') {
         const isLoggedIn = sessionStorage.getItem('isBusinessLoggedIn') === 'true';
+        // Scanner is now the default mobile business interface
         return <DeviceGuard target="mobile">{isLoggedIn ? <BusinessScannerPage /> : <BusinessLoginPage />}</DeviceGuard>;
     }
     if (path === '/business/login') {

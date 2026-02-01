@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { loginBusiness } from '../services/api';
@@ -41,10 +40,12 @@ const BusinessLoginPage: React.FC = () => {
         <div className="bg-[#f8fcf9] min-h-screen font-sans flex items-center justify-center p-6">
             <div className="w-full max-w-md bg-white rounded-[2.5rem] p-10 border border-[#e7f3eb]">
                 <div className="flex flex-col items-center gap-4 mb-10">
-                    <Logo className="size-12 bg-[#0d1b12] text-[#2bee6c]" />
+                    <div className="w-12 h-12 bg-[#0b110d] rounded-2xl flex items-center justify-center text-[#2bee6c]">
+                        <span className="material-icons-round text-3xl">loyalty</span>
+                    </div>
                     <div className="text-center">
-                        <h2 className="text-2xl font-black tracking-tighter text-[#0d1b12]">QROYAL</h2>
-                        <p className="text-sm font-bold text-[#4c9a66] uppercase tracking-[0.2em]">{t('businessAreaLogin')}</p>
+                        <h2 className="text-2xl font-bold font-display tracking-tighter text-[#0d1b12]">QROYAL</h2>
+                        <p className="text-xs font-bold text-[#4c9a66] uppercase tracking-[0.2em]">{t('businessAreaLogin')}</p>
                     </div>
                 </div>
 
@@ -77,14 +78,14 @@ const BusinessLoginPage: React.FC = () => {
                     <button 
                         type="submit" 
                         disabled={loading}
-                        className="flex w-full cursor-pointer items-center justify-center rounded-2xl bg-[#0d1b12] h-14 px-5 text-[#2bee6c] text-base font-black transition-all active:scale-[0.98] disabled:opacity-50"
+                        className="flex w-full cursor-pointer items-center justify-center rounded-2xl bg-[#0b110d] h-14 px-5 text-[#2bee6c] text-base font-bold tracking-tight transition-all active:scale-[0.98] disabled:opacity-50"
                     >
-                        {loading ? 'Verifying...' : t('login')}
+                        {loading ? 'Verifying Gateway...' : t('login')}
                     </button>
                 </form>
 
                 <div className="mt-10 pt-8 border-t border-[#e7f3eb] text-center">
-                    <p className="text-xs text-[#4c9a66] font-bold">New to QRoyal? <a href="/signup/business" className="text-[#0d1b12] underline ml-1">Create Brand Account</a></p>
+                    <p className="text-xs text-[#4c9a66] font-bold">Partner Access Only</p>
                 </div>
             </div>
         </div>
