@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Customer } from '../../types';
 
@@ -33,6 +32,7 @@ const CustomerQRPage: React.FC<CustomerQRPageProps> = ({ customer }) => {
                 <div className="flex px-4 py-4 justify-center">
                     <div className="bg-white p-8 rounded-[2.5rem] shadow-2xl border border-[#e7f3eb] relative">
                         <div className="absolute inset-0 bg-green-500/5 blur-3xl rounded-full"></div>
+                        {/* Optimized: Uses stored base64 image from DB for instant load without client-side generation */}
                         <img src={customer.qr_data_url} alt="Identity Code" className="w-64 h-64 object-contain rounded-xl relative z-10" />
                     </div>
                 </div>

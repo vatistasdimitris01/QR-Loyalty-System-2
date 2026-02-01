@@ -17,24 +17,27 @@ export const Spinner: React.FC<{ className?: string }> = ({ className = 'h-8 w-8
 
 export const PageLoader: React.FC = () => (
     <div className="fixed inset-0 z-[999] bg-white flex flex-col items-center justify-center space-y-8 animate-in fade-in duration-500">
-        <div className="relative">
-            <div className="size-24 bg-[#2bee6c] rounded-[2rem] flex items-center justify-center p-4 animate-pulse">
-                <svg viewBox="0 0 256 256" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className="w-full h-full text-[#163a24]">
-                    <path d="M216,40H56A16,16,0,0,0,40,56V216a8,8,0,0,0,16,0V144h80l8.3,16.6a8.23,8.23,0,0,0,7.2,4.4H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40Zm0,112H154.9l-8.3-16.6a8.23,8.23,0,0,0-7.2-4.4H56V56H216Z"></path>
-                </svg>
-            </div>
-            <div className="absolute inset-[-12px] border-2 border-[#2bee6c]/20 rounded-[2.5rem] animate-[ping_2s_infinite]"></div>
-        </div>
-        <div className="flex flex-col items-center gap-2">
-            <p className="text-[10px] font-black uppercase tracking-[0.5em] text-[#163a24] animate-pulse">Initializing Identity</p>
-            <div className="w-32 h-1 bg-slate-100 rounded-full overflow-hidden">
-                <div className="h-full bg-[#2bee6c] animate-[loading_2s_ease-in-out_infinite]" style={{ width: '40%' }}></div>
-            </div>
-        </div>
+        <div className="loader"></div>
         <style>{`
-            @keyframes loading {
-                0% { transform: translateX(-100%); }
-                100% { transform: translateX(250%); }
+            .loader {
+              width: fit-content;
+              font-size: 40px;
+              line-height: 1.5;
+              font-family: 'Outfit', system-ui, sans-serif;
+              font-weight: 900;
+              text-transform: uppercase;
+              color: #0000;
+              -webkit-text-stroke: 1px #163a24;
+              background:
+                radial-gradient(1.13em at 50% 1.6em, #163a24 99%, #0000 101%) calc(50% - 1.6em) 0/3.2em 100% text,
+                radial-gradient(1.13em at 50% -0.8em, #0000 99%, #163a24 101%) 50% .8em/3.2em 100% repeat-x text;
+              animation: l9 2s linear infinite;
+            }
+            .loader:before {
+              content: "Loading";
+            }
+            @keyframes l9 {
+              to { background-position: calc(50% + 1.6em) 0, calc(50% + 3.2em) .8em; }
             }
         `}</style>
     </div>
@@ -44,8 +47,8 @@ export const SplashScreen: React.FC<{ onComplete: () => void }> = ({ onComplete 
     const [isSlashing, setIsSlashing] = useState(false);
 
     useEffect(() => {
-        const slashTimer = setTimeout(() => setIsSlashing(true), 2000);
-        const finishTimer = setTimeout(onComplete, 2900);
+        const slashTimer = setTimeout(() => setIsSlashing(true), 2200);
+        const finishTimer = setTimeout(onComplete, 3000);
         return () => {
             clearTimeout(slashTimer);
             clearTimeout(finishTimer);
@@ -56,8 +59,7 @@ export const SplashScreen: React.FC<{ onComplete: () => void }> = ({ onComplete 
         <div 
             className={`fixed inset-0 z-[1000] bg-white flex flex-col items-center justify-center transition-all duration-1000 ease-[cubic-bezier(0.85,0,0.15,1)] ${isSlashing ? 'translate-y-full opacity-0' : 'translate-y-0 opacity-100'}`}
             style={{ 
-                clipPath: isSlashing ? 'polygon(0 0, 100% 0, 100% 100%, 0 100%)' : 'none',
-                borderRadius: isSlashing ? '0 0 100% 100%' : '0'
+                clipPath: isSlashing ? 'polygon(0 0, 100% 0, 100% 100%, 0 100%)' : 'none'
             }}
         >
             <div className={`relative transform transition-all duration-700 ${isSlashing ? 'scale-90 opacity-0 -translate-y-20' : 'scale-100 opacity-100'}`}>
@@ -71,7 +73,7 @@ export const SplashScreen: React.FC<{ onComplete: () => void }> = ({ onComplete 
                 </div>
             </div>
             
-            <div className={`absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-[#2bee6c]/10 to-transparent transition-opacity duration-500 ${isSlashing ? 'opacity-100' : 'opacity-0'}`}></div>
+            <div className={`absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-[#2bee6c]/20 to-transparent transition-all duration-700 ${isSlashing ? 'opacity-100 translate-y-full' : 'opacity-0 translate-y-0'}`}></div>
         </div>
     );
 };
