@@ -66,8 +66,8 @@ const LandingPage: React.FC = () => {
                     </div>
                     
                     <nav className="hidden lg:flex items-center gap-12">
-                        <a href="#solutions" className="text-xs font-black uppercase tracking-[0.3em] text-slate-400 hover:text-[#2bee6c] transition-colors">Solutions</a>
-                        <a href="#infrastructure" className="text-xs font-black uppercase tracking-[0.3em] text-slate-400 hover:text-[#2bee6c] transition-colors">Infrastructure</a>
+                        <a href="#solutions" className="text-xs font-black uppercase tracking-[0.3em] text-slate-400 hover:text-[#2bee6c] transition-colors">{t('landingSolutionsTitle')}</a>
+                        <a href="#infrastructure" className="text-xs font-black uppercase tracking-[0.3em] text-slate-400 hover:text-[#2bee6c] transition-colors">{t('landingFooterTechnology')}</a>
                         <button onClick={() => setLanguage(language === 'en' ? 'el' : 'en')} className="text-xs font-black uppercase tracking-[0.3em] text-[#4c9a66] hover:text-[#2bee6c] transition-all">
                             {language === 'en' ? 'EL' : 'EN'}
                         </button>
@@ -94,11 +94,11 @@ const LandingPage: React.FC = () => {
                         
                         <div className="space-y-6 md:space-y-8 max-w-4xl">
                             <h1 className="text-5xl md:text-7xl lg:text-[100px] font-bold font-display leading-[0.9] md:leading-[0.85] tracking-tighter text-[#163a24]">
-                                Loyalty that <br className="hidden md:block"/>
-                                <span className="text-green-200">flows effortlessly.</span>
+                                {t('landingHeroTitle1')} <br className="hidden md:block"/>
+                                <span className="text-green-200">{t('landingHeroTitle2')}</span>
                             </h1>
                             <p className="text-lg md:text-2xl text-slate-400 font-medium max-w-2xl mx-auto leading-relaxed px-4 md:px-0">
-                                The universal digital wallet for modern businesses. One QR identity. Endless rewards. Zero friction.
+                                {t('landingHeroSubtitle')}
                             </p>
                         </div>
 
@@ -118,8 +118,8 @@ const LandingPage: React.FC = () => {
                     <div className="max-w-7xl mx-auto space-y-16 md:space-y-20">
                         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 md:gap-10 text-left md:text-right">
                             <div className="space-y-2 md:space-y-4 text-left">
-                                <h2 className="text-4xl md:text-5xl font-bold font-display tracking-tighter text-[#163a24]">Modern Retention.</h2>
-                                <p className="text-slate-400 font-bold uppercase tracking-[0.3em] text-[10px] md:text-xs">A new standard for customer engagement</p>
+                                <h2 className="text-4xl md:text-5xl font-bold font-display tracking-tighter text-[#163a24]">{t('landingSolutionsTitle')}</h2>
+                                <p className="text-slate-400 font-bold uppercase tracking-[0.3em] text-[10px] md:text-xs">{t('landingSolutionsSubtitle')}</p>
                             </div>
                             <div className="h-px flex-1 bg-green-100 hidden md:block mb-4"></div>
                         </div>
@@ -141,8 +141,8 @@ const LandingPage: React.FC = () => {
                             <div className="md:col-span-4 bg-[#2bee6c] rounded-[2.5rem] md:rounded-[3.5rem] p-8 md:p-12 flex flex-col justify-between text-[#163a24]">
                                 <div className="space-y-6">
                                     <span className="material-icons-round text-4xl md:text-5xl">auto_awesome</span>
-                                    <h3 className="text-2xl md:text-3xl font-bold font-display tracking-tight leading-none">Automated <br/>Growth</h3>
-                                    <p className="text-[#163a24]/60 text-sm md:text-base font-medium">Systematic rewards that keep users returning without manual effort.</p>
+                                    <h3 className="text-2xl md:text-3xl font-bold font-display tracking-tight leading-none">{t('landingBentoAutomatedTitle')}</h3>
+                                    <p className="text-[#163a24]/60 text-sm md:text-base font-medium">{t('landingBentoAutomatedDesc')}</p>
                                 </div>
                                 <div className="pt-8 md:pt-10 border-t border-[#163a24]/10 flex items-center justify-between">
                                     <span className="text-[9px] md:text-[10px] font-black tracking-[0.5em] uppercase">STITCH ENGINE</span>
@@ -152,15 +152,15 @@ const LandingPage: React.FC = () => {
 
                             <div className="md:col-span-4 bg-white border border-green-100 rounded-[2.5rem] md:rounded-[3.5rem] p-8 md:p-12 space-y-4 md:space-y-6 hover:border-[#2bee6c] transition-all">
                                 <span className="material-icons-round text-3xl md:text-4xl text-green-200">smartphone</span>
-                                <h4 className="text-xl md:text-2xl font-bold font-display tracking-tight text-[#163a24]">Universal Access</h4>
-                                <p className="text-slate-400 text-sm md:text-base font-medium leading-relaxed">No apps to download. The entire QRoyal experience lives in any standard mobile browser.</p>
+                                <h4 className="text-xl md:text-2xl font-bold font-display tracking-tight text-[#163a24]">{t('landingBentoUniversalTitle')}</h4>
+                                <p className="text-slate-400 text-sm md:text-base font-medium leading-relaxed">{t('landingBentoUniversalDesc')}</p>
                             </div>
 
                             <div className="md:col-span-8 bg-white border border-green-100 rounded-[2.5rem] md:rounded-[3.5rem] p-8 md:p-12 flex flex-col md:flex-row items-start md:items-center gap-8 md:gap-12 group">
                                 <div className="flex-1 space-y-4 md:space-y-6">
                                     <span className="material-icons-round text-3xl md:text-4xl text-green-200">brush</span>
-                                    <h4 className="text-xl md:text-3xl font-bold font-display tracking-tight text-[#163a24]">Branding Hub</h4>
-                                    <p className="text-slate-400 text-sm md:text-base font-medium leading-relaxed">Customize your loyalty identity with specific colors, logos, and custom QR designs.</p>
+                                    <h4 className="text-xl md:text-2xl font-bold font-display tracking-tight text-[#163a24]">{t('landingBentoBrandingTitle')}</h4>
+                                    <p className="text-slate-400 text-sm md:text-base font-medium leading-relaxed">{t('landingBentoBrandingDesc')}</p>
                                 </div>
                                 <div className="size-28 md:size-40 bg-green-50 rounded-full flex items-center justify-center shrink-0 mx-auto md:mx-0">
                                     <FlagLogo className="size-14 md:size-20 !bg-transparent" />
@@ -174,10 +174,10 @@ const LandingPage: React.FC = () => {
                 <section id="infrastructure" className="py-24 md:py-40 px-6 md:px-8 bg-white">
                     <div className="max-w-5xl mx-auto">
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-12 md:gap-20">
-                            <StatCard value="240ms" label="Scan Speed" />
-                            <StatCard value="99.9%" label="Uptime" />
-                            <StatCard value="12M+" label="Points Sync" />
-                            <StatCard value="0" label="App Downloads" />
+                            <StatCard value="240ms" label={t('landingStatsScan')} />
+                            <StatCard value="99.9%" label={t('landingStatsUptime')} />
+                            <StatCard value="12M+" label={t('landingStatsSync')} />
+                            <StatCard value="0" label={t('landingStatsDownloads')} />
                         </div>
                     </div>
                 </section>
@@ -185,12 +185,12 @@ const LandingPage: React.FC = () => {
                 {/* Final CTA */}
                 <section className="py-24 md:py-40 px-6 md:px-8 bg-[#f8fcf9]">
                     <div className="max-w-4xl mx-auto text-center space-y-12 md:space-y-16">
-                        <h2 className="text-4xl md:text-8xl font-bold font-display tracking-tighter text-[#163a24]">Upgrade to <br className="hidden md:block"/>Royal Grade.</h2>
+                        <h2 className="text-4xl md:text-8xl font-bold font-display tracking-tighter text-[#163a24]">{t('landingFinalCtaTitle')}</h2>
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 md:gap-6 w-full">
-                            <a href="/signup/business" className="w-full sm:w-auto bg-[#163a24] text-[#2bee6c] px-14 py-6 rounded-2xl font-black text-xl md:text-2xl active:scale-95 transition-all text-center">Start Free Pilot</a>
-                            <a href="mailto:vatistasdim.dev@icloud.com" className="w-full sm:w-auto text-[#163a24] font-black text-lg md:text-xl hover:underline tracking-tight transition-all text-center">Request Enterprise Demo</a>
+                            <a href="/signup/business" className="w-full sm:w-auto bg-[#163a24] text-[#2bee6c] px-14 py-6 rounded-2xl font-black text-xl md:text-2xl active:scale-95 transition-all text-center">{t('landingFinalCtaButton')}</a>
+                            <a href="mailto:vatistasdim.dev@icloud.com" className="w-full sm:w-auto text-[#163a24] font-black text-lg md:text-xl hover:underline tracking-tight transition-all text-center">{t('landingFinalCtaDemo')}</a>
                         </div>
-                        <p className="text-slate-400 font-medium text-xs md:text-sm italic">Deployed globally in under 5 minutes.</p>
+                        <p className="text-slate-400 font-medium text-xs md:text-sm italic">{t('landingFinalCtaSub')}</p>
                     </div>
                 </section>
             </main>
@@ -202,11 +202,11 @@ const LandingPage: React.FC = () => {
                             <FlagLogo className="w-8 h-8" />
                             <h2 className="text-xl font-bold font-display tracking-tighter text-[#163a24]">QROYAL</h2>
                         </div>
-                        <p className="text-slate-400 text-[10px] md:text-xs font-bold uppercase tracking-[0.4em]">Infrastructure for loyalty.</p>
+                        <p className="text-slate-400 text-[10px] md:text-xs font-bold uppercase tracking-[0.4em]">{t('landingFooterTagline')}</p>
                     </div>
                     
                     <div className="space-y-4 md:space-y-6">
-                        <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.4em] text-[#163a24]">Technology</p>
+                        <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.4em] text-[#163a24]">{t('landingFooterTechnology')}</p>
                         <ul className="space-y-2 md:space-y-3 text-xs md:text-sm font-medium text-slate-400">
                             <li><a href="#" className="hover:text-[#2bee6c]">API Reference</a></li>
                             <li><a href="#" className="hover:text-[#2bee6c]">Scanner SDK</a></li>
@@ -215,7 +215,7 @@ const LandingPage: React.FC = () => {
                     </div>
 
                     <div className="space-y-4 md:space-y-6">
-                        <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.4em] text-[#163a24]">Company</p>
+                        <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.4em] text-[#163a24]">{t('landingFooterCompany')}</p>
                         <ul className="space-y-2 md:space-y-3 text-xs md:text-sm font-medium text-slate-400">
                             <li><a href="#" className="hover:text-[#2bee6c]">Partners</a></li>
                             <li><a href="#" className="hover:text-[#2bee6c]">Terms of Service</a></li>
@@ -224,10 +224,10 @@ const LandingPage: React.FC = () => {
                     </div>
 
                     <div className="space-y-4 md:space-y-6">
-                        <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.4em] text-[#163a24]">Support</p>
+                        <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.4em] text-[#163a24]">{t('landingFooterSupport')}</p>
                         <ul className="space-y-2 md:space-y-3 text-xs md:text-sm font-medium text-slate-400">
                             <li><a href="#" className="hover:text-[#2bee6c]">Status Page</a></li>
-                            <li><a href="mailto:vatistasdim.dev@icloud.com" className="hover:text-[#2bee6c]">Contact Engine</a></li>
+                            <li><a href="mailto:vatistasdim.dev@icloud.com" className="hover:text-[#2bee6c]">{t('contactUs')}</a></li>
                             <li><a href="#" className="hover:text-[#2bee6c]">Documentation</a></li>
                         </ul>
                     </div>
