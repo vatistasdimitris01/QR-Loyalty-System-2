@@ -8,7 +8,7 @@ declare const confetti: any;
 
 export const Spinner: React.FC<{ className?: string }> = ({ className = 'h-8 w-8 text-[#2bee6c]' }) => (
   <div className={`relative ${className}`}>
-      <svg className="animate-spin size-full" viewBox="0 0 24 24">
+      <svg className="size-full" viewBox="0 0 24 24">
         <circle className="opacity-10" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
         <path className="opacity-100" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
       </svg>
@@ -16,88 +16,36 @@ export const Spinner: React.FC<{ className?: string }> = ({ className = 'h-8 w-8
 );
 
 export const PageLoader: React.FC = () => (
-    <div className="fixed inset-0 z-[999] bg-white flex flex-col items-center justify-center space-y-12 animate-in fade-in duration-500">
-        <div className="loader"></div>
-        <div className="text-[10px] font-black uppercase tracking-[0.5em] text-[#163a24] opacity-40 animate-pulse">
+    <div className="fixed inset-0 z-[999] bg-white flex flex-col items-center justify-center space-y-6">
+        <div className="size-20 bg-[#2bee6c] rounded-3xl flex items-center justify-center p-4 shadow-sm">
+            <svg viewBox="0 0 256 256" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className="w-full h-full text-[#163a24]">
+                <path d="M216,40H56A16,16,0,0,0,40,56V216a8,8,0,0,0,16,0V144h80l8.3,16.6a8.23,8.23,0,0,0,7.2,4.4H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40Zm0,112H154.9l-8.3-16.6a8.23,8.23,0,0,0-7.2-4.4H56V56H216Z"></path>
+            </svg>
+        </div>
+        <div className="text-[10px] font-black uppercase tracking-[0.5em] text-[#163a24] opacity-40">
             Establishing Link
         </div>
-        <style>{`
-            .loader {
-              width: 80px;
-              aspect-ratio: 1;
-              --c: no-repeat linear-gradient(#2bee6c 0 0);
-              background:
-                var(--c) 0 38px,
-                var(--c) right 18px bottom 18px,
-                var(--c) right 18px top    18px,
-                var(--c) 18px 18px,
-                var(--c) 18px 100%,
-                var(--c) 100% 100%,
-                var(--c) 100% 0,
-                var(--c) 0 0;
-              animation: 
-                l8-1 2s infinite,
-                l8-2 2s infinite;
-            }
-            @keyframes l8-1 {
-              0%     {background-size: 0    4px,4px 0   ,0    4px,4px 0   ,0    4px,4px 0   ,0    4px,4px 0   }
-              6.25%  {background-size: 40px 4px,4px 0   ,0    4px,4px 0   ,0    4px,4px 0   ,0    4px,4px 0   }
-              12.5%  {background-size: 40px 4px,4px 20px,0    4px,4px 0   ,0    4px,4px 0   ,0    4px,4px 0   }
-              18.75% {background-size: 40px 4px,4px 20px,20px 4px,4px 0   ,0    4px,4px 0   ,0    4px,4px 0   }
-              25%    {background-size: 40px 4px,4px 20px,20px 4px,4px 40px,0    4px,4px 0   ,0    4px,4px 0   }
-              31.25% {background-size: 40px 4px,4px 20px,20px 4px,4px 40px,40px 4px,4px 0   ,0    4px,4px 0   }
-              37.5%  {background-size: 40px 4px,4px 20px,20px 4px,4px 40px,40px 4px,4px 100%,0    4px,4px 0   }
-              43.75% {background-size: 40px 4px,4px 20px,20px 4px,4px 40px,40px 4px,4px 100%,100% 4px,4px 0   }
-              48%,
-              52%    {background-size: 40px 4px,4px 20px,20px 4px,4px 40px,40px 4px,4px 100%,100% 4px,4px 40px}
-              56.25% {background-size: 0    4px,4px 20px,20px 4px,4px 40px,40px 4px,4px 100%,100% 4px,4px 40px}
-              62.5%  {background-size: 0    4px,4px 0   ,20px 4px,4px 40px,40px 4px,4px 100%,100% 4px,4px 40px}
-              68.75% {background-size: 0    4px,4px 0   ,0    4px,4px 40px,40px 4px,4px 100%,100% 4px,4px 40px}
-              75%    {background-size: 0    4px,4px 0   ,0    4px,4px 0   ,40px 4px,4px 100%,100% 4px,4px 40px}
-              81.25% {background-size: 0    4px,4px 0   ,0    4px,4px 0   ,0    4px,4px 100%,100% 4px,4px 40px}
-              87.5%  {background-size: 0    4px,4px 0   ,0    4px,4px 0   ,0    4px,4px 0   ,100% 4px,4px 40px}
-              93.75% {background-size: 0    4px,4px 0   ,0    4px,4px 0   ,0    4px,4px 0   ,0    4px,4px 40px}
-              100%   {background-size: 0    4px,4px 0   ,0    4px,4px 0   ,0    4px,4px 0   ,0    4px,4px 0   }
-            }
-            @keyframes l8-2 {
-              0%,49.9% {background-position:0 38px, right 18px bottom 18px, right 18px top 18px,18px 18px,18px 100%,100% 100%,100% 0,0 0}
-              50%,100% {background-position:right 18px bottom 18px, right 18px top 18px, 18px 18px,18px 100%,100% 100%,100% 0,0 0,bottom 18px left 0}
-            }
-        `}</style>
     </div>
 );
 
 export const SplashScreen: React.FC<{ onComplete: () => void }> = ({ onComplete }) => {
-    const [isSlashing, setIsSlashing] = useState(false);
-
     useEffect(() => {
-        const slashTimer = setTimeout(() => setIsSlashing(true), 2200);
-        const finishTimer = setTimeout(onComplete, 3000);
-        return () => {
-            clearTimeout(slashTimer);
-            clearTimeout(finishTimer);
-        };
+        const timer = setTimeout(onComplete, 1200);
+        return () => clearTimeout(timer);
     }, [onComplete]);
 
     return (
-        <div 
-            className={`fixed inset-0 z-[1000] bg-white flex flex-col items-center justify-center transition-all duration-1000 ease-[cubic-bezier(0.85,0,0.15,1)] ${isSlashing ? 'translate-y-full opacity-0' : 'translate-y-0 opacity-100'}`}
-            style={{ 
-                clipPath: isSlashing ? 'polygon(0 0, 100% 0, 100% 100%, 0 100%)' : 'none'
-            }}
-        >
-            <div className={`relative transform transition-all duration-700 ${isSlashing ? 'scale-90 opacity-0 -translate-y-20' : 'scale-100 opacity-100'}`}>
-                <div className="size-32 bg-[#2bee6c] rounded-[2.5rem] flex items-center justify-center p-6 shadow-2xl shadow-green-100 animate-in zoom-in-50 duration-700">
+        <div className="fixed inset-0 z-[1000] bg-white flex flex-col items-center justify-center">
+            <div className="relative">
+                <div className="size-32 bg-[#2bee6c] rounded-[2.5rem] flex items-center justify-center p-6 shadow-sm">
                     <svg viewBox="0 0 256 256" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className="w-full h-full text-[#163a24]">
                         <path d="M216,40H56A16,16,0,0,0,40,56V216a8,8,0,0,0,16,0V144h80l8.3,16.6a8.23,8.23,0,0,0,7.2,4.4H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40Zm0,112H154.9l-8.3-16.6a8.23,8.23,0,0,0-7.2-4.4H56V56H216Z"></path>
                     </svg>
                 </div>
                 <div className="absolute -bottom-16 left-1/2 -translate-x-1/2 w-max">
-                   <h1 className="text-2xl font-black tracking-[0.4em] text-[#163a24] animate-in fade-in slide-in-from-bottom-4 delay-300 duration-700 uppercase">QROYAL</h1>
+                   <h1 className="text-2xl font-black tracking-[0.4em] text-[#163a24] uppercase">QROYAL</h1>
                 </div>
             </div>
-            
-            <div className={`absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-[#2bee6c]/20 to-transparent transition-all duration-700 ${isSlashing ? 'opacity-100 translate-y-full' : 'opacity-0 translate-y-0'}`}></div>
         </div>
     );
 };
@@ -156,7 +104,7 @@ export const DeviceGuard: React.FC<{ children: React.ReactNode; target: 'mobile'
     if (isWrongDevice) {
         return (
             <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#ffffff] p-6 font-display">
-                <div className="w-full max-w-md bg-white rounded-[3rem] border border-slate-100 p-10 text-center space-y-8 animate-in zoom-in-95 duration-500">
+                <div className="w-full max-w-md bg-white rounded-[3rem] border border-slate-100 p-10 text-center space-y-8">
                     <div className="size-20 bg-[#163a24] text-[#2bee6c] rounded-[1.5rem] flex items-center justify-center mx-auto mb-6">
                         <FlagLogo className="size-12 !bg-transparent" />
                     </div>
@@ -217,8 +165,8 @@ export interface ModalProps {
 export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, title }) => {
   if (!isOpen) return null;
   return (
-    <div className="fixed inset-0 bg-[#163a24]/20 backdrop-blur-sm z-[110] flex justify-center items-center p-4 animate-in fade-in duration-300">
-      <div className="bg-white rounded-[3rem] w-full max-w-md animate-in zoom-in-95 slide-in-from-bottom-10 duration-400 overflow-hidden border border-slate-100">
+    <div className="fixed inset-0 bg-[#163a24]/20 backdrop-blur-sm z-[110] flex justify-center items-center p-4">
+      <div className="bg-white rounded-[3rem] w-full max-w-md overflow-hidden border border-slate-100">
         <div className="flex justify-between items-center p-10 border-b border-slate-50">
           <h3 className="text-2xl font-black text-[#163a24] tracking-tighter">{title}</h3>
           <button onClick={onClose} className="text-[#4c9a66] hover:text-[#163a24] p-2 rounded-full hover:bg-slate-50 transition-all">
@@ -240,7 +188,6 @@ export const CreateCustomerModal: React.FC<{ isOpen: boolean; onClose: () => voi
             <div className="text-center space-y-8">
                 <p className="text-[#4c9a66] font-medium leading-relaxed">{t('newCustomerQrModalDesc')}</p>
                 <div className="bg-white p-8 rounded-[3rem] border border-slate-50 inline-block mx-auto relative group">
-                  <div className="absolute inset-0 bg-[#2bee6c]/5 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
                   {qrDataUrl ? (
                       <img src={qrDataUrl} alt="QR" className="w-64 h-64 mx-auto rounded-xl relative z-10" />
                   ) : (
@@ -342,7 +289,7 @@ export const DeleteAccountModal: React.FC<{ isOpen: boolean; onClose: () => void
     useEffect(() => { if (!isOpen) setInputValue(''); }, [isOpen]);
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={t('deleteAccountConfirmTitle')}>
-            <div className="space-y-8 animate-in zoom-in-95 duration-300">
+            <div className="space-y-8">
                 <div className="bg-rose-50 p-8 rounded-[2.5rem] border border-rose-100">
                     <p className="text-xs font-black text-rose-600 uppercase tracking-widest mb-2">{t('deleteAccountWarning')}</p>
                     <p className="text-slate-600 text-sm font-medium leading-relaxed">{t('deleteAccountPrompt')}</p>

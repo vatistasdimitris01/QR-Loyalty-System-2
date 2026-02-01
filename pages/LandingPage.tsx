@@ -86,9 +86,9 @@ const LandingPage: React.FC = () => {
             <main>
                 {/* Hero */}
                 <section className="relative pt-20 md:pt-28 pb-32 md:pb-40 px-6 md:px-8">
-                    <div className="max-w-7xl mx-auto flex flex-col items-center text-center space-y-10 md:space-y-12 animate-in fade-in slide-in-from-bottom-10 duration-1000">
+                    <div className="max-w-7xl mx-auto flex flex-col items-center text-center space-y-10 md:space-y-12">
                         <div className="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-green-50 border border-green-100">
-                            <span className="size-2 rounded-full bg-[#2bee6c] animate-pulse"></span>
+                            <span className="size-2 rounded-full bg-[#2bee6c]"></span>
                             <span className="text-[9px] md:text-[10px] font-black tracking-[0.4em] text-[#4c9a66] uppercase">Identity Infrastructure v2.5</span>
                         </div>
                         
@@ -162,7 +162,7 @@ const LandingPage: React.FC = () => {
                                     <h4 className="text-xl md:text-3xl font-bold font-display tracking-tight text-[#163a24]">Branding Hub</h4>
                                     <p className="text-slate-400 text-sm md:text-base font-medium leading-relaxed">Customize your loyalty identity with specific colors, logos, and custom QR designs.</p>
                                 </div>
-                                <div className="size-28 md:size-40 bg-green-50 rounded-full flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform mx-auto md:mx-0">
+                                <div className="size-28 md:size-40 bg-green-50 rounded-full flex items-center justify-center shrink-0 mx-auto md:mx-0">
                                     <FlagLogo className="size-14 md:size-20 !bg-transparent" />
                                 </div>
                             </div>
@@ -184,10 +184,10 @@ const LandingPage: React.FC = () => {
 
                 {/* Final CTA */}
                 <section className="py-24 md:py-40 px-6 md:px-8 bg-[#f8fcf9]">
-                    <div className="max-w-4xl mx-auto text-center space-y-12 md:space-y-16 animate-in zoom-in-95 duration-1000">
+                    <div className="max-w-4xl mx-auto text-center space-y-12 md:space-y-16">
                         <h2 className="text-4xl md:text-8xl font-bold font-display tracking-tighter text-[#163a24]">Upgrade to <br className="hidden md:block"/>Royal Grade.</h2>
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 md:gap-6 w-full">
-                            <a href="/signup/business" className="w-full sm:w-auto bg-[#163a24] text-[#2bee6c] px-14 py-6 rounded-2xl font-black text-xl md:text-2xl active:scale-95 transition-all">Start Free Pilot</a>
+                            <a href="/signup/business" className="w-full sm:w-auto bg-[#163a24] text-[#2bee6c] px-14 py-6 rounded-2xl font-black text-xl md:text-2xl active:scale-95 transition-all text-center">Start Free Pilot</a>
                             <a href="mailto:hq@qroyal.com" className="w-full sm:w-auto text-[#163a24] font-black text-lg md:text-xl hover:underline tracking-tight transition-all text-center">Request Enterprise Demo</a>
                         </div>
                         <p className="text-slate-400 font-medium text-xs md:text-sm italic">Deployed globally in under 5 minutes.</p>

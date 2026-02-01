@@ -20,10 +20,7 @@ const App: React.FC = () => {
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 1024);
     window.addEventListener('resize', handleResize);
-    
-    // Readiness check
-    const timer = setTimeout(() => setLoading(false), 800);
-    
+    const timer = setTimeout(() => setLoading(false), 500);
     return () => {
         window.removeEventListener('resize', handleResize);
         clearTimeout(timer);
@@ -45,7 +42,7 @@ const App: React.FC = () => {
     if (path === '/customer' && searchParams.has('token')) {
       return (
         <DeviceGuard target="mobile">
-          <div className="flex justify-center bg-mint-white min-h-screen animate-in fade-in duration-700">
+          <div className="flex justify-center bg-mint-white min-h-screen">
             <div className="w-full max-w-md bg-white min-h-screen relative overflow-hidden">
                <CustomerPage qrToken={searchParams.get('token')!} />
             </div>
@@ -56,7 +53,7 @@ const App: React.FC = () => {
     if (path === '/signup/customer') {
       return (
         <DeviceGuard target="mobile">
-          <div className="flex justify-center bg-mint-white min-h-screen animate-in fade-in duration-700">
+          <div className="flex justify-center bg-mint-white min-h-screen">
             <div className="w-full max-w-md bg-white min-h-screen">
               <CustomerSignupPage />
             </div>
@@ -68,7 +65,6 @@ const App: React.FC = () => {
     if (path === '/business') {
         const isLoggedIn = sessionStorage.getItem('isBusinessLoggedIn') === 'true';
         if (isLoggedIn) {
-            // STRICT REQUIREMENT: Mobile business users automatically go to kiosk
             if (isMobile) return <BusinessScannerPage />;
             return <BusinessPage />;
         }
@@ -81,14 +77,14 @@ const App: React.FC = () => {
     }
 
     if (path === '/business/login') {
-      return <div className="animate-in fade-in duration-700"><BusinessLoginPage /></div>;
+      return <BusinessLoginPage />;
     }
     
     if (path === '/signup/business') {
-        return <DeviceGuard target="pc"><div className="animate-in fade-in duration-700"><BusinessSignupPage /></div></DeviceGuard>;
+        return <DeviceGuard target="pc"><BusinessSignupPage /></DeviceGuard>;
     }
 
-    return <div className="animate-in fade-in duration-700"><LandingPage /></div>;
+    return <LandingPage />;
   };
 
   return (
