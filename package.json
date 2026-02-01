@@ -15,7 +15,8 @@
     "qr-code-styling": "1.6.0-rc.1",
     "react-markdown": "9",
     "remark-gfm": "4",
-    "@supabase/supabase-js": "^2.93.3"
+    "@supabase/supabase-js": "^2.93.3",
+    "react-router-dom": "^7.13.0"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",

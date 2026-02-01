@@ -1,14 +1,15 @@
-import React, { useState, useEffect, useCallback, useDeferredValue } from 'react';
+import React, { useState, useEffect, useCallback, useDeferredValue, useRef } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { Membership, Business, Post, Discount, DailyAnalyticsData, BusinessAnalytics } from '../types';
 import { 
     searchMembershipsForBusiness, getBusinessAnalytics, getDailyAnalytics,
     updateBusiness, getPostsForBusiness, deletePost,
-    getDiscountsForBusiness, deleteDiscount
+    getDiscountsForBusiness, deleteDiscount, uploadBusinessAsset
 } from '../services/api';
-import { Spinner, FlagLogo, BackButton } from '../components/common';
+import { generateQrCode } from '../services/qrGenerator';
+import { Spinner, FlagLogo, InputField, TextAreaField, SelectField } from '../components/common';
 
-type DashboardTab = 'analytics' | 'customers' | 'posts' | 'discounts';
+type DashboardTab = 'analytics' | 'customers' | 'posts' | 'discounts' | 'settings';
 
 const BusinessPage: React.FC = () => {
     const { t } = useLanguage();
@@ -46,11 +47,12 @@ const BusinessPage: React.FC = () => {
         { label: t('customerList'), icon: 'group', id: 'customers' as DashboardTab },
         { label: t('posts'), icon: 'campaign', id: 'posts' as DashboardTab },
         { label: t('discounts'), icon: 'local_offer', id: 'discounts' as DashboardTab },
+        { label: t('businessSettings'), icon: 'settings', id: 'settings' as DashboardTab },
     ];
 
     return (
         <div className="flex min-h-screen bg-white font-sans text-[#163a24] overflow-hidden">
-            {/* Desktop Sidebar - White, No Border, Full Collapse */}
+            {/* Desktop Sidebar */}
             <aside className={`hidden lg:flex flex-col bg-white sticky top-0 h-screen sidebar-transition overflow-hidden ${sidebarCollapsed ? 'w-0' : 'w-72'}`}>
                 <div className="p-8 flex flex-col h-full w-72">
                     <div className="flex items-center justify-between mb-12">
@@ -76,11 +78,6 @@ const BusinessPage: React.FC = () => {
                                 onClick={() => setActiveTab(item.id)} 
                             />
                         ))}
-                        
-                        <div className="mt-8 pt-8 border-t border-slate-100 flex flex-col gap-2">
-                            <SidebarItem label={t('businessSettings')} icon="settings" onClick={() => window.location.href = '/business/editor'} />
-                            <SidebarItem label={t('kioskMode')} icon="qr_code_scanner" onClick={() => window.location.href = '/business/scanner'} />
-                        </div>
                     </nav>
 
                     <div className="mt-auto pt-6 border-t border-slate-100">
@@ -103,19 +100,13 @@ const BusinessPage: React.FC = () => {
                                 </svg>
                             </button>
                         )}
-                        <div className="flex items-center gap-4">
-                            <BackButton className="p-2 !bg-transparent !px-0" />
-                            <h1 className="text-2xl font-bold font-display tracking-tight text-[#163a24]">{business.public_name} Hub</h1>
-                        </div>
+                        <h1 className="text-2xl font-bold font-display tracking-tight text-[#163a24]">{business.public_name} Hub</h1>
                     </div>
                     <div className="flex items-center gap-6">
                         <div className="flex items-center gap-2 px-4 py-2 bg-green-50 text-[#4c9a66] rounded-full text-xs font-bold uppercase tracking-widest border border-green-100">
                             <div className="size-2 bg-[#2bee6c] rounded-full animate-pulse"></div>
                             System Online
                         </div>
-                        <button onClick={() => window.location.href='/business/scanner'} className="bg-[#163a24] text-[#2bee6c] p-3 rounded-xl active:scale-95 transition-all">
-                             <span className="material-icons-round block">qr_code_scanner</span>
-                        </button>
                     </div>
                 </header>
 
@@ -124,6 +115,7 @@ const BusinessPage: React.FC = () => {
                     {activeTab === 'customers' && <CustomersList business={business} />}
                     {activeTab === 'posts' && <PostsManager business={business} />}
                     {activeTab === 'discounts' && <DiscountsManager business={business} />}
+                    {activeTab === 'settings' && <BusinessSettingsTab business={business} onBusinessUpdate={handleBusinessUpdate} />}
                 </main>
             </div>
         </div>
@@ -193,7 +185,7 @@ const SimpleAreaChart: React.FC<{ data: DailyAnalyticsData[], color: string }> =
     const linePath = points.length < 2 ? "" : `M ${points[0].x} ${points[0].y} ` + points.slice(1).map((p, i) => `L ${p.x} ${p.y}`).join(" ");
     return (
         <div className="relative size-full flex flex-col justify-end">
-            <svg viewBox="0 0 100 100" className="w-full h-48 drop-shadow-[0_0_8px_rgba(43,238,108,0.2)]" preserveAspectRatio="none">
+            <svg viewBox="0 0 100 100" className="w-full h-48" preserveAspectRatio="none">
                 <path d={`${linePath} L 100 100 L 0 100 Z`} fill={color} fillOpacity="0.05" />
                 <path d={linePath} fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
@@ -384,6 +376,138 @@ const DiscountsManager: React.FC<{business: Business}> = ({ business }) => {
             </div>
         </div>
     )
+};
+
+const BusinessSettingsTab: React.FC<{business: Business, onBusinessUpdate: (b: Business) => void}> = ({ business, onBusinessUpdate }) => {
+    const { t } = useLanguage();
+    const [activeSubTab, setActiveSubTab] = useState<'profile' | 'branding' | 'location'>('profile');
+    const [formState, setFormState] = useState<Partial<Business>>(business);
+    const [stagedFiles, setStagedFiles] = useState<{ logo?: File, cover?: File }>({});
+    const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+
+    const handleSave = async () => {
+        setSaveStatus('saving');
+        let dataToUpdate = { ...formState };
+        try {
+            if (stagedFiles.logo) {
+                const url = await uploadBusinessAsset(business.id, stagedFiles.logo, 'logo');
+                if (url) dataToUpdate.logo_url = url;
+            }
+            if (stagedFiles.cover) {
+                const url = await uploadBusinessAsset(business.id, stagedFiles.cover, 'cover');
+                if (url) dataToUpdate.cover_photo_url = url;
+            }
+            const updated = await updateBusiness(business.id, dataToUpdate);
+            if (updated) {
+                onBusinessUpdate(updated);
+                setSaveStatus('saved');
+                setTimeout(() => setSaveStatus('idle'), 2000);
+            }
+        } catch (error) { setSaveStatus('error'); }
+    };
+
+    return (
+        <div className="bg-white p-12 rounded-[2.5rem] border border-slate-100">
+            <div className="flex flex-col md:flex-row justify-between items-center mb-12 gap-8">
+                <div className="flex gap-10 border-b border-slate-100 w-full md:w-auto">
+                    <TabButton label="Public Profile" isActive={activeSubTab === 'profile'} onClick={() => setActiveSubTab('profile')} />
+                    <TabButton label="Branding" isActive={activeSubTab === 'branding'} onClick={() => setActiveSubTab('branding')} />
+                    <TabButton label="Location" isActive={activeSubTab === 'location'} onClick={() => setActiveSubTab('location')} />
+                </div>
+                <button onClick={handleSave} className="bg-[#163a24] text-[#2bee6c] px-8 py-3 rounded-2xl font-bold active:scale-95 transition-all">
+                    {saveStatus === 'saving' ? 'Saving...' : 'Save Settings'}
+                </button>
+            </div>
+
+            <div className="space-y-10">
+                {activeSubTab === 'profile' && <ProfileEditor formState={formState} setFormState={setFormState} onFileSelect={(type: any, file: any) => setStagedFiles(prev => ({...prev, [type]: file}))} />}
+                {activeSubTab === 'branding' && <BrandingEditor formState={formState} setFormState={setFormState} business={business} />}
+                {activeSubTab === 'location' && <LocationEditor formState={formState} setFormState={setFormState} />}
+            </div>
+        </div>
+    );
+};
+
+const TabButton: React.FC<{label: string, isActive: boolean, onClick: () => void}> = ({label, isActive, onClick}) => (
+    <button onClick={onClick} className={`pb-4 text-sm font-bold uppercase tracking-widest transition-all ${isActive ? 'text-[#2bee6c] border-b-2 border-[#2bee6c]' : 'text-slate-400 hover:text-[#163a24]'}`}>
+        {label}
+    </button>
+);
+
+const ProfileEditor: React.FC<any> = ({ formState, setFormState, onFileSelect }) => {
+    const { t } = useLanguage();
+    const handleChange = (e: any) => setFormState((prev: any) => ({...prev, [e.target.name]: e.target.value }));
+    return (
+        <div className="space-y-12">
+            <InputField label={t('publicBusinessName')} name="public_name" value={formState.public_name || ''} onChange={handleChange} />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                <ImageUploader label={t('logoUrl')} currentImageUrl={formState.logo_url} onFileSelect={(file: any) => onFileSelect('logo', file)} />
+                <ImageUploader label={t('coverPhotoUrl')} currentImageUrl={formState.cover_photo_url} onFileSelect={(file: any) => onFileSelect('cover', file)} />
+            </div>
+            <TextAreaField label={t('bio')} name="bio" value={formState.bio || ''} onChange={handleChange} />
+        </div>
+    );
+}
+
+const BrandingEditor: React.FC<any> = ({ formState, setFormState, business }) => {
+    const { t } = useLanguage();
+    const [previewQr, setPreviewQr] = useState('');
+    useEffect(() => {
+        generateQrCode(business.qr_token, { qr_logo_url: formState.qr_logo_url, qr_color: formState.qr_color, qr_eye_shape: formState.qr_eye_shape, qr_dot_style: formState.qr_dot_style }).then(setPreviewQr);
+    }, [business.qr_token, formState.qr_logo_url, formState.qr_color, formState.qr_eye_shape, formState.qr_dot_style]);
+    const handleChange = (e: any) => setFormState((prev: any) => ({...prev, [e.target.name]: e.target.value }));
+    return (
+        <div className="flex flex-col md:flex-row gap-16 items-start">
+             <div className="flex-shrink-0 bg-white p-8 rounded-[3rem] border border-slate-100">
+                {previewQr ? <img src={previewQr} alt="QR" className="w-56 h-56 rounded-2xl"/> : <div className="w-56 h-56 bg-slate-50 rounded-2xl animate-pulse" />}
+                <p className="text-center text-[10px] font-black uppercase tracking-widest text-slate-400 mt-6">Login Identity Code</p>
+            </div>
+            <div className="flex-grow space-y-10 w-full">
+                <div className="space-y-4">
+                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest pl-1">{t('qrColor')}</label>
+                    <input type="color" name="qr_color" value={formState.qr_color || '#000000'} onChange={handleChange} className="h-14 w-full p-1 bg-white border border-slate-100 rounded-2xl cursor-pointer" />
+                </div>
+                <div className="grid grid-cols-2 gap-8">
+                   <SelectField label={t('eyeShape')} name="qr_eye_shape" value={formState.qr_eye_shape || 'square'} onChange={handleChange} options={[{value: 'square', label: 'Square'}, {value: 'rounded', label: 'Rounded'}]} />
+                   <SelectField label={t('dotStyle')} name="qr_dot_style" value={formState.qr_dot_style || 'square'} onChange={handleChange} options={[{ value: 'square', label: 'Square' }, { value: 'dots', label: 'Dots' }, { value: 'rounded', label: 'Rounded' }]} />
+                </div>
+            </div>
+        </div>
+    );
+}
+
+const LocationEditor: React.FC<any> = ({ formState, setFormState }) => {
+    const { t } = useLanguage();
+    const handleChange = (e: any) => setFormState((prev: any) => ({ ...prev, [e.target.name]: e.target.value }));
+    return (
+        <div className="space-y-10">
+            <InputField label={t('address')} name="address_text" value={formState.address_text || ''} onChange={handleChange} placeholder="Physical store address..." />
+            {formState.address_text && (
+                 <div className="rounded-[3rem] overflow-hidden border border-slate-100 grayscale contrast-125 opacity-80">
+                    <iframe className="w-full h-96" loading="lazy" src={`https://www.google.com/maps?q=${encodeURIComponent(formState.address_text)}&output=embed`}></iframe>
+                </div>
+            )}
+        </div>
+    );
+}
+
+const ImageUploader: React.FC<{ label: string; currentImageUrl?: string | null; onFileSelect: (file: File) => void; }> = ({ label, currentImageUrl, onFileSelect }) => {
+    const { t } = useLanguage();
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    return (
+        <div className="group">
+            <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">{label}</label>
+            <div className="flex items-center gap-6 p-8 bg-white border border-slate-100 rounded-[2.5rem] hover:border-[#2bee6c]/30 transition-all">
+                <img src={currentImageUrl || 'https://i.postimg.cc/8zRZt9pM/user.png'} alt="P" className="size-20 rounded-3xl object-cover" />
+                <div className="space-y-3">
+                    <input type="file" accept="image/*" onChange={(e) => e.target.files && onFileSelect(e.target.files[0])} ref={fileInputRef} className="hidden" />
+                    <button type="button" onClick={() => fileInputRef.current?.click()} className="bg-[#163a24] py-2.5 px-6 rounded-xl text-xs font-black text-[#2bee6c] active:scale-95 transition-all">
+                        {t('uploadImage')}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
 };
 
 export default BusinessPage;

@@ -6,7 +6,6 @@ import BusinessPage from './pages/BusinessPage';
 import CustomerPage from './pages/CustomerPage';
 import BusinessSignupPage from './pages/BusinessSignupPage';
 import CustomerSignupPage from './pages/CustomerSignupPage';
-import BusinessEditorPage from './pages/BusinessEditorPage';
 import AdminPage from './pages/AdminPage';
 import BusinessScannerPage from './pages/BusinessScannerPage';
 import { DeviceGuard } from './components/common';
@@ -49,19 +48,17 @@ const App: React.FC = () => {
         if (isLoggedIn && isMobile) return <BusinessScannerPage />;
         return <DeviceGuard target="pc">{isLoggedIn ? <BusinessPage /> : <BusinessLoginPage />}</DeviceGuard>;
     }
-    if (path === '/business/editor') {
-        const isLoggedIn = sessionStorage.getItem('isBusinessLoggedIn') === 'true';
-        // PC only for editor
-        return <DeviceGuard target="pc">{isLoggedIn ? <BusinessEditorPage /> : <BusinessLoginPage />}</DeviceGuard>;
-    }
+    
+    // Scanner is now mobile-only interface or accessible via Mobile terminal
     if (path === '/business/scanner') {
         const isLoggedIn = sessionStorage.getItem('isBusinessLoggedIn') === 'true';
-        // Scanner is now the default mobile business interface
         return <DeviceGuard target="mobile">{isLoggedIn ? <BusinessScannerPage /> : <BusinessLoginPage />}</DeviceGuard>;
     }
+
     if (path === '/business/login') {
       return <BusinessLoginPage />;
     }
+    
     if (path === '/signup/business') {
         return <DeviceGuard target="pc"><BusinessSignupPage /></DeviceGuard>;
     }

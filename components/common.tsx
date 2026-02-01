@@ -84,7 +84,7 @@ export const DeviceGuard: React.FC<{ children: React.ReactNode; target: 'mobile'
                         </p>
                     </div>
                     <div className="pt-6">
-                        <BackButton className="w-full py-4 border-none bg-[#163a24] text-[#2bee6c]" />
+                        <BackButton className="w-full justify-center py-4 border-none bg-[#163a24] text-[#2bee6c]" />
                     </div>
                 </div>
             </div>
