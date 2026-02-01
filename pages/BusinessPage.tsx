@@ -86,7 +86,7 @@ const BusinessPage: React.FC = () => {
 
                     <div className="mt-auto pt-6 border-t border-slate-50">
                         <div className={`flex items-center gap-3 mb-6 p-2 bg-slate-50 rounded-2xl transition-all overflow-hidden ${sidebarCollapsed ? 'justify-center p-1' : ''}`}>
-                            <img src={business.logo_url || 'https://i.postimg.cc/8zRZt9pM/user.png'} className={`rounded-xl object-cover transition-all ${sidebarCollapsed ? 'size-10' : 'size-12'}`} />
+                            <img src={business.logo_url || 'https://i.postimg.cc/8zRZt9pM/user-placeholder.png'} className={`rounded-xl object-cover transition-all ${sidebarCollapsed ? 'size-10' : 'size-12'}`} />
                             {!sidebarCollapsed && (
                                 <div className="min-w-0">
                                     <p className="font-bold text-xs truncate">{business.public_name}</p>
@@ -102,7 +102,7 @@ const BusinessPage: React.FC = () => {
                 </div>
             </aside>
 
-            {/* Mobile Menu Slide-over */}
+            {/* Mobile Menu Drawer */}
             <div className={`lg:hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] transition-opacity duration-300 ${mobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
                 <aside className={`absolute left-0 top-0 bottom-0 w-80 bg-white shadow-2xl transition-transform duration-500 ease-out p-8 flex flex-col ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
                     <div className="flex items-center justify-between mb-12">
@@ -130,7 +130,6 @@ const BusinessPage: React.FC = () => {
                             <span className="material-symbols-outlined">logout</span>
                             <span>{t('logout')}</span>
                         </button>
-                        <p className="text-center text-[10px] font-black text-slate-300 uppercase tracking-widest">v2.4 Enterprise</p>
                     </div>
                 </aside>
             </div>
@@ -169,13 +168,10 @@ const BusinessPage: React.FC = () => {
 
 const SidebarItem: React.FC<{ label: string, icon: string, isActive?: boolean, collapsed?: boolean, onClick: () => void }> = ({ label, icon, isActive, collapsed, onClick }) => (
     <button onClick={onClick} className={`group flex items-center gap-4 w-full p-4 rounded-2xl font-bold transition-all ${isActive ? 'bg-primary text-white shadow-xl shadow-primary/20' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'} ${collapsed ? 'justify-center p-3' : ''}`}>
-        <span className={`material-symbols-outlined transition-transform group-hover:scale-110 ${isActive ? 'fill-1' : ''}`} style={{ fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0" }}>{icon}</span>
+        <span className="material-symbols-outlined transition-transform group-hover:scale-110" style={{ fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0" }}>{icon}</span>
         {!collapsed && <span className="text-sm tracking-tight whitespace-nowrap">{label}</span>}
-        {collapsed && <div className="absolute left-full ml-4 px-3 py-2 bg-slate-900 text-white text-xs rounded-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-all translate-x-[-10px] group-hover:translate-x-0 font-bold z-50">{label}</div>}
     </button>
 );
-
-// TAB COMPONENTS (Analytics Dashboard Bento)
 
 const AnalyticsDashboard: React.FC<{business: Business, onBusinessUpdate: (b: Business) => void}> = ({ business, onBusinessUpdate }) => {
     const { t } = useLanguage();
@@ -194,44 +190,29 @@ const AnalyticsDashboard: React.FC<{business: Business, onBusinessUpdate: (b: Bu
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
             <BusinessScannerModal isOpen={isScannerModalOpen} onClose={() => setIsScannerModalOpen(false)} businessId={business.id} onScanSuccess={(result: ScanResult) => { if (result.success) fetchData(); }} />
             
-            <div className="mb-10 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6">
-                <div className="space-y-1">
-                    <h2 className="text-4xl font-black text-slate-900 tracking-tighter">Insights</h2>
-                    <p className="text-slate-400 text-sm font-medium uppercase tracking-widest text-[10px]">Your performance in the last 7 days</p>
-                </div>
+            <div className="mb-10">
+                <h2 className="text-4xl font-black text-slate-900 tracking-tighter">Insights</h2>
+                <p className="text-slate-400 text-sm font-medium uppercase tracking-widest text-[10px]">7-Day performance summary</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-                <StatCard title="Total Regulars" value={analytics?.total_customers ?? '...'} />
-                <StatCard title="New Members" value={analytics?.new_members_7d ?? '...'} highlight />
-                <StatCard title="Points Distributed" value={analytics?.points_awarded_7d ?? '...'} />
-                <StatCard title="Rewards Given" value={analytics?.rewards_claimed_7d ?? '...'} />
+                <StatCard title="Total Members" value={analytics?.total_customers ?? '...'} />
+                <StatCard title="New Signs" value={analytics?.new_members_7d ?? '...'} highlight />
+                <StatCard title="Total Points" value={analytics?.points_awarded_7d ?? '...'} />
+                <StatCard title="Gifts Claimed" value={analytics?.rewards_claimed_7d ?? '...'} />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2 space-y-8">
-                    <div className="bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-sm">
-                         <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-8">Customer Growth (7D)</h3>
+                    <div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm">
+                         <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-8">Acquisition History</h3>
                          <div className="h-64">
                             <AnalyticsAreaChart data={dailyData} dataKey="new_members_count" color="#135bec" />
-                         </div>
-                    </div>
-                    <div className="bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-sm">
-                         <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-8">Points Distributed (7D)</h3>
-                         <div className="h-64">
-                            <AnalyticsAreaChart data={dailyData} dataKey="points_awarded_sum" color="#10b981" />
                          </div>
                     </div>
                 </div>
                 <div className="space-y-8">
                     <LoyaltySettingsEditor business={business} onUpdate={onBusinessUpdate} />
-                    <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm text-center">
-                        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6">Management Gateway</h3>
-                        <div className="bg-slate-50 p-6 rounded-[2rem] border-2 border-white shadow-inner mb-6">
-                            <img src={business.qr_data_url} alt="QR" className="w-40 h-40 mx-auto rounded-xl shadow-lg border-2 border-white" />
-                        </div>
-                        <p className="text-xs font-bold text-slate-500 leading-relaxed px-4">Direct staff to scan this code for terminal login.</p>
-                    </div>
                 </div>
             </div>
         </div>
@@ -239,8 +220,8 @@ const AnalyticsDashboard: React.FC<{business: Business, onBusinessUpdate: (b: Bu
 };
 
 const StatCard: React.FC<{ title: string; value: string | number; highlight?: boolean }> = ({ title, value, highlight }) => (
-    <div className={`p-8 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col justify-center transition-all hover:shadow-xl group ${highlight ? 'bg-primary text-white shadow-primary/20' : 'bg-white text-slate-900'}`}>
-        <p className="text-4xl font-black tracking-tighter mb-1 transition-transform group-hover:scale-105 origin-left">{value}</p>
+    <div className={`p-8 rounded-[2.5rem] border border-slate-100 shadow-sm transition-all hover:shadow-xl group ${highlight ? 'bg-primary text-white shadow-primary/20' : 'bg-white text-slate-900'}`}>
+        <p className="text-4xl font-black tracking-tighter mb-1">{value}</p>
         <p className={`text-[9px] font-black uppercase tracking-[0.2em] ${highlight ? 'text-white/60' : 'text-slate-400'}`}>{title}</p>
     </div>
 );
@@ -250,21 +231,14 @@ const AnalyticsAreaChart: React.FC<{ data: DailyAnalyticsData[], dataKey: keyof 
     const values = data.map(d => d[dataKey] as number);
     const maxVal = Math.max(...values, 1);
     const points = values.map((val, i) => ({ x: (i / (values.length - 1)) * 100, y: 100 - (val / maxVal) * 80 }));
-    
     const linePath = points.length < 2 ? "" : `M ${points[0].x} ${points[0].y} ` + points.slice(1).map((p, i) => { 
         const prev = points[i]; const cx = (prev.x + p.x) / 2; return `C ${cx} ${prev.y}, ${cx} ${p.y}, ${p.x} ${p.y}`; 
     }).join(" ");
-    
-    const areaPath = `${linePath} L 100 100 L 0 100 Z`;
-
     return (
         <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible" preserveAspectRatio="none">
             <defs><linearGradient id={`grad-${dataKey}`} x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={color} stopOpacity="0.3"/><stop offset="100%" stopColor={color} stopOpacity="0"/></linearGradient></defs>
-            <path d={areaPath} fill={`url(#grad-${dataKey})`} />
+            <path d={`${linePath} L 100 100 L 0 100 Z`} fill={`url(#grad-${dataKey})`} />
             <path d={linePath} fill="none" stroke={color} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-            {points.map((p, i) => (
-                <circle key={i} cx={p.x} cy={p.y} r="1.5" fill="white" stroke={color} strokeWidth="1" />
-            ))}
         </svg>
     );
 };
@@ -274,49 +248,42 @@ const LoyaltySettingsEditor: React.FC<{business: Business, onUpdate: (b: Busines
     const [points, setPoints] = useState(business.points_per_scan || 1);
     const [threshold, setThreshold] = useState(business.reward_threshold || 5);
     const [isSaving, setIsSaving] = useState(false);
-    
     const handleSave = async () => { 
         setIsSaving(true); 
         const updated = await updateBusiness(business.id, { points_per_scan: points, reward_threshold: threshold }); 
         if (updated) onUpdate({...business, ...updated}); 
         setIsSaving(false); 
     };
-
     return (
-        <div className="bg-slate-900 text-white p-10 rounded-[2.5rem] shadow-2xl shadow-slate-900/20 flex flex-col justify-between">
-            <h3 className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-10">{t('loyaltyProgram')}</h3>
+        <div className="bg-slate-900 text-white p-10 rounded-[3rem] shadow-2xl flex flex-col justify-between">
+            <h3 className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-10">Program Logic</h3>
             <div className="space-y-10 mb-10">
                 <div className="flex items-center justify-between">
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('pointsPerScan')}</p>
-                    <div className="flex items-center gap-5">
-                        <button onClick={() => setPoints(p => Math.max(1, p - 1))} className="size-10 rounded-2xl bg-white/5 text-white font-black hover:bg-white/10 transition-all">-</button>
-                        <span className="text-3xl font-black text-white w-10 text-center">{points}</span>
-                        <button onClick={() => setPoints(p => p + 1)} className="size-10 rounded-2xl bg-white/5 text-white font-black hover:bg-white/10 transition-all">+</button>
+                    <div className="flex items-center gap-4">
+                        <button onClick={() => setPoints(p => Math.max(1, p - 1))} className="size-10 rounded-xl bg-white/5 text-white font-black hover:bg-white/10">-</button>
+                        <span className="text-2xl font-black w-8 text-center">{points}</span>
+                        <button onClick={() => setPoints(p => p + 1)} className="size-10 rounded-xl bg-white/5 text-white font-black hover:bg-white/10">+</button>
                     </div>
                 </div>
                  <div className="flex items-center justify-between">
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('rewardThreshold')}</p>
-                    <div className="flex items-center gap-5">
-                        <button onClick={() => setThreshold(t => Math.max(points, t - 1))} className="size-10 rounded-2xl bg-white/5 text-white font-black hover:bg-white/10 transition-all">-</button>
-                        <span className="text-3xl font-black text-white w-10 text-center">{threshold}</span>
-                        <button onClick={() => setThreshold(t => t + 1)} className="size-10 rounded-2xl bg-white/5 text-white font-black hover:bg-white/10 transition-all">+</button>
+                    <div className="flex items-center gap-4">
+                        <button onClick={() => setThreshold(t => Math.max(points, t - 1))} className="size-10 rounded-xl bg-white/5 text-white font-black hover:bg-white/10">-</button>
+                        <span className="text-2xl font-black w-8 text-center">{threshold}</span>
+                        <button onClick={() => setThreshold(t => t + 1)} className="size-10 rounded-xl bg-white/5 text-white font-black hover:bg-white/10">+</button>
                     </div>
                 </div>
             </div>
-            <button 
-                onClick={handleSave} 
-                disabled={isSaving || (points === business.points_per_scan && threshold === business.reward_threshold)} 
-                className="w-full bg-primary text-white font-black py-5 rounded-[1.5rem] hover:bg-blue-700 disabled:bg-white/10 disabled:text-white/20 transition-all active:scale-95 shadow-xl shadow-primary/20"
-            >
-                {isSaving ? '...' : t('saveSettings')}
+            <button onClick={handleSave} disabled={isSaving} className="w-full bg-primary text-white font-black py-5 rounded-[1.5rem] hover:bg-blue-700 shadow-xl shadow-primary/20 transition-all">
+                {isSaving ? '...' : 'Save Program'}
             </button>
         </div>
     );
 };
 
-
-// TAB COMPONENTS - CUSTOMERS LIST
-
+// ... CustomersList, PostsManager, DiscountsManager, SettingsCard follow similar high-end redesign ...
+// Keeping those sections but updating their container styling
 const CustomersList: React.FC<{business: Business}> = ({ business }) => {
     const { t } = useLanguage();
     const [memberships, setMemberships] = useState<Membership[]>([]);
@@ -349,7 +316,7 @@ const CustomersList: React.FC<{business: Business}> = ({ business }) => {
                 <div className="flex flex-col md:flex-row justify-between items-center gap-8 border-b border-slate-50 pb-10">
                     <div className="space-y-1">
                         <h2 className="text-3xl font-black text-slate-900 tracking-tighter">{t('customerList')}</h2>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{memberships.length} ACTIVE PARTNERSHIPS</p>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{memberships.length} ACTIVE MEMBERS</p>
                     </div>
                     <div className="relative w-full md:w-1/2">
                         <input type="text" placeholder={t('searchByName')} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full py-4 pl-6 pr-14 border border-slate-200 rounded-2xl bg-slate-50 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all font-medium" />
@@ -359,28 +326,25 @@ const CustomersList: React.FC<{business: Business}> = ({ business }) => {
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                      {loadingMemberships ? (
                         <div className="col-span-full text-center p-20"><Spinner /></div>
-                    ) : memberships.length > 0 ? memberships.map(membership => {
-                        if (!membership.customers) return null;
-                        return (
-                            <div key={membership.id} className="bg-slate-50 p-8 rounded-[2.5rem] border border-transparent hover:bg-white hover:border-slate-100 transition-all hover:shadow-2xl group flex flex-col justify-between">
-                                <div className="flex items-center gap-6 mb-8">
-                                    <img src={membership.customers.profile_picture_url || 'https://i.postimg.cc/8zRZt9pM/user.png'} alt="pfp" className="w-16 h-16 rounded-[1.5rem] object-cover bg-slate-100 shadow-sm border-2 border-white" />
-                                    <div className="min-w-0">
-                                        <p className="font-black text-slate-800 text-xl tracking-tight truncate">{membership.customers.name}</p>
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{membership.customers.phone_number || 'NO CONTACT'}</p>
-                                    </div>
-                                </div>
-                                <div className="flex items-center justify-between p-4 bg-white rounded-2xl border border-slate-100 mb-8">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Equity (PTS)</p>
-                                    <p className="font-black text-3xl text-primary tracking-tighter">{membership.points}</p>
-                                </div>
-                                <div className="flex gap-2">
-                                    <button onClick={() => { setSelectedCustomer(membership.customers as Customer); setIsQrModalOpen(true); }} className="flex-grow bg-white text-slate-600 font-bold py-3 rounded-xl text-xs uppercase tracking-widest border border-slate-200 hover:bg-slate-50 transition-colors shadow-sm">Card</button>
-                                    <button onClick={() => membership.customers.id && handleRemoveCustomer(membership.customers.id)} className="p-3 bg-rose-50 text-rose-500 rounded-xl hover:bg-rose-100 transition-colors"><TrashIcon/></button>
+                    ) : memberships.length > 0 ? memberships.map(membership => (
+                        <div key={membership.id} className="bg-slate-50 p-8 rounded-[2.5rem] border border-transparent hover:bg-white hover:border-slate-100 transition-all hover:shadow-2xl group flex flex-col justify-between">
+                            <div className="flex items-center gap-6 mb-8">
+                                <img src={membership.customers.profile_picture_url || 'https://i.postimg.cc/8zRZt9pM/user-placeholder.png'} alt="pfp" className="w-16 h-16 rounded-[1.5rem] object-cover bg-slate-100 shadow-sm border-2 border-white" />
+                                <div className="min-w-0">
+                                    <p className="font-black text-slate-800 text-xl tracking-tight truncate">{membership.customers.name}</p>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{membership.customers.phone_number || 'NO CONTACT'}</p>
                                 </div>
                             </div>
-                        )
-                    }) : (
+                            <div className="flex items-center justify-between p-4 bg-white rounded-2xl border border-slate-100 mb-8">
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Points</p>
+                                <p className="font-black text-3xl text-primary tracking-tighter">{membership.points}</p>
+                            </div>
+                            <div className="flex gap-2">
+                                <button onClick={() => { setSelectedCustomer(membership.customers as Customer); setIsQrModalOpen(true); }} className="flex-grow bg-white text-slate-600 font-bold py-3 rounded-xl text-xs uppercase tracking-widest border border-slate-200 hover:bg-slate-50 transition-colors shadow-sm">View Card</button>
+                                <button onClick={() => membership.customers.id && handleRemoveCustomer(membership.customers.id)} className="p-3 bg-rose-50 text-rose-500 rounded-xl hover:bg-rose-100 transition-colors"><TrashIcon/></button>
+                            </div>
+                        </div>
+                    )) : (
                         <div className="col-span-full text-center p-24 bg-slate-50 rounded-[3rem] border-2 border-dashed border-slate-200">
                           <p className="font-bold text-slate-300 uppercase tracking-[0.3em]">No records found</p>
                         </div>
@@ -396,33 +360,27 @@ const PostsManager: React.FC<{business: Business}> = ({ business }) => {
     const [posts, setPosts] = useState<Post[]>([]);
     const [editingPost, setEditingPost] = useState<Post | null>(null);
     const [formState, setFormState] = useState<Omit<Post, 'id' | 'business_id' | 'created_at'>>({ title: '', content: '', image_url: '', post_type: 'standard', video_url: '', price_text: '', external_url: '' });
-
     const fetchPosts = useCallback(async () => { setPosts(await getPostsForBusiness(business.id)); }, [business.id]);
     useEffect(() => { fetchPosts(); }, [fetchPosts]);
-    useEffect(() => { if (editingPost) { setFormState(editingPost); } else { setFormState({ title: '', content: '', image_url: '', post_type: 'standard', video_url: '', price_text: '', external_url: '' }); } }, [editingPost]);
-
+    useEffect(() => { if (editingPost) setFormState(editingPost); else setFormState({ title: '', content: '', image_url: '', post_type: 'standard', video_url: '', price_text: '', external_url: '' }); }, [editingPost]);
     const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => setFormState(prev => ({ ...prev, [e.target.name]: e.target.value }));
     const handleMarkdownChange = (name: string, value: string) => setFormState(prev => ({...prev, [name]: value}));
-
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         const result = editingPost ? await updatePost(editingPost.id, formState) : await createPost({ ...formState, business_id: business.id });
         if (result) { fetchPosts(); setEditingPost(null); }
     };
-
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 items-start animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="lg:col-span-1 space-y-6">
-                <SettingsCard title={editingPost ? "Edit Broadcast" : "New Broadcast"} description="Engage your regular audience.">
+                <SettingsCard title={editingPost ? "Edit Broadcast" : "New Broadcast"} description="Speak to your fans.">
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <InputField label={t('title')} name="title" value={formState.title} onChange={handleFormChange} />
                         <SelectField label={t('postType')} name="post_type" value={formState.post_type} onChange={handleFormChange} options={[ {value: 'standard', label: t('standardPost')}, {value: 'discount', label: t('discountOffer')} ]} />
                         <MarkdownEditor label={t('content')} name="content" value={formState.content || ''} onChange={handleMarkdownChange} />
                         <InputField label={t('imageUrl')} name="image_url" value={formState.image_url || ''} onChange={handleFormChange} />
-                        <div className="flex gap-3 pt-6">
-                            <button type="submit" className="flex-grow bg-primary text-white font-black py-4 rounded-2xl hover:bg-blue-700 shadow-xl shadow-primary/30 active:scale-95 transition-all">{editingPost ? t('updatePost') : t('createPost')}</button>
-                            {editingPost && <button type="button" onClick={() => setEditingPost(null)} className="p-4 bg-slate-100 text-slate-500 rounded-2xl hover:bg-slate-200 transition-colors"><TrashIcon/></button>}
-                        </div>
+                        <button type="submit" className="w-full bg-primary text-white font-black py-4 rounded-2xl hover:bg-blue-700 shadow-xl shadow-primary/30 active:scale-95 transition-all">{editingPost ? t('updatePost') : t('createPost')}</button>
+                        {editingPost && <button type="button" onClick={() => setEditingPost(null)} className="w-full py-3 text-slate-400 font-bold hover:text-slate-900 uppercase text-[10px] tracking-widest">Cancel Edit</button>}
                     </form>
                 </SettingsCard>
             </div>
@@ -452,19 +410,16 @@ const DiscountsManager: React.FC<{business: Business}> = ({ business }) => {
     const { t } = useLanguage();
     const [discounts, setDiscounts] = useState<Discount[]>([]);
     const [newDiscount, setNewDiscount] = useState({ name: '', description: '', image_url: '' });
-
     const fetchDiscounts = useCallback(async () => { setDiscounts(await getDiscountsForBusiness(business.id)); }, [business.id]);
     useEffect(() => { fetchDiscounts(); }, [fetchDiscounts]);
-
     const handleCreate = async (e: React.FormEvent) => {
         e.preventDefault();
         if (await createDiscount({ ...newDiscount, business_id: business.id })) { fetchDiscounts(); setNewDiscount({ name: '', description: '', image_url: '' }); }
     };
-
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 items-start animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="lg:col-span-1">
-                <SettingsCard title={t('newDiscount')} description="Launch limited offers.">
+                <SettingsCard title={t('newDiscount')} description="Limited time vouchers.">
                     <form onSubmit={handleCreate} className="space-y-6">
                         <InputField label={t('discountName')} name="name" value={newDiscount.name} onChange={(e:any) => setNewDiscount({...newDiscount, name: e.target.value})} />
                         <TextAreaField label={t('description')} name="description" value={newDiscount.description || ''} onChange={(e:any) => setNewDiscount({...newDiscount, description: e.target.value})} />
@@ -474,16 +429,16 @@ const DiscountsManager: React.FC<{business: Business}> = ({ business }) => {
                 </SettingsCard>
             </div>
             <div className="lg:col-span-2 bg-white p-10 rounded-[3rem] shadow-sm border border-slate-100">
-                <h3 className="text-2xl font-black text-slate-900 tracking-tighter mb-10">Active Campaign Vouchers</h3>
+                <h3 className="text-2xl font-black text-slate-900 tracking-tighter mb-10">Active Vouchers</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-                    {discounts.length === 0 ? <p className="col-span-full text-center py-24 text-slate-300 font-bold uppercase tracking-[0.3em] bg-slate-50 rounded-[3rem] border border-dashed border-slate-200">No active campaigns</p> : discounts.map(d => (
+                    {discounts.length === 0 ? <p className="col-span-full text-center py-24 text-slate-300 font-bold uppercase tracking-[0.3em] bg-slate-50 rounded-[3rem] border border-dashed border-slate-200">No active vouchers</p> : discounts.map(d => (
                         <div key={d.id} className="bg-slate-50 p-8 rounded-[3rem] border border-transparent hover:bg-white hover:shadow-2xl hover:border-slate-100 transition-all flex flex-col group">
                             {d.image_url && <img src={d.image_url} alt="d" className="w-full h-48 rounded-2xl object-cover mb-8 bg-white shadow-md border-2 border-white" />}
                             <div className="flex-grow">
                                 <p className="font-black text-slate-900 text-2xl leading-tight mb-4">{d.name}</p>
                                 <p className="text-sm text-slate-500 font-medium mb-8 leading-relaxed">{d.description}</p>
                             </div>
-                            <button onClick={async () => { if(window.confirm('Delete?')){ await deleteDiscount(d.id); fetchDiscounts(); } }} className="w-full py-4 bg-rose-50 text-rose-600 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-rose-100 transition-colors">Archive Offer</button>
+                            <button onClick={async () => { if(window.confirm('Delete?')){ await deleteDiscount(d.id); fetchDiscounts(); } }} className="w-full py-4 bg-rose-50 text-rose-600 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-rose-100 transition-colors">Archive</button>
                         </div>
                     ))}
                 </div>
@@ -498,6 +453,5 @@ const SettingsCard: React.FC<{title: string, description: string, children: Reac
         {children}
     </div>
 );
-
 
 export default BusinessPage;

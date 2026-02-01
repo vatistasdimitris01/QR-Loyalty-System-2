@@ -44,7 +44,13 @@ const CustomerPage: React.FC<CustomerPageProps> = ({ qrToken }) => {
   useEffect(() => {
     fetchData(true);
     const id = setInterval(() => fetchData(false), 30000);
-    return () => clearInterval(id);
+    // Hide Tidio chatbot in the wallet for maximum minimalism
+    const tidio = (window as any).tidioChatApi;
+    if (tidio) tidio.hide();
+    return () => {
+        clearInterval(id);
+        if (tidio) tidio.show();
+    };
   }, [fetchData]);
 
   useEffect(() => {
@@ -85,7 +91,7 @@ const CustomerPage: React.FC<CustomerPageProps> = ({ qrToken }) => {
             <NavItem icon="explore" label="Explore" active={activeTab === 'search'} onClick={() => setActiveTab('search')} />
             <button onClick={() => setIsQrModalOpen(true)} className="size-14 bg-white text-slate-900 rounded-full flex items-center justify-center shadow-xl active:scale-90 transition-all"><span className="material-symbols-outlined text-[28px]">qr_code_2</span></button>
             <NavItem icon="person" label="Profile" active={activeTab === 'profile'} onClick={() => setActiveTab('profile')} />
-            <NavItem icon="support_agent" label="Support" active={false} onClick={() => window.tidioChatApi?.open()} />
+            <NavItem icon="support_agent" label="Help" active={false} onClick={() => window.tidioChatApi?.open()} />
         </nav>
     </div>
   );
