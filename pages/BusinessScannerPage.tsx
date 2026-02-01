@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { Business, ScanResult } from '../types';
-import { BusinessScannerModal, CreateCustomerModal, Spinner } from '../components/common';
+import { BusinessScannerModal, CreateCustomerModal, Spinner, BackButton, FlagLogo } from '../components/common';
 import { provisionCustomerForBusiness } from '../services/api';
 
 const BusinessScannerPage: React.FC = () => {
@@ -45,100 +45,91 @@ const BusinessScannerPage: React.FC = () => {
     if (!business) return <div className="min-h-screen bg-[#f8fcf9] flex justify-center items-center"><Spinner className="size-10 text-[#2bee6c]" /></div>;
 
     return (
-        <div className="relative flex h-auto min-h-screen w-full flex-col bg-[#f8fcf9] justify-between group/design-root overflow-x-hidden font-sans" style={{ fontFamily: 'Manrope, "Noto Sans", sans-serif' }}>
+        <div className="relative flex h-auto min-h-screen w-full flex-col bg-[#f8fcf9] justify-between group/design-root overflow-x-hidden font-sans">
             <div className="flex-grow">
-                {/* Header with ONLY Logout as requested */}
-                <header className="flex items-center bg-[#f8fcf9] p-4 pb-2 justify-between">
+                {/* Header with Back Navigation & Branding */}
+                <header className="flex items-center bg-[#f8fcf9] p-4 pb-2 border-b border-[#e7f3eb]">
+                    <BackButton />
+                    <div className="flex-1 flex justify-center items-center gap-3">
+                        <FlagLogo className="size-8" />
+                        <h2 className="text-[#163a24] text-lg font-bold leading-tight tracking-[-0.015em]">
+                            Terminal
+                        </h2>
+                    </div>
                     <button 
                         onClick={handleLogout} 
-                        className="text-[#0d1b12] text-xs font-bold uppercase tracking-[0.2em] px-5 py-2.5 rounded-xl bg-[#0d1b12]/5 transition-all active:scale-95"
+                        className="text-[#4c9a66] text-xs font-bold uppercase tracking-widest px-4 py-2 hover:text-[#163a24]"
                     >
                         {t('logout')}
                     </button>
-                    <h2 className="text-[#0d1b12] text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-10">
-                        {business.public_name}
-                    </h2>
                 </header>
 
-                <div className="flex items-center justify-center gap-6 p-4 mt-12">
-                    <button className="flex shrink-0 items-center justify-center rounded-full size-12 bg-[#0d1b12]/5 text-[#0d1b12]">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
-                        <path d="M216,40H72A16,16,0,0,0,56,56V72H40A16,16,0,0,0,24,88V200a16,16,0,0,0,16,16H184a16,16,0,0,0,16-16V184h16a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40ZM72,56H216v62.75l-10.07-10.06a16,16,0,0,0-22.63,0l-20,20-44-44a16,16,0,0,0-22.62,0L72,109.37ZM184,200H40V88H56v80a16,16,0,0,0,16,16H184Zm32-32H72V132l36-36,49.66,49.66a8,8,0,0,0,11.31,0L194.63,120,216,141.38V168ZM160,84a12,12,0,1,1,12,12A12,12,0,0,1,160,84Z"></path>
-                      </svg>
-                    </button>
-                    <button onClick={() => setIsScannerOpen(true)} className="flex shrink-0 items-center justify-center rounded-full size-24 bg-[#0d1b12]/5 text-[#0d1b12] active:scale-95 transition-all">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="48px" height="48px" fill="currentColor" viewBox="0 0 256 256">
-                        <path d="M208,56H180.28L166.65,35.56A8,8,0,0,0,160,32H96a8,8,0,0,0-6.65,3.56L75.71,56H48A24,24,0,0,0,24,80V192a24,24,0,0,0,24,24H208a24,24,0,0,0,24-24V80A24,24,0,0,0,208,56Zm-44,76a36,36,0,1,1-36-36A36,36,0,0,1,164,132Z"></path>
-                      </svg>
-                    </button>
-                    <button onClick={handleCreateQr} className="flex shrink-0 items-center justify-center rounded-full size-12 bg-[#0d1b12]/5 text-[#0d1b12]">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
-                        <path d="M248,144a8,8,0,0,1-16,0,96.11,96.11,0,0,0-96-96,88.1,88.1,0,0,0-88,88,80.09,80.09,0,0,0,80,80,72.08,72.08,0,0,0,72-72,64.07,64.07,0,0,0-64-64,56.06,56.06,0,0,0-56,56,48.05,48.05,0,0,0,48,48,40,40,0,0,0,40-40,32,32,0,0,0-32-32,24,24,0,0,0-24,24,16,16,0,0,0,16,16,8,8,0,0,0,8-8,8,8,0,0,1,0-16,16,16,0,0,1,16,16,24,24,0,0,1-24,24,32,32,0,0,1-32-32,40,40,0,0,1,40-40,48.05,48.05,0,0,1,48,48,56.06,56.06,0,0,1-56,56,64.07,64.07,0,0,1-64-64,72.08,72.08,0,0,1,72-72,80.09,80.09,0,0,1,80,80,88.1,88.1,0,0,1-88,88,96.11,96.11,0,0,1-96-96A104.11,104.11,0,0,1,136,32,112.12,112.12,0,0,1,248,144Z"></path>
-                      </svg>
+                <div className="px-6 pt-10 text-center">
+                    <p className="text-[10px] font-black text-[#4c9a66] uppercase tracking-[0.4em] mb-2">{business.public_name}</p>
+                    <h1 className="text-3xl font-black text-[#163a24] tracking-tighter">Identity Validator</h1>
+                </div>
+
+                <div className="flex items-center justify-center gap-8 p-4 mt-10">
+                    <button onClick={() => setIsScannerOpen(true)} className="flex shrink-0 items-center justify-center rounded-[2.5rem] size-32 bg-[#2bee6c] text-[#163a24] active:scale-95 transition-all">
+                      <span className="material-symbols-outlined text-[56px]">qr_code_scanner</span>
                     </button>
                 </div>
 
-                <div className="flex gap-4 py-8 px-4 justify-center">
-                    <TimeBlock value={currentTime.getHours().toString().padStart(2, '0')} label="Hours" />
-                    <TimeBlock value={currentTime.getMinutes().toString().padStart(2, '0')} label="Minutes" />
-                    <TimeBlock value={currentTime.getSeconds().toString().padStart(2, '0')} label="Seconds" />
+                <div className="flex gap-4 py-12 px-6 justify-center">
+                    <TimeBlock value={currentTime.getHours().toString().padStart(2, '0')} label="Hrs" />
+                    <div className="text-2xl font-black text-[#2bee6c]/30 mt-2">:</div>
+                    <TimeBlock value={currentTime.getMinutes().toString().padStart(2, '0')} label="Min" />
+                    <div className="text-2xl font-black text-[#2bee6c]/30 mt-2">:</div>
+                    <TimeBlock value={currentTime.getSeconds().toString().padStart(2, '0')} label="Sec" />
                 </div>
 
                 <div className="flex justify-center mt-4">
-                    <div className="flex flex-1 gap-3 flex-wrap px-4 py-3 max-w-[480px] justify-center">
-                        <button
-                            onClick={() => setIsScannerOpen(true)}
-                            className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-6 bg-[#e7f3eb] text-[#0d1b12] text-sm font-bold leading-normal tracking-[0.015em] grow"
-                        >
-                            <span className="truncate">Scan Member</span>
-                        </button>
+                    <div className="flex flex-col gap-4 px-6 w-full max-w-[440px]">
                         <button
                             onClick={handleCreateQr}
-                            className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-6 bg-[#e7f3eb] text-[#0d1b12] text-sm font-bold leading-normal tracking-[0.015em] grow"
+                            className="flex items-center justify-center gap-3 rounded-2xl h-14 bg-white border border-[#e7f3eb] text-[#163a24] text-sm font-black uppercase tracking-widest active:scale-95 transition-all"
                         >
-                            <span className="truncate">Register New Customer</span>
+                            <span className="material-symbols-outlined text-lg">person_add</span>
+                            Issue New Identity
                         </button>
                     </div>
                 </div>
             </div>
 
-            <div className="h-5 bg-[#f8fcf9]"></div>
-
             {/* Points Transferred / Success Modal Redesign */}
             {lastScanResult && (
-                <div className="fixed inset-0 z-[100] flex flex-col justify-end items-stretch bg-[#0d1b12]/40 animate-in fade-in duration-300">
-                    <div className="flex flex-col items-stretch bg-[#f8fcf9] rounded-t-[2.5rem] animate-in slide-in-from-bottom-full duration-500">
-                        <button onClick={() => setLastScanResult(null)} className="flex h-5 w-full items-center justify-center pt-1">
-                            <div className="h-1 w-9 rounded-full bg-[#cfe7d7]"></div>
+                <div className="fixed inset-0 z-[100] flex flex-col justify-end items-stretch bg-[#163a24]/40 backdrop-blur-md animate-in fade-in duration-300">
+                    <div className="flex flex-col items-stretch bg-white rounded-t-[3.5rem] animate-in slide-in-from-bottom-full duration-500">
+                        <button onClick={() => setLastScanResult(null)} className="flex h-8 w-full items-center justify-center pt-2">
+                            <div className="h-1.5 w-12 rounded-full bg-slate-100"></div>
                         </button>
-                        <div className="flex-1 pb-10">
-                            <h1 className="text-[#0d1b12] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 text-center pb-3 pt-5">
-                                {lastScanResult.success ? 'Points Transferred!' : 'Scan Error'}
-                            </h1>
-                            {lastScanResult.success && (
-                                <h2 className="text-[#0d1b12] tracking-light text-[28px] font-bold leading-tight px-4 text-center pb-3 pt-5">
-                                    +{business.points_per_scan} Points
-                                </h2>
-                            )}
-                            <p className="text-[#0d1b12] text-base font-normal leading-normal pb-3 pt-1 px-4 text-center">
-                                {lastScanResult.message}
-                            </p>
-                            
-                            {lastScanResult.success && (
-                                <div className="flex items-center gap-4 bg-[#f8fcf9] px-4 min-h-[72px] py-2 justify-center">
-                                    <div className="flex flex-col justify-center text-center">
-                                        <p className="text-[#0d1b12] text-base font-medium leading-normal line-clamp-1">{lastScanResult.newPointsTotal} Points</p>
-                                        <p className="text-[#4c9a66] text-sm font-normal leading-normal line-clamp-2">Updated Balance</p>
-                                    </div>
+                        <div className="px-8 pb-12 pt-6">
+                            <div className="flex flex-col items-center gap-6 text-center">
+                                <div className="size-20 bg-green-50 text-[#2bee6c] rounded-full flex items-center justify-center">
+                                    <span className="material-symbols-outlined text-[40px] font-bold">check_circle</span>
                                 </div>
-                            )}
+                                <div className="space-y-2">
+                                    <h1 className="text-[#163a24] text-3xl font-black tracking-tighter">
+                                        {lastScanResult.success ? 'Transaction Verified' : 'Scan Error'}
+                                    </h1>
+                                    <p className="text-slate-400 font-medium">{lastScanResult.message}</p>
+                                </div>
+                                
+                                {lastScanResult.success && (
+                                    <div className="w-full bg-green-50/50 p-8 rounded-[2.5rem] border border-green-50">
+                                        <p className="text-[10px] font-black text-green-600 uppercase tracking-[0.4em] mb-4">Identity Balance</p>
+                                        <div className="flex items-baseline justify-center gap-2">
+                                            <span className="text-6xl font-black text-[#163a24] tracking-tighter">{lastScanResult.newPointsTotal}</span>
+                                            <span className="text-sm font-bold text-green-600 uppercase">Points</span>
+                                        </div>
+                                    </div>
+                                )}
 
-                            <div className="flex px-4 pt-10">
                                 <button
                                     onClick={() => setLastScanResult(null)}
-                                    className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-5 flex-1 bg-[#2bee6c] text-[#0d1b12] text-base font-bold leading-normal tracking-[0.015em]"
+                                    className="w-full h-16 bg-[#163a24] text-[#2bee6c] rounded-2xl font-black text-lg tracking-tight active:scale-95 transition-all"
                                 >
-                                    <span className="truncate">Done</span>
+                                    Complete
                                 </button>
                             </div>
                         </div>
@@ -153,11 +144,11 @@ const BusinessScannerPage: React.FC = () => {
 };
 
 const TimeBlock: React.FC<{ value: string; label: string }> = ({ value, label }) => (
-    <div className="flex grow basis-0 flex-col items-stretch gap-4">
-        <div className="flex h-14 grow items-center justify-center rounded-lg px-3 bg-[#e7f3eb]">
-            <p className="text-[#0d1b12] text-lg font-bold leading-tight tracking-[-0.015em]">{value}</p>
+    <div className="flex flex-col items-center gap-2">
+        <div className="flex h-16 w-16 items-center justify-center rounded-[1.25rem] bg-white border border-[#e7f3eb]">
+            <p className="text-[#163a24] text-2xl font-black leading-tight tracking-tighter">{value}</p>
         </div>
-        <div className="flex items-center justify-center"><p className="text-[#0d1b12] text-sm font-normal leading-normal">{label}</p></div>
+        <p className="text-[#4c9a66] text-[10px] font-black uppercase tracking-[0.2em]">{label}</p>
     </div>
 );
 

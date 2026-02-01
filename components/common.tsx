@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { Customer, ScanResult, Post } from '../types';
@@ -16,7 +15,6 @@ export const Spinner: React.FC<{ className?: string }> = ({ className = 'h-8 w-8
   </div>
 );
 
-// DEFINITIVE FLAG LOGO
 export const Logo: React.FC<{ className?: string }> = ({ className = "size-8" }) => (
     <div className={`${className} bg-[#2bee6c] rounded-xl flex items-center justify-center p-1.5`}>
         <svg viewBox="0 0 256 256" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className="w-full h-full text-[#163a24]">
@@ -47,7 +45,7 @@ export const BackButton: React.FC<{ onClick?: () => void; className?: string }> 
     return (
         <button 
             onClick={handleBack} 
-            className={`group flex items-center gap-2 p-3 bg-[#2bee6c]/10 rounded-2xl text-[#163a24] hover:bg-[#2bee6c]/20 transition-all active:scale-90 ${className}`}
+            className={`group flex items-center justify-center p-3 bg-[#2bee6c]/10 rounded-2xl text-[#163a24] hover:bg-[#2bee6c]/20 transition-all active:scale-90 ${className}`}
         >
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 256 256">
                 <path d="M224,128a8,8,0,0,1-8,8H59.31l58.35,58.34a8,8,0,0,1-11.32,11.32l-72-72a8,8,0,0,1,0-11.32l72-72a8,8,0,0,1,11.32,11.32L59.31,120H216A8,8,0,0,1,224,128Z"></path>
@@ -70,8 +68,8 @@ export const DeviceGuard: React.FC<{ children: React.ReactNode; target: 'mobile'
 
     if (isWrongDevice) {
         return (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#ffffff] p-6 font-sans">
-                <div className="w-full max-w-md bg-white rounded-[3rem] border border-slate-100 p-10 text-center space-y-8 animate-in zoom-in-95 duration-500">
+            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#ffffff] p-6 font-display">
+                <div className="w-full max-w-md bg-white rounded-[3rem] border border-slate-100 p-10 text-center space-y-8">
                     <div className="size-20 bg-[#163a24] text-[#2bee6c] rounded-[1.5rem] flex items-center justify-center mx-auto mb-6">
                         <FlagLogo className="size-12 !bg-transparent" />
                     </div>
@@ -86,7 +84,7 @@ export const DeviceGuard: React.FC<{ children: React.ReactNode; target: 'mobile'
                         </p>
                     </div>
                     <div className="pt-6">
-                        <BackButton className="w-full justify-center py-4 border-none bg-[#163a24] text-[#2bee6c]" />
+                        <BackButton className="w-full py-4 border-none bg-[#163a24] text-[#2bee6c]" />
                     </div>
                 </div>
             </div>
@@ -204,7 +202,7 @@ export const QRScannerModal: React.FC<{ isOpen: boolean; onClose: () => void; on
     }, [isOpen, onScan, facingMode]);
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={t('scanQRCode')}>
-            <div className="relative overflow-hidden rounded-[2rem] bg-black aspect-square">
+            <div className="relative overflow-hidden rounded-[2rem] bg-[#163a24] aspect-square">
                <div id={scannerId} className="w-full h-full" />
             </div>
         </Modal>
@@ -240,7 +238,7 @@ export const BusinessScannerModal: React.FC<{ isOpen: boolean; onClose: () => vo
     }, [isOpen, startScanner]);
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={t('scanQRCode')}>
-            <div className="relative overflow-hidden rounded-[2rem] bg-black aspect-square">
+            <div className="relative overflow-hidden rounded-[2rem] bg-[#163a24] aspect-square">
               <div id={scannerContainerId} className="w-full h-full" />
             </div>
         </Modal>
@@ -252,7 +250,6 @@ export const DeleteAccountModal: React.FC<{ isOpen: boolean; onClose: () => void
     const [inputValue, setInputValue] = useState('');
     const [isDeleting, setIsDeleting] = useState(false);
     const isMatch = inputValue === customerPhoneNumber;
-    // Fix: Fixed missing onClick prop on delete button
     const handleDelete = async () => { if (!isMatch) return; setIsDeleting(true); await onConfirm(); setIsDeleting(false); };
     useEffect(() => { if (!isOpen) setInputValue(''); }, [isOpen]);
     return (
