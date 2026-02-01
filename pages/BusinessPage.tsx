@@ -6,7 +6,7 @@ import {
     updateBusiness, getPostsForBusiness, deletePost,
     getDiscountsForBusiness, deleteDiscount
 } from '../services/api';
-import { Spinner, Logo } from '../components/common';
+import { Spinner, FlagLogo, BackButton } from '../components/common';
 
 type DashboardTab = 'analytics' | 'customers' | 'posts' | 'discounts';
 
@@ -36,7 +36,7 @@ const BusinessPage: React.FC = () => {
         <div className="flex justify-center items-center h-screen bg-white">
             <div className="text-center space-y-4">
                 <Spinner className="size-12 text-[#2bee6c]" />
-                <p className="text-[#0d1b12] font-display font-bold tracking-tight">Accessing Business Hub...</p>
+                <p className="text-[#163a24] font-display font-bold tracking-tight">Accessing Business Hub...</p>
             </div>
         </div>
     );
@@ -49,19 +49,17 @@ const BusinessPage: React.FC = () => {
     ];
 
     return (
-        <div className="flex min-h-screen bg-white font-sans text-[#0d1b12] overflow-hidden">
+        <div className="flex min-h-screen bg-white font-sans text-[#163a24] overflow-hidden">
             {/* Desktop Sidebar - White, No Border, Full Collapse */}
             <aside className={`hidden lg:flex flex-col bg-white sticky top-0 h-screen sidebar-transition overflow-hidden ${sidebarCollapsed ? 'w-0' : 'w-72'}`}>
                 <div className="p-8 flex flex-col h-full w-72">
                     <div className="flex items-center justify-between mb-12">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-[#0d1b12] rounded-xl flex items-center justify-center text-[#2bee6c]">
-                                <span className="material-icons-round">loyalty</span>
-                            </div>
-                            <span className="text-xl font-bold font-display tracking-tight text-[#0d1b12]">QROYAL</span>
+                            <FlagLogo className="w-10 h-10" />
+                            <span className="text-xl font-bold font-display tracking-tight text-[#163a24]">QROYAL</span>
                         </div>
                         
-                        <button onClick={() => setSidebarCollapsed(true)} className="p-2 text-[#4c9a66] hover:text-[#0d1b12] transition-colors">
+                        <button onClick={() => setSidebarCollapsed(true)} className="p-2 text-[#4c9a66] hover:text-[#163a24] transition-colors">
                             <svg width="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path fill-rule="evenodd" clip-rule="evenodd" d="M9.35719 3H14.6428C15.7266 2.99999 16.6007 2.99998 17.3086 3.05782C18.0375 3.11737 18.6777 3.24318 19.27 3.54497C20.2108 4.02433 20.9757 4.78924 21.455 5.73005C21.7568 6.32234 21.8826 6.96253 21.9422 7.69138C22 8.39925 22 9.27339 22 10.3572V13.6428C22 14.7266 22 15.6008 21.9422 16.3086C21.8826 17.0375 21.7568 17.6777 21.455 18.27C20.9757 19.2108 20.2108 19.9757 19.27 20.455C18.6777 20.7568 18.0375 20.8826 17.3086 20.9422C16.6008 21 15.7266 21 14.6428 21H9.35717C8.27339 21 7.39925 21 6.69138 20.9422C5.96253 20.8826 5.32234 20.7568 4.73005 20.455C3.78924 19.9757 3.02433 19.2108 2.54497 18.27C2.24318 17.6777 2.11737 17.0375 2.05782 16.3086C1.99998 15.6007 1.99999 14.7266 2 13.6428V10.3572C1.99999 9.27341 1.99998 8.39926 2.05782 7.69138C2.11737 6.96253 2.24318 6.32234 2.54497 5.73005C3.02433 4.78924 3.78924 4.02433 4.73005 3.54497C5.32234 3.24318 5.96253 3.11737 6.69138 3.05782C7.39926 2.99998 8.27341 2.99999 9.35719 3ZM6.85424 5.05118C6.24907 5.10062 5.90138 5.19279 5.63803 5.32698C5.07354 5.6146 4.6146 6.07354 4.32698 6.63803C4.19279 6.90138 4.10062 7.24907 4.05118 7.85424C4.00078 8.47108 4 9.26339 4 10.4V13.6C4 14.7366 4.00078 15.5289 4.05118 16.1458C4.10062 16.7509 4.19279 17.0986 4.32698 17.362C4.6146 17.9265 5.07354 18.3854 5.63803 18.673C5.90138 18.8072 6.24907 18.8994 6.85424 18.9488C7.47108 18.9992 8.26339 19 9.4 19H14.6C15.7366 19 16.5289 18.9992 17.1458 18.9488C17.7509 18.8994 18.0986 18.8072 18.362 18.673C18.9265 18.3854 19.3854 17.9265 19.673 17.362C19.8072 17.0986 19.8994 16.7509 19.9488 16.1458C19.9992 15.5289 20 14.7366 20 13.6V10.4C20 9.26339 19.9992 8.47108 19.9488 7.85424C19.8994 7.24907 19.8072 6.90138 19.673 6.63803C19.3854 6.07354 18.9265 5.6146 18.362 5.32698C18.0986 5.19279 17.7509 5.10062 17.1458 5.05118C16.5289 5.00078 15.7366 5 14.6 5H9.4C8.26339 5 7.47108 5.00078 6.85424 5.05118ZM7 7C7.55229 7 8 7.44772 8 8V16C8 16.5523 7.55229 17 7 17C6.44772 17 6 16.5523 6 16V8C6 7.44772 6.44772 7 7 7Z" fill="currentColor"></path>
                             </svg>
@@ -99,20 +97,23 @@ const BusinessPage: React.FC = () => {
                 <header className="h-20 bg-white border-b border-slate-100 px-12 flex items-center justify-between sticky top-0 z-20">
                     <div className="flex items-center gap-8">
                         {sidebarCollapsed && (
-                            <button onClick={() => setSidebarCollapsed(false)} className="p-2 text-[#4c9a66] hover:text-[#0d1b12] transition-colors">
+                            <button onClick={() => setSidebarCollapsed(false)} className="p-2 text-[#4c9a66] hover:text-[#163a24] transition-colors">
                                 <svg width="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path fill-rule="evenodd" clip-rule="evenodd" d="M9.35719 3H14.6428C15.7266 2.99999 16.6007 2.99998 17.3086 3.05782C18.0375 3.11737 18.6777 3.24318 19.27 3.54497C20.2108 4.02433 20.9757 4.78924 21.455 5.73005C21.7568 6.32234 21.8826 6.96253 21.9422 7.69138C22 8.39925 22 9.27339 22 10.3572V13.6428C22 14.7266 22 15.6008 21.9422 16.3086C21.8826 17.0375 21.7568 17.6777 21.455 18.27C20.9757 19.2108 20.2108 19.9757 19.27 20.455C18.6777 20.7568 18.0375 20.8826 17.3086 20.9422C16.6008 21 15.7266 21 14.6428 21H9.35717C8.27339 21 7.39925 21 6.69138 20.9422C5.96253 20.8826 5.32234 20.7568 4.73005 20.455C3.78924 19.9757 3.02433 19.2108 2.54497 18.27C2.24318 17.6777 2.11737 17.0375 2.05782 16.3086C1.99998 15.6007 1.99999 14.7266 2 13.6428V10.3572C1.99999 9.27341 1.99998 8.39926 2.05782 7.69138C2.11737 6.96253 2.24318 6.32234 2.54497 5.73005C3.02433 4.78924 3.78924 4.02433 4.73005 3.54497C5.32234 3.24318 5.96253 3.11737 6.69138 3.05782C7.39926 2.99998 8.27341 2.99999 9.35719 3ZM6.85424 5.05118C6.24907 5.10062 5.90138 5.19279 5.63803 5.32698C5.07354 5.6146 4.6146 6.07354 4.32698 6.63803C4.19279 6.90138 4.10062 7.24907 4.05118 7.85424C4.00078 8.47108 4 9.26339 4 10.4V13.6C4 14.7366 4.00078 15.5289 4.05118 16.1458C4.10062 16.7509 4.19279 17.0986 4.32698 17.362C4.6146 17.9265 5.07354 18.3854 5.63803 18.673C5.90138 18.8072 6.24907 18.8994 6.85424 18.9488C7.17922 18.9754 7.55292 18.9882 8 18.9943V5.0057C7.55292 5.01184 7.17922 5.02462 6.85424 5.05118ZM10 5V19H14.6C15.7366 19 16.5289 18.9992 17.1458 18.9488C17.7509 18.8994 18.0986 18.8072 18.362 18.673C18.9265 18.3854 19.3854 17.9265 19.673 17.362C19.8072 17.0986 19.8994 16.7509 19.9488 16.1458C19.9992 15.5289 20 14.7366 20 13.6V10.4C20 9.26339 19.9992 8.47108 19.9488 7.85424C19.8994 7.24907 19.8072 6.90138 19.673 6.63803C19.3854 6.07354 18.9265 5.6146 18.362 5.32698C18.0986 5.19279 17.7509 5.10062 17.1458 5.05118C16.5289 5.00078 15.7366 5 14.6 5H10Z" fill="currentColor"></path>
                                 </svg>
                             </button>
                         )}
-                        <h1 className="text-2xl font-bold font-display tracking-tight text-[#0d1b12]">{business.public_name} Hub</h1>
+                        <div className="flex items-center gap-4">
+                            <BackButton className="p-2 !bg-transparent !px-0" />
+                            <h1 className="text-2xl font-bold font-display tracking-tight text-[#163a24]">{business.public_name} Hub</h1>
+                        </div>
                     </div>
                     <div className="flex items-center gap-6">
                         <div className="flex items-center gap-2 px-4 py-2 bg-green-50 text-[#4c9a66] rounded-full text-xs font-bold uppercase tracking-widest border border-green-100">
                             <div className="size-2 bg-[#2bee6c] rounded-full animate-pulse"></div>
                             System Online
                         </div>
-                        <button onClick={() => window.location.href='/business/scanner'} className="bg-[#0d1b12] text-[#2bee6c] p-3 rounded-xl active:scale-95 transition-all">
+                        <button onClick={() => window.location.href='/business/scanner'} className="bg-[#163a24] text-[#2bee6c] p-3 rounded-xl active:scale-95 transition-all">
                              <span className="material-icons-round block">qr_code_scanner</span>
                         </button>
                     </div>
@@ -130,7 +131,7 @@ const BusinessPage: React.FC = () => {
 };
 
 const SidebarItem: React.FC<{ label: string, icon: string, isActive?: boolean, onClick: () => void }> = ({ label, icon, isActive, onClick }) => (
-    <button onClick={onClick} className={`group flex items-center gap-4 w-full p-4 rounded-2xl font-bold transition-all ${isActive ? 'bg-[#0d1b12] text-[#2bee6c]' : 'text-slate-400 hover:text-[#0d1b12] hover:bg-slate-50'}`}>
+    <button onClick={onClick} className={`group flex items-center gap-4 w-full p-4 rounded-2xl font-bold transition-all ${isActive ? 'bg-[#163a24] text-[#2bee6c]' : 'text-slate-400 hover:text-[#163a24] hover:bg-slate-50'}`}>
         <span className="material-icons-round transition-transform group-hover:scale-110">{icon}</span>
         <span className="text-sm tracking-tight whitespace-nowrap">{label}</span>
     </button>
@@ -163,7 +164,7 @@ const AnalyticsDashboard: React.FC<{business: Business, onBusinessUpdate: (b: Bu
                         <SimpleAreaChart data={dailyData} color="#2bee6c" />
                      </div>
                 </div>
-                <div className="bg-[#0d1b12] text-[#2bee6c] p-10 rounded-[2.5rem] flex flex-col justify-between">
+                <div className="bg-[#163a24] text-[#2bee6c] p-10 rounded-[2.5rem] flex flex-col justify-between">
                     <div className="space-y-2 mb-10">
                         <span className="material-icons-round text-primary text-sm">tune</span>
                         <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-[#2bee6c]/40">Program Settings</h3>
@@ -176,7 +177,7 @@ const AnalyticsDashboard: React.FC<{business: Business, onBusinessUpdate: (b: Bu
 };
 
 const StatCard: React.FC<{ title: string; value: string | number; highlight?: boolean }> = ({ title, value, highlight }) => (
-    <div className={`p-8 rounded-3xl border transition-all ${highlight ? 'bg-[#0d1b12] border-white/5 text-[#2bee6c]' : 'bg-white border-slate-100 text-[#0d1b12]'}`}>
+    <div className={`p-8 rounded-3xl border transition-all ${highlight ? 'bg-[#163a24] border-white/5 text-[#2bee6c]' : 'bg-white border-slate-100 text-[#163a24]'}`}>
         <p className="text-[11px] font-bold uppercase tracking-[0.2em] opacity-40 mb-4">{title}</p>
         <div className="flex items-baseline gap-2">
             <span className="text-5xl font-bold font-display tracking-tight">{value}</span>
@@ -245,7 +246,7 @@ const LoyaltySettingsInline: React.FC<{business: Business, onUpdate: (b: Busines
                     </button>
                 </div>
             </div>
-            <button onClick={handleSave} disabled={isSaving} className="w-full mt-4 py-4 bg-[#2bee6c] text-[#0d1b12] font-bold rounded-xl active:scale-[0.98]">
+            <button onClick={handleSave} disabled={isSaving} className="w-full mt-4 py-4 bg-[#2bee6c] text-[#163a24] font-bold rounded-xl active:scale-[0.98]">
                 {isSaving ? 'Saving...' : 'Update Rules'}
             </button>
         </div>
@@ -272,7 +273,7 @@ const CustomersList: React.FC<{business: Business}> = ({ business }) => {
         <div className="bg-white p-12 rounded-[2.5rem] border border-slate-100 space-y-12">
             <div className="flex flex-col md:flex-row justify-between items-center gap-8">
                 <div>
-                    <h2 className="text-3xl font-bold font-display tracking-tight text-[#0d1b12]">Directory</h2>
+                    <h2 className="text-3xl font-bold font-display tracking-tight text-[#163a24]">Directory</h2>
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.4em] mt-1">{memberships.length} Active Records</p>
                 </div>
                 <div className="relative w-full md:w-1/2">
@@ -295,7 +296,7 @@ const CustomersList: React.FC<{business: Business}> = ({ business }) => {
                                     <div className="flex items-center gap-4">
                                         <div className="size-10 rounded-full bg-[#e7f3eb] flex items-center justify-center font-black text-[#4c9a66]">{m.customers.name?.charAt(0)}</div>
                                         <div className="min-w-0">
-                                            <p className="font-bold text-[#0d1b12] text-sm truncate">{m.customers.name}</p>
+                                            <p className="font-bold text-[#163a24] text-sm truncate">{m.customers.name}</p>
                                             <p className="text-[10px] font-bold text-[#4c9a66] tracking-widest">{m.customers.phone_number || 'STITCH ID'}</p>
                                         </div>
                                     </div>
@@ -304,7 +305,7 @@ const CustomersList: React.FC<{business: Business}> = ({ business }) => {
                                     <span className="text-sm font-bold text-[#2bee6c] bg-[#2bee6c]/5 px-3 py-1 rounded-full">{m.points} pts</span>
                                 </td>
                                 <td className="px-6 py-4 text-right">
-                                    <button className="text-slate-400 hover:text-[#0d1b12] transition-colors material-icons-round">more_vert</button>
+                                    <button className="text-slate-400 hover:text-[#163a24] transition-colors material-icons-round">more_vert</button>
                                 </td>
                             </tr>
                         ))}
@@ -324,7 +325,7 @@ const PostsManager: React.FC<{business: Business}> = ({ business }) => {
         <div className="bg-white p-12 rounded-[2.5rem] border border-slate-100">
             <div className="flex justify-between items-center mb-12">
                 <h3 className="text-3xl font-bold font-display tracking-tight">Marketing Portal</h3>
-                <button className="flex items-center gap-2 bg-[#2bee6c] text-[#0d1b12] px-6 py-3 rounded-2xl font-bold active:scale-95 transition-all">
+                <button className="flex items-center gap-2 bg-[#2bee6c] text-[#163a24] px-6 py-3 rounded-2xl font-bold active:scale-95 transition-all">
                     <span className="material-icons-round">add</span>
                     New Broadcast
                 </button>
@@ -338,9 +339,9 @@ const PostsManager: React.FC<{business: Business}> = ({ business }) => {
                         </div>
                         <div className="p-6">
                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">{new Date(p.created_at).toLocaleDateString()}</p>
-                            <h4 className="text-xl font-bold text-[#0d1b12] leading-tight mb-6">{p.title}</h4>
+                            <h4 className="text-xl font-bold text-[#163a24] leading-tight mb-6">{p.title}</h4>
                             <div className="flex justify-end gap-2 border-t border-slate-50 pt-4">
-                                <button className="p-2 text-slate-400 hover:text-[#0d1b12] transition-colors material-icons-round">edit</button>
+                                <button className="p-2 text-slate-400 hover:text-[#163a24] transition-colors material-icons-round">edit</button>
                                 <button onClick={async () => { if(window.confirm('Delete?')){ await deletePost(p.id); fetch(); } }} className="p-2 text-rose-400 hover:text-rose-600 transition-colors material-icons-round">delete</button>
                             </div>
                         </div>
@@ -359,7 +360,7 @@ const DiscountsManager: React.FC<{business: Business}> = ({ business }) => {
         <div className="bg-white p-12 rounded-[2.5rem] border border-slate-100">
             <div className="flex justify-between items-center mb-12">
                 <h3 className="text-3xl font-bold font-display tracking-tight">Active Rewards</h3>
-                <button className="bg-[#2bee6c] text-[#0d1b12] font-bold px-6 py-3 rounded-2xl flex items-center gap-2 active:scale-95 transition-all">
+                <button className="bg-[#2bee6c] text-[#163a24] font-bold px-6 py-3 rounded-2xl flex items-center gap-2 active:scale-95 transition-all">
                     <span className="material-icons-round">add</span>
                     New Reward
                 </button>
@@ -371,7 +372,7 @@ const DiscountsManager: React.FC<{business: Business}> = ({ business }) => {
                             <span className="material-icons-round text-[#2bee6c] text-4xl">percent</span>
                         </div>
                         <div className="flex-1">
-                            <h4 className="text-xl font-bold text-[#0d1b12] mb-2">{d.name}</h4>
+                            <h4 className="text-xl font-bold text-[#163a24] mb-2">{d.name}</h4>
                             <p className="text-sm text-[#4c9a66] font-medium leading-relaxed truncate mb-6">{d.description}</p>
                             <div className="flex justify-between items-center">
                                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Permanent Offer</span>
