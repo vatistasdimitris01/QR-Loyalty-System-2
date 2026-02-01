@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { QRScannerModal, Spinner, Logo } from '../components/common';
@@ -49,28 +48,37 @@ const LandingPage: React.FC = () => {
     };
 
     return (
-        <div className="bg-[#f8fcf9] min-h-screen selection:bg-green-100 font-sans transition-colors duration-300 text-[#0d1b12]">
+        <div className="bg-white min-h-screen font-sans text-[#0d1b12]">
             {loginStatus.loading && (
-                <div className="fixed inset-0 bg-[#f8fcf9]/90 backdrop-blur-sm z-[999] flex flex-col justify-center items-center">
-                    <Spinner className="w-8 h-8 text-[#2bee6c]" />
+                <div className="fixed inset-0 bg-white/90 backdrop-blur-sm z-[999] flex flex-col justify-center items-center">
+                    <Spinner className="w-10 h-10 text-[#2bee6c]" />
+                    <p className="mt-4 font-display font-bold tracking-tight">Authorizing Terminal...</p>
                 </div>
             )}
             <QRScannerModal isOpen={isScannerOpen} onClose={() => setIsScannerOpen(false)} onScan={handleScan} />
 
-            <header className="sticky top-0 z-50 w-full border-b border-[#e7f3eb] bg-[#f8fcf9]/80 backdrop-blur-md">
-                <div className="max-w-[1280px] mx-auto flex items-center justify-between px-6 py-4">
+            {/* Navigation */}
+            <header className="sticky top-0 z-50 w-full border-b border-slate-100 bg-white/80 backdrop-blur-md">
+                <div className="max-w-7xl mx-auto flex items-center justify-between px-8 py-5">
                     <div className="flex items-center gap-3">
-                        <Logo className="size-9 bg-[#0d1b12] text-[#2bee6c]" />
-                        <h2 className="text-xl font-black tracking-tighter text-[#0d1b12]">QROYAL</h2>
+                        <div className="w-9 h-9 bg-[#0d1b12] rounded-xl flex items-center justify-center text-[#2bee6c]">
+                            <span className="material-icons-round text-xl">loyalty</span>
+                        </div>
+                        <h2 className="text-xl font-bold font-display tracking-tight">QROYAL</h2>
                     </div>
-                    <nav className="hidden md:flex items-center gap-8">
-                        <button onClick={() => setLanguage(language === 'en' ? 'el' : 'en')} className="text-xs font-bold uppercase tracking-widest text-[#4c9a66] hover:text-[#0d1b12] transition-colors">
-                            {language === 'en' ? 'Ελληνικά' : 'English'}
+                    
+                    <nav className="hidden md:flex items-center gap-10">
+                        <a href="#features" className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400 hover:text-[#0d1b12] transition-colors">Features</a>
+                        <a href="#network" className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400 hover:text-[#0d1b12] transition-colors">Network</a>
+                        <button onClick={() => setLanguage(language === 'en' ? 'el' : 'en')} className="text-xs font-bold uppercase tracking-[0.2em] text-[#4c9a66] hover:text-[#0d1b12]">
+                            {language === 'en' ? 'EL' : 'EN'}
                         </button>
-                        <a className="text-sm font-bold text-[#0d1b12] hover:opacity-70 transition-colors" href="/business/login">{t('businessLogin')}</a>
                     </nav>
-                    <div className="flex items-center gap-3">
-                        <button onClick={() => setIsScannerOpen(true)} className="flex min-w-[130px] cursor-pointer items-center justify-center rounded-xl h-11 px-6 bg-[#0d1b12] text-[#2bee6c] text-sm font-black shadow-xl shadow-green-500/10 hover:scale-105 transition-transform">
+
+                    <div className="flex items-center gap-4">
+                        <a href="/business/login" className="hidden sm:block text-sm font-bold text-slate-400 hover:text-[#0d1b12]">{t('login')}</a>
+                        <button onClick={() => setIsScannerOpen(true)} className="flex items-center gap-2 bg-[#0d1b12] text-[#2bee6c] px-6 py-2.5 rounded-xl text-sm font-bold active:scale-95 transition-all">
+                            <span className="material-icons-round text-lg">qr_code_scanner</span>
                             {t('scanToLogin')}
                         </button>
                     </div>
@@ -78,54 +86,177 @@ const LandingPage: React.FC = () => {
             </header>
 
             <main>
-                <section className="relative overflow-hidden pt-20 pb-24 md:pt-32 md:pb-40">
-                    <div className="max-w-[1280px] mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-                        <div className="flex flex-col gap-8 z-10">
-                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#e7f3eb] border border-[#cfe7d7] w-fit">
-                                <span className="text-[10px] font-black tracking-widest text-[#4c9a66] uppercase">Stitch Design Infrastructure</span>
+                {/* Hero Section */}
+                <section className="relative pt-24 pb-32 overflow-hidden">
+                    <div className="max-w-7xl mx-auto px-8 grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+                        <div className="space-y-10 animate-in fade-in slide-in-from-left-10 duration-700">
+                            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-50 border border-slate-100">
+                                <span className="size-2 rounded-full bg-[#2bee6c] animate-pulse"></span>
+                                <span className="text-[10px] font-black tracking-[0.3em] text-[#4c9a66] uppercase">Now Live: v2.5 Infrastructure</span>
                             </div>
-                            <div className="flex flex-col gap-6">
-                                <h1 className="text-[#0d1b12] text-6xl md:text-8xl font-black leading-[0.95] tracking-tight">
-                                    Loyalty <span className="text-[#4c9a66]">Simplified.</span>
+                            <div className="space-y-6">
+                                <h1 className="text-7xl md:text-8xl font-bold font-display leading-[0.9] tracking-tighter text-[#0d1b12]">
+                                    Loyalty <br/>
+                                    <span className="text-slate-200">Reimagined.</span>
                                 </h1>
-                                <p className="text-xl text-[#4c9a66] font-medium max-w-lg leading-relaxed">
-                                    Turn every visitor into a lifetime member with our browser-first digital wallet and kiosk infrastructure.
+                                <p className="text-xl text-slate-400 font-medium max-w-lg leading-relaxed">
+                                    The enterprise-grade loyalty engine for the modern world. No apps, no friction. Just seamless QR-driven retention for businesses and customers alike.
                                 </p>
                             </div>
-                            <div className="flex flex-wrap gap-4">
-                                <a href="/signup/customer" className="flex min-w-[180px] cursor-pointer items-center justify-center rounded-2xl h-14 px-8 bg-[#2bee6c] text-[#0d1b12] text-base font-black shadow-2xl shadow-green-400/20 hover:opacity-90 transition-all">
+                            <div className="flex flex-wrap gap-4 pt-4">
+                                <a href="/signup/customer" className="bg-[#2bee6c] text-[#0d1b12] px-10 py-4 rounded-2xl font-bold text-lg active:scale-95 transition-all">
                                     {t('landingCtaCustomer')}
                                 </a>
-                                <a href="/signup/business" className="flex min-w-[180px] cursor-pointer items-center justify-center rounded-2xl h-14 px-8 bg-white border border-[#e7f3eb] text-[#0d1b12] text-base font-black hover:bg-white shadow-sm transition-all">
+                                <a href="/signup/business" className="bg-white border border-slate-100 text-[#0d1b12] px-10 py-4 rounded-2xl font-bold text-lg hover:bg-slate-50 active:scale-95 transition-all">
                                     {t('landingForBusinesses')}
                                 </a>
                             </div>
                         </div>
-                        <div className="relative group p-4 bg-[#e7f3eb] rounded-[3rem]">
-                            <div className="relative w-full aspect-[4/3] bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border border-[#cfe7d7]">
-                                <img src="https://images.unsplash.com/photo-1556742044-3c52d6e88c62?auto=format&fit=crop&w=1200&q=80" className="w-full h-full object-cover grayscale brightness-110" />
-                                <div className="absolute inset-0 bg-[#2bee6c]/10 mix-blend-multiply"></div>
+
+                        <div className="relative group animate-in fade-in zoom-in-95 duration-1000">
+                            <div className="absolute -inset-4 bg-[#2bee6c]/5 blur-3xl rounded-full"></div>
+                            <div className="relative rounded-[3.5rem] border border-slate-100 p-4 bg-white overflow-hidden">
+                                <div className="aspect-[4/3] rounded-[2.5rem] overflow-hidden bg-slate-50">
+                                    <img 
+                                        src="https://images.unsplash.com/photo-1556740758-90de374c12ad?auto=format&fit=crop&w=1200&q=80" 
+                                        className="w-full h-full object-cover grayscale brightness-110 contrast-110 mix-blend-multiply opacity-90" 
+                                        alt="Terminal"
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-tr from-[#0d1b12]/40 to-transparent"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </section>
+
+                {/* Stats / Trust Bar */}
+                <section className="py-20 border-y border-slate-50 bg-white">
+                    <div className="max-w-7xl mx-auto px-8">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-12">
+                            <StatItem label="Active Members" value="2.4M+" />
+                            <StatItem label="Global Brands" value="120+" />
+                            <StatItem label="Retention Lift" value="44%" />
+                            <StatItem label="Scan Latency" value="120ms" />
+                        </div>
+                    </div>
+                </section>
+
+                {/* Features Bento Grid */}
+                <section id="features" className="py-32 bg-white">
+                    <div className="max-w-7xl mx-auto px-8 space-y-20">
+                        <div className="text-center space-y-4">
+                            <h2 className="text-4xl font-bold font-display tracking-tight">The Digital Standard</h2>
+                            <p className="text-slate-400 font-medium uppercase tracking-[0.3em] text-xs">Everything you need to scale</p>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 h-full md:h-[600px]">
+                            <div className="md:col-span-7 bg-slate-50 border border-slate-100 rounded-[3rem] p-12 flex flex-col justify-between overflow-hidden relative">
+                                <div className="space-y-4 relative z-10">
+                                    <span className="material-icons-round text-4xl text-[#2bee6c]">insights</span>
+                                    <h3 className="text-3xl font-bold font-display tracking-tight">{t('businessFeature1Title')}</h3>
+                                    <p className="text-slate-400 font-medium max-w-sm">{t('businessFeature1Desc')}</p>
+                                </div>
+                                <div className="absolute -bottom-10 -right-10 w-2/3 h-2/3 bg-white border border-slate-100 rounded-tl-[3rem] p-8 hidden md:block">
+                                    <div className="space-y-4">
+                                        <div className="h-2 w-full bg-slate-50 rounded-full overflow-hidden">
+                                            <div className="h-full w-2/3 bg-[#2bee6c]"></div>
+                                        </div>
+                                        <div className="h-2 w-full bg-slate-50 rounded-full overflow-hidden">
+                                            <div className="h-full w-1/2 bg-[#2bee6c]/40"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="md:col-span-5 bg-[#0d1b12] rounded-[3rem] p-12 flex flex-col justify-between text-white">
+                                <div className="space-y-4">
+                                    <span className="material-icons-round text-4xl text-[#2bee6c]">auto_awesome</span>
+                                    <h3 className="text-3xl font-bold font-display tracking-tight">Stitch AI Engine</h3>
+                                    <p className="text-slate-400 font-medium">Predictive insights to understand when customers are most likely to return.</p>
+                                </div>
+                                <div className="pt-10 border-t border-white/5 flex items-center justify-between">
+                                    <span className="text-[10px] font-black tracking-[0.4em] uppercase text-[#2bee6c]/60">Automated CRM</span>
+                                    <span className="material-icons-round">bolt</span>
+                                </div>
+                            </div>
+
+                            <div className="md:col-span-4 bg-white border border-slate-100 rounded-[3rem] p-10 space-y-4">
+                                <span className="material-icons-round text-3xl text-slate-300">devices</span>
+                                <h4 className="text-xl font-bold font-display tracking-tight">Universal Wallet</h4>
+                                <p className="text-slate-400 text-sm leading-relaxed">No downloads required. Your loyalty ID lives securely in any mobile browser.</p>
+                            </div>
+
+                            <div className="md:col-span-8 bg-white border border-slate-100 rounded-[3rem] p-10 flex items-center gap-10">
+                                <div className="flex-1 space-y-4">
+                                    <span className="material-icons-round text-3xl text-slate-300">qr_code_2</span>
+                                    <h4 className="text-xl font-bold font-display tracking-tight">QR Design Lab</h4>
+                                    <p className="text-slate-400 text-sm leading-relaxed">Customize your brand identity with our proprietary QR styling engine.</p>
+                                </div>
+                                <div className="size-24 bg-slate-50 rounded-2xl flex items-center justify-center shrink-0">
+                                    <span className="material-icons-round text-4xl text-[#0d1b12]/10">edit_attributes</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                {/* Call to Action */}
+                <section className="py-32 bg-slate-50">
+                    <div className="max-w-3xl mx-auto px-8 text-center space-y-12">
+                        <h2 className="text-6xl font-bold font-display tracking-tighter text-[#0d1b12]">Ready to upgrade your relationship with your customers?</h2>
+                        <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
+                            <a href="/signup/business" className="bg-[#0d1b12] text-[#2bee6c] px-12 py-5 rounded-2xl font-bold text-xl w-full sm:w-auto active:scale-95 transition-all">Start Free Trial</a>
+                            <a href="mailto:partners@qroyal.com" className="text-[#0d1b12] font-bold text-lg hover:underline">Contact Sales</a>
+                        </div>
+                        <p className="text-slate-400 font-medium text-sm italic">Standard platform setup in under 5 minutes.</p>
+                    </div>
+                </section>
             </main>
 
-            <footer className="bg-white border-t border-[#e7f3eb] py-20">
-                <div className="max-w-[1280px] mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-10">
-                    <div className="flex items-center gap-3">
-                        <Logo className="size-8 bg-[#0d1b12] text-[#2bee6c]" />
-                        <h2 className="text-lg font-black tracking-tighter text-[#0d1b12]">QROYAL</h2>
+            <footer className="bg-white py-20 border-t border-slate-100">
+                <div className="max-w-7xl mx-auto px-8 flex flex-col md:flex-row justify-between items-center gap-12">
+                    <div className="flex flex-col items-center md:items-start gap-6">
+                        <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-[#0d1b12] rounded-lg flex items-center justify-center text-[#2bee6c]">
+                                <span className="material-icons-round text-sm">loyalty</span>
+                            </div>
+                            <h2 className="text-lg font-bold font-display tracking-tight">QROYAL</h2>
+                        </div>
+                        <p className="text-slate-400 text-xs font-bold uppercase tracking-[0.3em]">Infrastructure for the Future</p>
                     </div>
-                    <p className="text-sm text-[#4c9a66] font-bold">© {new Date().getFullYear()} QROYAL | Stitch Design v2.5</p>
-                    <div className="flex gap-8">
-                        <a className="text-xs font-black text-[#0d1b12] uppercase tracking-widest" href="#">Privacy</a>
-                        <a className="text-xs font-black text-[#0d1b12] uppercase tracking-widest" href="#">Terms</a>
+                    
+                    <div className="flex gap-12">
+                        <div className="space-y-4">
+                            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#0d1b12]">Resources</p>
+                            <ul className="space-y-2 text-sm font-medium text-slate-400">
+                                <li><a href="#" className="hover:text-[#2bee6c]">Developer API</a></li>
+                                <li><a href="#" className="hover:text-[#2bee6c]">Documentation</a></li>
+                                <li><a href="#" className="hover:text-[#2bee6c]">Support</a></li>
+                            </ul>
+                        </div>
+                        <div className="space-y-4">
+                            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#0d1b12]">Company</p>
+                            <ul className="space-y-2 text-sm font-medium text-slate-400">
+                                <li><a href="#" className="hover:text-[#2bee6c]">Terms</a></li>
+                                <li><a href="#" className="hover:text-[#2bee6c]">Privacy</a></li>
+                                <li><a href="#" className="hover:text-[#2bee6c]">Pricing</a></li>
+                            </ul>
+                        </div>
                     </div>
+                </div>
+                <div className="max-w-7xl mx-auto px-8 pt-20 text-center">
+                    <p className="text-[10px] font-bold text-slate-300 uppercase tracking-[0.5em]">© {new Date().getFullYear()} QROYAL SYSTEMS INC.</p>
                 </div>
             </footer>
         </div>
     );
 };
+
+const StatItem: React.FC<{ label: string; value: string }> = ({ label, value }) => (
+    <div className="text-center space-y-1">
+        <p className="text-4xl font-bold font-display tracking-tight text-[#0d1b12]">{value}</p>
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-300">{label}</p>
+    </div>
+);
 
 export default LandingPage;

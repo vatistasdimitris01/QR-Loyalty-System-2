@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&family=Noto+Sans:wght@400;500;700;900&family=Outfit:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <!-- Fix Material Icons loading -->
+    <!-- Robust Material Icons loading -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
     
@@ -32,7 +32,7 @@
               "muted-green": "#4c9a66",
               "background-light": "#ffffff",
               "background-dark": "#0a120e",
-              "card-dark": "#111814",
+              "card-dark": "#ffffff",
               "sidebar-dark": "#ffffff",
             },
             fontFamily: {
@@ -44,11 +44,13 @@
       }
     </script>
     <style>
+      /* Global White Aesthetic */
       body { background-color: #ffffff; color: #0d1b12; }
+      
       .no-scrollbar::-webkit-scrollbar { display: none; }
       .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       
-      /* Material Icons Helper Classes */
+      /* Force Material Icons to render correctly */
       .material-icons-round, .material-symbols-outlined {
         font-family: 'Material Icons Round' !important;
         font-weight: normal;
@@ -65,23 +67,26 @@
         -webkit-font-smoothing: antialiased;
       }
       
-      /* Remove all hard shadows as requested */
-      .shadow-xl, .shadow-2xl, .shadow-lg, .shadow-md {
-        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.02), 0 1px 2px 0 rgba(0, 0, 0, 0.01) !important;
+      /* Remove all shadows as requested */
+      *, .shadow-xl, .shadow-2xl, .shadow-lg, .shadow-md, .shadow-sm {
+        box-shadow: none !important;
       }
       
-      /* Sidebar custom transition */
+      /* Clean borders for separation since we have no shadows */
+      .border-subtle { border: 1px solid #f3f4f6; }
+
       .sidebar-transition {
         transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       }
 
       .chart-gradient {
-          background: linear-gradient(180deg, rgba(43, 238, 108, 0.1) 0%, rgba(43, 238, 108, 0) 100%);
+          background: linear-gradient(180deg, rgba(43, 238, 108, 0.05) 0%, rgba(43, 238, 108, 0) 100%);
       }
       
       @media (max-width: 768px) {
         #tidio-chat-iframe, .tidio-chat-widget { display: none !important; }
       }
+      
       .form-input:focus {
         border-color: #2bee6c !important;
         ring-color: #2bee6c !important;
