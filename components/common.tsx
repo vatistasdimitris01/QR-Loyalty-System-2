@@ -45,7 +45,7 @@ export const SplashScreen: React.FC<{ onComplete: () => void }> = ({ onComplete 
 
     useEffect(() => {
         const slashTimer = setTimeout(() => setIsSlashing(true), 2000);
-        const finishTimer = setTimeout(onComplete, 2800);
+        const finishTimer = setTimeout(onComplete, 2900);
         return () => {
             clearTimeout(slashTimer);
             clearTimeout(finishTimer);
@@ -54,23 +54,23 @@ export const SplashScreen: React.FC<{ onComplete: () => void }> = ({ onComplete 
 
     return (
         <div 
-            className={`fixed inset-0 z-[1000] bg-white flex flex-col items-center justify-center transition-all duration-700 ease-[cubic-bezier(0.85,0,0.15,1)] ${isSlashing ? 'translate-y-full opacity-0' : 'translate-y-0 opacity-100'}`}
+            className={`fixed inset-0 z-[1000] bg-white flex flex-col items-center justify-center transition-all duration-1000 ease-[cubic-bezier(0.85,0,0.15,1)] ${isSlashing ? 'translate-y-full opacity-0' : 'translate-y-0 opacity-100'}`}
             style={{ 
-                clipPath: isSlashing ? 'polygon(0 0, 100% 0, 100% 100%, 0 100%)' : 'polygon(0 0, 100% 0, 100% 100%, 0 100%)'
+                clipPath: isSlashing ? 'polygon(0 0, 100% 0, 100% 100%, 0 100%)' : 'none',
+                borderRadius: isSlashing ? '0 0 100% 100%' : '0'
             }}
         >
-            <div className={`relative transform transition-all duration-1000 ${isSlashing ? 'scale-90 opacity-0 -translate-y-20' : 'scale-100 opacity-100'}`}>
-                <div className="size-32 bg-[#2bee6c] rounded-[2.5rem] flex items-center justify-center p-6 animate-in zoom-in-50 duration-700 shadow-2xl shadow-green-100">
+            <div className={`relative transform transition-all duration-700 ${isSlashing ? 'scale-90 opacity-0 -translate-y-20' : 'scale-100 opacity-100'}`}>
+                <div className="size-32 bg-[#2bee6c] rounded-[2.5rem] flex items-center justify-center p-6 shadow-2xl shadow-green-100 animate-in zoom-in-50 duration-700">
                     <svg viewBox="0 0 256 256" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className="w-full h-full text-[#163a24]">
                         <path d="M216,40H56A16,16,0,0,0,40,56V216a8,8,0,0,0,16,0V144h80l8.3,16.6a8.23,8.23,0,0,0,7.2,4.4H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40Zm0,112H154.9l-8.3-16.6a8.23,8.23,0,0,0-7.2-4.4H56V56H216Z"></path>
                     </svg>
                 </div>
                 <div className="absolute -bottom-16 left-1/2 -translate-x-1/2 w-max">
-                   <h1 className="text-2xl font-black tracking-[0.4em] text-[#163a24] animate-in fade-in slide-in-from-bottom-4 delay-300 duration-700">QROYAL</h1>
+                   <h1 className="text-2xl font-black tracking-[0.4em] text-[#163a24] animate-in fade-in slide-in-from-bottom-4 delay-300 duration-700 uppercase">QROYAL</h1>
                 </div>
             </div>
             
-            {/* Liquid drip elements for visual "water" feel during splash */}
             <div className={`absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-[#2bee6c]/10 to-transparent transition-opacity duration-500 ${isSlashing ? 'opacity-100' : 'opacity-0'}`}></div>
         </div>
     );
@@ -88,7 +88,7 @@ export const FlagLogo = Logo;
 
 export const TrashIcon: React.FC<{ className?: string }> = ({ className = "size-5" }) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.244 2.244 0 0 1-2.244 2.077H8.084a2.244 2.244 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
   </svg>
 );
 
@@ -213,11 +213,12 @@ export const CreateCustomerModal: React.FC<{ isOpen: boolean; onClose: () => voi
         <Modal isOpen={isOpen} onClose={onClose} title={t('newCustomerQrModalTitle')}>
             <div className="text-center space-y-8">
                 <p className="text-[#4c9a66] font-medium leading-relaxed">{t('newCustomerQrModalDesc')}</p>
-                <div className="bg-white p-8 rounded-[3rem] border border-slate-50 inline-block mx-auto">
+                <div className="bg-white p-8 rounded-[3rem] border border-slate-50 inline-block mx-auto relative group">
+                  <div className="absolute inset-0 bg-[#2bee6c]/5 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
                   {qrDataUrl ? (
-                      <img src={qrDataUrl} alt="QR" className="w-64 h-64 mx-auto rounded-xl" />
+                      <img src={qrDataUrl} alt="QR" className="w-64 h-64 mx-auto rounded-xl relative z-10" />
                   ) : (
-                      <div className="flex justify-center items-center h-64 w-64"><Spinner /></div>
+                      <div className="flex justify-center items-center h-64 w-64 relative z-10"><Spinner /></div>
                   )}
                 </div>
                 <button onClick={onClose} className="w-full py-4 bg-[#163a24] text-[#2bee6c] rounded-2xl font-black text-xs uppercase tracking-widest active:scale-95 transition-all">{t('close')}</button>

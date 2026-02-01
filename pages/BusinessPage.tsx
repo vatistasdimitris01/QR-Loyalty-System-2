@@ -291,7 +291,7 @@ const CustomersList: React.FC<{business: Business}> = ({ business }) => {
                                     <span className="text-sm font-bold text-[#2bee6c] bg-[#2bee6c]/5 px-3 py-1 rounded-full">{m.points} pts</span>
                                 </td>
                                 <td className="px-6 py-4 text-right">
-                                    <button onClick={() => setSelectedMember(m)} className="text-slate-400 hover:text-[#163a24] transition-all material-icons-round active:scale-90">more_vert</button>
+                                    <button onClick={() => setSelectedMember(m)} className="text-slate-400 hover:text-[#163a24] transition-all material-icons-round active:scale-90 p-2">more_vert</button>
                                 </td>
                             </tr>
                         ))}
@@ -299,6 +299,7 @@ const CustomersList: React.FC<{business: Business}> = ({ business }) => {
                 </table>
             </div>
             
+            {/* Customer Passport Preview Modal */}
             <CustomerPreviewModal 
                 membership={selectedMember} 
                 onClose={() => setSelectedMember(null)} 
@@ -308,15 +309,6 @@ const CustomersList: React.FC<{business: Business}> = ({ business }) => {
 }
 
 const CustomerPreviewModal: React.FC<{ membership: Membership | null; onClose: () => void }> = ({ membership, onClose }) => {
-    const { t } = useLanguage();
-    const [qrUrl, setQrUrl] = useState('');
-    
-    useEffect(() => {
-        if (membership?.customers?.qr_token) {
-            generateQrCode(membership.customers.qr_token).then(setQrUrl);
-        }
-    }, [membership]);
-
     if (!membership) return null;
 
     return (
@@ -324,28 +316,34 @@ const CustomerPreviewModal: React.FC<{ membership: Membership | null; onClose: (
             <div className="text-center space-y-8 animate-in zoom-in-95 duration-300">
                 <div className="space-y-2">
                     <h4 className="text-3xl font-black text-[#163a24] tracking-tighter leading-none">{membership.customers.name}</h4>
-                    <p className="text-xs font-bold text-[#4c9a66] uppercase tracking-[0.3em]">{membership.customers.phone_number || 'Universal Identifier'}</p>
+                    <p className="text-xs font-bold text-[#4c9a66] uppercase tracking-[0.3em]">{membership.customers.phone_number || membership.customer_id}</p>
                 </div>
                 
                 <div className="relative group inline-block">
-                    <div className="absolute inset-0 bg-[#2bee6c]/5 blur-3xl rounded-full scale-150 pointer-events-none"></div>
-                    <div className="bg-white p-8 rounded-[3rem] border border-slate-50 relative z-10">
-                        {qrUrl ? <img src={qrUrl} alt="QR" className="w-64 h-64 rounded-xl" /> : <Spinner />}
+                    <div className="absolute inset-0 bg-[#2bee6c]/10 blur-3xl rounded-full scale-150 pointer-events-none group-hover:scale-110 transition-transform duration-1000"></div>
+                    <div className="bg-white p-8 rounded-[3rem] border border-slate-50 relative z-10 shadow-lg shadow-green-100/20">
+                        {membership.customers.qr_data_url ? (
+                            <img src={membership.customers.qr_data_url} alt="Customer QR" className="w-64 h-64 rounded-xl" />
+                        ) : (
+                            <div className="size-64 flex items-center justify-center bg-slate-50 rounded-xl">
+                                <Spinner className="text-[#2bee6c]" />
+                            </div>
+                        )}
                     </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                     <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
-                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Equity</p>
+                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Loyalty Equity</p>
                         <p className="text-2xl font-black text-[#163a24]">{membership.points} PTS</p>
                     </div>
                     <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
                         <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Status</p>
-                        <p className="text-2xl font-black text-[#2bee6c]">ACTIVE</p>
+                        <p className="text-2xl font-black text-[#2bee6c]">VERIFIED</p>
                     </div>
                 </div>
 
-                <button onClick={onClose} className="w-full py-5 bg-[#163a24] text-[#2bee6c] rounded-2xl font-black text-xs uppercase tracking-[0.3em] active:scale-95 transition-all">Close Passport</button>
+                <button onClick={onClose} className="w-full py-5 bg-[#163a24] text-[#2bee6c] rounded-2xl font-black text-xs uppercase tracking-[0.3em] active:scale-95 transition-all">Dismiss Passport</button>
             </div>
         </Modal>
     );

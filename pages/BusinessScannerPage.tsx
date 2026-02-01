@@ -45,20 +45,19 @@ const BusinessScannerPage: React.FC = () => {
     if (!business) return <div className="min-h-screen bg-[#f8fcf9] flex justify-center items-center"><Spinner className="size-10 text-[#2bee6c]" /></div>;
 
     return (
-        <div className="relative flex h-auto min-h-screen w-full flex-col bg-[#f8fcf9] justify-between group/design-root overflow-x-hidden font-sans">
+        <div className="relative flex h-auto min-h-screen w-full flex-col bg-[#f8fcf9] justify-between group/design-root overflow-x-hidden font-sans animate-in fade-in duration-1000">
             <div className="flex-grow">
-                {/* Header with Back Navigation & Branding */}
+                {/* Kiosk Header */}
                 <header className="flex items-center bg-[#f8fcf9] p-4 pb-2 border-b border-[#e7f3eb]">
-                    <BackButton />
                     <div className="flex-1 flex justify-center items-center gap-3">
                         <FlagLogo className="size-8" />
-                        <h2 className="text-[#163a24] text-lg font-bold leading-tight tracking-[-0.015em]">
-                            Terminal
+                        <h2 className="text-[#163a24] text-lg font-bold leading-tight tracking-[-0.015em] uppercase">
+                            Terminal Kiosk
                         </h2>
                     </div>
                     <button 
                         onClick={handleLogout} 
-                        className="text-[#4c9a66] text-xs font-bold uppercase tracking-widest px-4 py-2 hover:text-[#163a24]"
+                        className="text-[#4c9a66] text-[10px] font-black uppercase tracking-widest px-4 py-2 hover:text-[#163a24]"
                     >
                         {t('logout')}
                     </button>
@@ -66,70 +65,77 @@ const BusinessScannerPage: React.FC = () => {
 
                 <div className="px-6 pt-10 text-center">
                     <p className="text-[10px] font-black text-[#4c9a66] uppercase tracking-[0.4em] mb-2">{business.public_name}</p>
-                    <h1 className="text-3xl font-black text-[#163a24] tracking-tighter">Identity Validator</h1>
+                    <h1 className="text-4xl font-black text-[#163a24] tracking-tighter leading-tight">System Ready</h1>
+                    <p className="text-[#4c9a66] text-xs font-bold uppercase tracking-widest mt-2 opacity-50">{currentTime.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
                 </div>
 
-                <div className="flex items-center justify-center gap-8 p-4 mt-10">
-                    <button onClick={() => setIsScannerOpen(true)} className="flex shrink-0 items-center justify-center rounded-[2.5rem] size-32 bg-[#2bee6c] text-[#163a24] active:scale-95 transition-all">
-                      <span className="material-symbols-outlined text-[56px]">qr_code_scanner</span>
+                {/* Main Scanning Action */}
+                <div className="flex flex-col items-center justify-center p-8 mt-4">
+                    <button 
+                        onClick={() => setIsScannerOpen(true)} 
+                        className="relative flex shrink-0 items-center justify-center rounded-[3.5rem] size-48 bg-[#163a24] text-[#2bee6c] active:scale-90 transition-all shadow-2xl shadow-green-900/20 group"
+                    >
+                      <div className="absolute inset-[-12px] border-2 border-[#2bee6c]/20 rounded-[4rem] animate-[ping_3s_infinite]"></div>
+                      <span className="material-symbols-outlined text-[80px]">qr_code_scanner</span>
                     </button>
+                    <p className="mt-8 text-[11px] font-black uppercase tracking-[0.5em] text-[#163a24]">Tap to Scan Identity</p>
                 </div>
 
-                <div className="flex gap-4 py-12 px-6 justify-center">
+                {/* Digital Clock */}
+                <div className="flex gap-4 py-8 px-6 justify-center">
                     <TimeBlock value={currentTime.getHours().toString().padStart(2, '0')} label="Hrs" />
-                    <div className="text-2xl font-black text-[#2bee6c]/30 mt-2">:</div>
+                    <div className="text-2xl font-black text-[#2bee6c]/40 mt-2">:</div>
                     <TimeBlock value={currentTime.getMinutes().toString().padStart(2, '0')} label="Min" />
-                    <div className="text-2xl font-black text-[#2bee6c]/30 mt-2">:</div>
+                    <div className="text-2xl font-black text-[#2bee6c]/40 mt-2">:</div>
                     <TimeBlock value={currentTime.getSeconds().toString().padStart(2, '0')} label="Sec" />
                 </div>
 
-                <div className="flex justify-center mt-4">
-                    <div className="flex flex-col gap-4 px-6 w-full max-w-[440px]">
-                        <button
-                            onClick={handleCreateQr}
-                            className="flex items-center justify-center gap-3 rounded-2xl h-14 bg-white border border-[#e7f3eb] text-[#163a24] text-sm font-black uppercase tracking-widest active:scale-95 transition-all"
-                        >
-                            <span className="material-symbols-outlined text-lg">person_add</span>
-                            Issue New Identity
-                        </button>
-                    </div>
+                {/* Issue Identity Action */}
+                <div className="flex justify-center mt-4 mb-20 px-6">
+                    <button
+                        onClick={handleCreateQr}
+                        className="w-full max-w-[440px] flex items-center justify-center gap-4 rounded-2xl h-16 bg-white border border-[#e7f3eb] text-[#163a24] text-sm font-black uppercase tracking-[0.2em] active:scale-95 transition-all shadow-sm"
+                    >
+                        <span className="material-symbols-outlined text-2xl">person_add</span>
+                        Issue New Identity
+                    </button>
                 </div>
             </div>
 
-            {/* Points Transferred / Success Modal Redesign */}
+            {/* Verification Success Overlay */}
             {lastScanResult && (
                 <div className="fixed inset-0 z-[100] flex flex-col justify-end items-stretch bg-[#163a24]/40 backdrop-blur-md animate-in fade-in duration-300">
                     <div className="flex flex-col items-stretch bg-white rounded-t-[3.5rem] animate-in slide-in-from-bottom-full duration-500">
-                        <button onClick={() => setLastScanResult(null)} className="flex h-8 w-full items-center justify-center pt-2">
+                        <button onClick={() => setLastScanResult(null)} className="flex h-12 w-full items-center justify-center pt-2">
                             <div className="h-1.5 w-12 rounded-full bg-slate-100"></div>
                         </button>
-                        <div className="px-8 pb-12 pt-6">
-                            <div className="flex flex-col items-center gap-6 text-center">
-                                <div className="size-20 bg-green-50 text-[#2bee6c] rounded-full flex items-center justify-center">
-                                    <span className="material-symbols-outlined text-[40px] font-bold">check_circle</span>
+                        <div className="px-8 pb-16 pt-2">
+                            <div className="flex flex-col items-center gap-8 text-center">
+                                <div className="size-24 bg-green-50 text-[#2bee6c] rounded-full flex items-center justify-center">
+                                    <span className="material-symbols-outlined text-[56px] font-bold">check_circle</span>
                                 </div>
-                                <div className="space-y-2">
-                                    <h1 className="text-[#163a24] text-3xl font-black tracking-tighter">
-                                        {lastScanResult.success ? 'Transaction Verified' : 'Scan Error'}
+                                <div className="space-y-3">
+                                    <h1 className="text-[#163a24] text-4xl font-black tracking-tighter">
+                                        {lastScanResult.success ? 'Verified' : 'Error'}
                                     </h1>
-                                    <p className="text-slate-400 font-medium">{lastScanResult.message}</p>
+                                    <p className="text-slate-400 font-bold uppercase tracking-widest text-[11px]">{lastScanResult.message}</p>
                                 </div>
                                 
                                 {lastScanResult.success && (
-                                    <div className="w-full bg-green-50/50 p-8 rounded-[2.5rem] border border-green-50">
+                                    <div className="w-full bg-green-50/50 p-10 rounded-[3rem] border border-green-50">
                                         <p className="text-[10px] font-black text-green-600 uppercase tracking-[0.4em] mb-4">Identity Balance</p>
-                                        <div className="flex items-baseline justify-center gap-2">
-                                            <span className="text-6xl font-black text-[#163a24] tracking-tighter">{lastScanResult.newPointsTotal}</span>
-                                            <span className="text-sm font-bold text-green-600 uppercase">Points</span>
+                                        <div className="flex items-baseline justify-center gap-3">
+                                            <span className="text-7xl font-black text-[#163a24] tracking-tighter">{lastScanResult.newPointsTotal}</span>
+                                            <span className="text-sm font-black text-green-600 uppercase tracking-widest">Points</span>
                                         </div>
                                     </div>
                                 )}
 
                                 <button
                                     onClick={() => setLastScanResult(null)}
-                                    className="w-full h-16 bg-[#163a24] text-[#2bee6c] rounded-2xl font-black text-lg tracking-tight active:scale-95 transition-all"
+                                    className="w-full h-20 bg-[#163a24] text-[#2bee6c] rounded-2xl font-black text-xl tracking-tight active:scale-95 transition-all shadow-2xl shadow-green-100"
                                 >
-                                    Complete
+                                    Confirm & Close
                                 </button>
                             </div>
                         </div>

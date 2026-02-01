@@ -245,7 +245,7 @@ export const searchMembershipsForBusiness = async (businessId: string, searchTer
     let rows;
     if (!searchTerm) {
         rows = await sql`
-            SELECT m.*, c.name as c_name, c.phone_number as c_phone_number, c.profile_picture_url as c_pfp
+            SELECT m.*, c.name as c_name, c.phone_number as c_phone_number, c.profile_picture_url as c_pfp, c.qr_data_url as c_qr_data_url, c.qr_token as c_qr_token
             FROM memberships m
             JOIN customers c ON m.customer_id = c.id
             WHERE m.business_id = ${businessId}
@@ -254,7 +254,7 @@ export const searchMembershipsForBusiness = async (businessId: string, searchTer
     } else {
         const likeTerm = `%${searchTerm}%`;
         rows = await sql`
-            SELECT m.*, c.name as c_name, c.phone_number as c_phone_number, c.profile_picture_url as c_pfp
+            SELECT m.*, c.name as c_name, c.phone_number as c_phone_number, c.profile_picture_url as c_pfp, c.qr_data_url as c_qr_data_url, c.qr_token as c_qr_token
             FROM memberships m
             JOIN customers c ON m.customer_id = c.id
             WHERE m.business_id = ${businessId}
@@ -268,7 +268,9 @@ export const searchMembershipsForBusiness = async (businessId: string, searchTer
         customers: {
             name: r.c_name,
             phone_number: r.c_phone_number,
-            profile_picture_url: r.c_pfp
+            profile_picture_url: r.c_pfp,
+            qr_data_url: r.c_qr_data_url,
+            qr_token: r.c_qr_token
         }
     })) as Membership[];
 };

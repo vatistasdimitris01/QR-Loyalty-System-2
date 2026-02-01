@@ -21,7 +21,7 @@ const App: React.FC = () => {
     const handleResize = () => setIsMobile(window.innerWidth < 1024);
     window.addEventListener('resize', handleResize);
     
-    // Initial app readiness check (e.g. font loading, config checks)
+    // Readiness check
     const timer = setTimeout(() => setLoading(false), 800);
     
     return () => {
@@ -30,7 +30,6 @@ const App: React.FC = () => {
     };
   }, []);
 
-  // Handle Splash Screen completion
   const handleSplashComplete = () => {
     setShowSplash(false);
   };
@@ -69,7 +68,9 @@ const App: React.FC = () => {
     if (path === '/business') {
         const isLoggedIn = sessionStorage.getItem('isBusinessLoggedIn') === 'true';
         if (isLoggedIn) {
-            return isMobile ? <BusinessScannerPage /> : <BusinessPage />;
+            // STRICT REQUIREMENT: Mobile business users automatically go to kiosk
+            if (isMobile) return <BusinessScannerPage />;
+            return <BusinessPage />;
         }
         return <BusinessLoginPage />;
     }
