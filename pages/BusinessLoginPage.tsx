@@ -1,13 +1,7 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { loginBusiness } from '../services/api';
-import { Logo } from '../components/common';
-
-declare global {
-  interface Window {
-    tidioChatApi: any;
-  }
-}
+import { FlagLogo, BackButton } from '../components/common';
 
 const BusinessLoginPage: React.FC = () => {
     const { t } = useLanguage();
@@ -37,55 +31,59 @@ const BusinessLoginPage: React.FC = () => {
     };
 
     return (
-        <div className="bg-[#f8fcf9] min-h-screen font-sans flex items-center justify-center p-6">
-            <div className="w-full max-w-md bg-white rounded-[2.5rem] p-10 border border-[#e7f3eb]">
-                <div className="flex flex-col items-center gap-4 mb-10">
-                    <div className="w-12 h-12 bg-[#0b110d] rounded-2xl flex items-center justify-center text-[#2bee6c]">
-                        <span className="material-icons-round text-3xl">loyalty</span>
-                    </div>
-                    <div className="text-center">
-                        <h2 className="text-2xl font-bold font-display tracking-tighter text-[#0d1b12]">QROYAL</h2>
-                        <p className="text-xs font-bold text-[#4c9a66] uppercase tracking-[0.2em]">{t('businessAreaLogin')}</p>
+        <div className="bg-white min-h-screen font-sans flex flex-col items-center justify-center p-6">
+            <div className="fixed top-8 left-8">
+                <BackButton />
+            </div>
+
+            <div className="w-full max-w-md space-y-12 animate-in fade-in slide-in-from-bottom-10 duration-700">
+                <div className="flex flex-col items-center gap-6">
+                    <FlagLogo className="w-16 h-16" />
+                    <div className="text-center space-y-2">
+                        <h2 className="text-4xl font-bold font-display tracking-tighter text-[#163a24]">Terminal Auth</h2>
+                        <p className="text-[10px] font-black text-[#4c9a66] uppercase tracking-[0.4em]">{t('businessAreaLogin')}</p>
                     </div>
                 </div>
 
-                <form onSubmit={handleLogin} className="space-y-6">
-                    <div className="space-y-2">
-                        <label className="text-[#0d1b12] text-xs font-black uppercase tracking-widest pl-1">{t('email')}</label>
-                        <input 
-                            type="email" 
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className="flex w-full rounded-2xl border border-[#e7f3eb] bg-[#f8fcf9] text-[#0d1b12] h-14 px-5 focus:border-[#2bee6c] focus:ring-0 outline-none transition-all placeholder:text-[#4c9a66]/50 font-medium" 
-                            placeholder="manager@business.com" 
-                            required 
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <label className="text-[#0d1b12] text-xs font-black uppercase tracking-widest pl-1">{t('password')}</label>
-                        <input 
-                            type="password" 
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className="flex w-full rounded-2xl border border-[#e7f3eb] bg-[#f8fcf9] text-[#0d1b12] h-14 px-5 focus:border-[#2bee6c] focus:ring-0 outline-none transition-all placeholder:text-[#4c9a66]/50 font-medium" 
-                            placeholder="••••••••" 
-                            required 
-                        />
+                <form onSubmit={handleLogin} className="space-y-8">
+                    <div className="space-y-6">
+                        <div className="group">
+                            <label className="text-[#163a24] text-[10px] font-black uppercase tracking-[0.2em] pl-1">{t('email')}</label>
+                            <input 
+                                type="email" 
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                className="flex w-full rounded-2xl border border-slate-100 bg-green-50/30 text-[#163a24] h-16 px-6 focus:border-[#2bee6c] focus:ring-0 outline-none transition-all placeholder:text-[#4c9a66]/30 font-bold" 
+                                placeholder="manager@qroyal.com" 
+                                required 
+                            />
+                        </div>
+                        <div className="group">
+                            <label className="text-[#163a24] text-[10px] font-black uppercase tracking-[0.2em] pl-1">{t('password')}</label>
+                            <input 
+                                type="password" 
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                className="flex w-full rounded-2xl border border-slate-100 bg-green-50/30 text-[#163a24] h-16 px-6 focus:border-[#2bee6c] focus:ring-0 outline-none transition-all placeholder:text-[#4c9a66]/30 font-bold" 
+                                placeholder="••••••••" 
+                                required 
+                            />
+                        </div>
                     </div>
                     
-                    {error && <p className="text-rose-500 text-xs font-bold text-center">{error}</p>}
+                    {error && <p className="text-rose-500 text-xs font-black uppercase tracking-widest text-center">{error}</p>}
                     
                     <button 
                         type="submit" 
                         disabled={loading}
-                        className="flex w-full cursor-pointer items-center justify-center rounded-2xl bg-[#0b110d] h-14 px-5 text-[#2bee6c] text-base font-bold tracking-tight transition-all active:scale-[0.98] disabled:opacity-50"
+                        className="flex w-full cursor-pointer items-center justify-center rounded-2xl bg-[#163a24] h-16 px-5 text-[#2bee6c] text-lg font-black tracking-tight transition-all active:scale-[0.98] disabled:opacity-50"
                     >
-                        {loading ? 'Verifying Gateway...' : t('login')}
+                        {loading ? 'Authorizing...' : t('login')}
                     </button>
                 </form>
 
-                <div className="mt-10 pt-8 border-t border-[#e7f3eb] text-center">
-                    <p className="text-xs text-[#4c9a66] font-bold">Partner Access Only</p>
+                <div className="pt-8 border-t border-slate-50 text-center">
+                    <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.4em]">Proprietary Gateway System</p>
                 </div>
             </div>
         </div>

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { Customer, ScanResult, Post } from '../types';
@@ -15,22 +16,16 @@ export const Spinner: React.FC<{ className?: string }> = ({ className = 'h-8 w-8
   </div>
 );
 
+// DEFINITIVE FLAG LOGO
 export const Logo: React.FC<{ className?: string }> = ({ className = "size-8" }) => (
-  <div className={`${className} bg-[#2bee6c] rounded-xl flex items-center justify-center p-1.5`}>
-    <svg viewBox="0 0 256 256" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className="w-full h-full text-[#163a24]">
-        <path d="M216,48H40a8,8,0,0,0-8,8V208a8,8,0,0,0,8,8H216a8,8,0,0,0,8-8V56A8,8,0,0,0,216,48ZM64,184V72a8,8,0,0,1,16,0V184a8,8,0,0,1-16,0Zm128-40H112a8,8,0,0,1,0-16h80a8,8,0,0,1,0,16Z" opacity="0.2"></path>
-        <path d="M192,56H48A16,16,0,0,0,32,72V200a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V72A16,16,0,0,0,192,56Zm0,144H48V72H192V200ZM152,112a8,8,0,0,1-8,8H104a8,8,0,0,1,0-16h40A8,8,0,0,1,152,112Zm0,32a8,8,0,0,1-8,8H104a8,8,0,0,1,0-16h40A8,8,0,0,1,152,144Z"></path>
-    </svg>
-  </div>
-);
-
-export const FlagLogo: React.FC<{ className?: string }> = ({ className = "size-8" }) => (
     <div className={`${className} bg-[#2bee6c] rounded-xl flex items-center justify-center p-1.5`}>
         <svg viewBox="0 0 256 256" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className="w-full h-full text-[#163a24]">
             <path d="M216,40H56A16,16,0,0,0,40,56V216a8,8,0,0,0,16,0V144h80l8.3,16.6a8.23,8.23,0,0,0,7.2,4.4H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40Zm0,112H154.9l-8.3-16.6a8.23,8.23,0,0,0-7.2-4.4H56V56H216Z"></path>
         </svg>
     </div>
 );
+
+export const FlagLogo = Logo;
 
 export const TrashIcon: React.FC<{ className?: string }> = ({ className = "size-5" }) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
@@ -45,7 +40,6 @@ export const PencilIcon: React.FC<{ className?: string }> = ({ className = "size
 );
 
 export const BackButton: React.FC<{ onClick?: () => void; className?: string }> = ({ onClick, className }) => {
-    const { t } = useLanguage();
     const handleBack = () => {
         if (onClick) onClick();
         else window.location.href = '/';
@@ -53,12 +47,11 @@ export const BackButton: React.FC<{ onClick?: () => void; className?: string }> 
     return (
         <button 
             onClick={handleBack} 
-            className={`group flex items-center gap-2 px-5 py-2.5 bg-[#2bee6c]/10 rounded-2xl text-[#163a24] font-bold text-sm hover:bg-[#2bee6c]/20 transition-all active:scale-95 ${className}`}
+            className={`group flex items-center gap-2 p-3 bg-[#2bee6c]/10 rounded-2xl text-[#163a24] hover:bg-[#2bee6c]/20 transition-all active:scale-90 ${className}`}
         >
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 256 256" className="transition-transform group-hover:-translate-x-1">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 256 256">
                 <path d="M224,128a8,8,0,0,1-8,8H59.31l58.35,58.34a8,8,0,0,1-11.32,11.32l-72-72a8,8,0,0,1,0-11.32l72-72a8,8,0,0,1,11.32,11.32L59.31,120H216A8,8,0,0,1,224,128Z"></path>
             </svg>
-            {t('back')}
         </button>
     );
 };
@@ -80,20 +73,20 @@ export const DeviceGuard: React.FC<{ children: React.ReactNode; target: 'mobile'
             <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#ffffff] p-6 font-sans">
                 <div className="w-full max-w-md bg-white rounded-[3rem] border border-slate-100 p-10 text-center space-y-8 animate-in zoom-in-95 duration-500">
                     <div className="size-20 bg-[#163a24] text-[#2bee6c] rounded-[1.5rem] flex items-center justify-center mx-auto mb-6">
-                        <span className="material-symbols-outlined text-[40px]">{target === 'pc' ? 'desktop_windows' : 'smartphone'}</span>
+                        <FlagLogo className="size-12 !bg-transparent" />
                     </div>
                     <div className="space-y-3">
                         <h2 className="text-3xl font-black text-[#163a24] tracking-tighter">
-                            {target === 'pc' ? 'PC Gateway' : 'Mobile Access'}
+                            {target === 'pc' ? 'Desktop Gateway' : 'Mobile Access'}
                         </h2>
                         <p className="text-[#4c9a66] font-medium leading-relaxed">
                             {target === 'pc' 
-                                ? 'The QRoyal Business Terminal is designed for enterprise desktops.' 
-                                : 'The Digital Wallet is optimized for mobile browsers. Please scan on your smartphone.'}
+                                ? 'The QRoyal Hub is optimized for large displays.' 
+                                : 'The Digital Wallet lives on your phone. Scan with your camera.'}
                         </p>
                     </div>
                     <div className="pt-6">
-                        <BackButton className="w-full justify-center py-4 border-none bg-[#163a24] text-white" />
+                        <BackButton className="w-full justify-center py-4 border-none bg-[#163a24] text-[#2bee6c]" />
                     </div>
                 </div>
             </div>
@@ -139,8 +132,8 @@ interface ModalProps {
 const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, title }) => {
   if (!isOpen) return null;
   return (
-    <div className="fixed inset-0 bg-[#163a24]/40 backdrop-blur-md z-[110] flex justify-center items-center p-4 animate-in fade-in duration-300">
-      <div className="bg-white rounded-[3rem] w-full max-w-md animate-in zoom-in-95 slide-in-from-bottom-10 duration-400 overflow-hidden border border-slate-100 shadow-sm">
+    <div className="fixed inset-0 bg-[#163a24]/20 backdrop-blur-sm z-[110] flex justify-center items-center p-4 animate-in fade-in duration-300">
+      <div className="bg-white rounded-[3rem] w-full max-w-md animate-in zoom-in-95 slide-in-from-bottom-10 duration-400 overflow-hidden border border-slate-100">
         <div className="flex justify-between items-center p-10 border-b border-slate-50">
           <h3 className="text-2xl font-black text-[#163a24] tracking-tighter">{title}</h3>
           <button onClick={onClose} className="text-[#4c9a66] hover:text-[#163a24] p-2 rounded-full hover:bg-slate-50 transition-all">
@@ -259,6 +252,7 @@ export const DeleteAccountModal: React.FC<{ isOpen: boolean; onClose: () => void
     const [inputValue, setInputValue] = useState('');
     const [isDeleting, setIsDeleting] = useState(false);
     const isMatch = inputValue === customerPhoneNumber;
+    // Fix: Fixed missing onClick prop on delete button
     const handleDelete = async () => { if (!isMatch) return; setIsDeleting(true); await onConfirm(); setIsDeleting(false); };
     useEffect(() => { if (!isOpen) setInputValue(''); }, [isOpen]);
     return (
