@@ -37,142 +37,55 @@ const BusinessLoginPage: React.FC = () => {
         }
     };
 
-    const handleOpenChat = (e: React.MouseEvent) => {
-        e.preventDefault();
-        if (window.tidioChatApi) {
-            window.tidioChatApi.open();
-        }
-    };
-
     return (
-        <div className="bg-background-light dark:bg-background-dark min-h-screen font-display">
-            <div className="flex min-h-screen w-full flex-col lg:flex-row">
-                {/* Left Side: Hero & Social Proof */}
-                <div className="relative hidden lg:flex lg:w-1/2 flex-col justify-between bg-primary p-12 text-white overflow-hidden">
-                    {/* Subtle background pattern */}
-                    <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(255,255,255,0.15) 1px, transparent 0)', backgroundSize: '24px 24px' }}></div>
+        <div className="bg-[#f8fcf9] min-h-screen font-sans flex items-center justify-center p-6">
+            <div className="w-full max-w-md bg-white rounded-[2.5rem] p-10 border border-[#e7f3eb]">
+                <div className="flex flex-col items-center gap-4 mb-10">
+                    <Logo className="size-12 bg-[#0d1b12] text-[#2bee6c]" />
+                    <div className="text-center">
+                        <h2 className="text-2xl font-black tracking-tighter text-[#0d1b12]">QROYAL</h2>
+                        <p className="text-sm font-bold text-[#4c9a66] uppercase tracking-[0.2em]">{t('businessAreaLogin')}</p>
+                    </div>
+                </div>
+
+                <form onSubmit={handleLogin} className="space-y-6">
+                    <div className="space-y-2">
+                        <label className="text-[#0d1b12] text-xs font-black uppercase tracking-widest pl-1">{t('email')}</label>
+                        <input 
+                            type="email" 
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            className="flex w-full rounded-2xl border border-[#e7f3eb] bg-[#f8fcf9] text-[#0d1b12] h-14 px-5 focus:border-[#2bee6c] focus:ring-0 outline-none transition-all placeholder:text-[#4c9a66]/50 font-medium" 
+                            placeholder="manager@business.com" 
+                            required 
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-[#0d1b12] text-xs font-black uppercase tracking-widest pl-1">{t('password')}</label>
+                        <input 
+                            type="password" 
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            className="flex w-full rounded-2xl border border-[#e7f3eb] bg-[#f8fcf9] text-[#0d1b12] h-14 px-5 focus:border-[#2bee6c] focus:ring-0 outline-none transition-all placeholder:text-[#4c9a66]/50 font-medium" 
+                            placeholder="••••••••" 
+                            required 
+                        />
+                    </div>
                     
-                    {/* Header/Logo Area */}
-                    <div className="relative z-10 flex items-center gap-3">
-                        <Logo className="size-8 text-white" />
-                        <h2 className="text-xl font-bold leading-tight tracking-tight">QROYAL Business</h2>
-                    </div>
+                    {error && <p className="text-rose-500 text-xs font-bold text-center">{error}</p>}
+                    
+                    <button 
+                        type="submit" 
+                        disabled={loading}
+                        className="flex w-full cursor-pointer items-center justify-center rounded-2xl bg-[#0d1b12] h-14 px-5 text-[#2bee6c] text-base font-black transition-all active:scale-[0.98] disabled:opacity-50"
+                    >
+                        {loading ? 'Verifying...' : t('login')}
+                    </button>
+                </form>
 
-                    {/* Main Value Prop */}
-                    <div className="relative z-10 max-w-lg">
-                        <h1 className="text-5xl font-black leading-tight tracking-[-0.033em] mb-6">
-                            Elevate Customer Loyalty with QROYAL
-                        </h1>
-                        <p className="text-lg font-normal leading-relaxed text-white/90 mb-8">
-                            Manage rewards, track engagement, and grow your brand with our all-in-one B2B loyalty engine. Join thousands of brands scaling their customer relationships.
-                        </p>
-                        {/* Social Proof Widget */}
-                        <div className="flex flex-col gap-4">
-                            <p className="text-sm font-medium uppercase tracking-widest text-white/70">Trusted by 500+ global brands</p>
-                            <div className="flex items-center gap-6 opacity-60 grayscale brightness-200">
-                                <span className="text-xl font-bold italic">LuxeFlow</span>
-                                <span className="text-xl font-black">VELOCITY</span>
-                                <span className="text-xl font-serif font-bold">Aurelius</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Footer Quote */}
-                    <div className="relative z-10 border-l-4 border-white/30 pl-6 py-2">
-                        <p className="italic text-white/80">"QROYAL transformed how we interact with our top-tier clients. The automation is seamless."</p>
-                        <p className="mt-2 font-bold text-sm">— Sarah Jenkins, Head of Growth at GlobalTech</p>
-                    </div>
+                <div className="mt-10 pt-8 border-t border-[#e7f3eb] text-center">
+                    <p className="text-xs text-[#4c9a66] font-bold">New to QRoyal? <a href="/signup/business" className="text-[#0d1b12] underline ml-1">Create Brand Account</a></p>
                 </div>
-
-                {/* Right Side: Login Form */}
-                <div className="flex flex-1 flex-col justify-center px-6 py-12 lg:px-24 bg-white dark:bg-background-dark">
-                    <div className="mx-auto w-full max-w-[440px]">
-                        {/* Mobile Logo */}
-                        <div className="flex lg:hidden items-center gap-3 mb-10">
-                            <Logo className="size-8 text-primary" />
-                            <h2 className="text-xl font-bold text-[#111318] dark:text-white">QROYAL</h2>
-                        </div>
-
-                        <div className="mb-10">
-                            <h2 className="text-3xl font-bold tracking-tight text-[#111318] dark:text-white">{t('businessAreaLogin')}</h2>
-                            <p className="mt-2 text-base text-[#616f89] dark:text-gray-400">Welcome back! Please enter your details.</p>
-                        </div>
-
-                        <form onSubmit={handleLogin} className="space-y-6">
-                            {/* Email Field */}
-                            <div className="flex flex-col gap-2">
-                                <label className="text-[#111318] dark:text-white text-sm font-semibold leading-normal">{t('email')}</label>
-                                <div className="relative">
-                                    <input 
-                                        type="email" 
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                        className="form-input flex w-full rounded-lg border border-[#dbdfe6] dark:border-gray-700 bg-white dark:bg-gray-800 text-[#111318] dark:text-white h-12 px-4 placeholder:text-[#616f89] focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" 
-                                        placeholder="name@company.com" 
-                                        required 
-                                    />
-                                </div>
-                            </div>
-                            {/* Password Field */}
-                            <div className="flex flex-col gap-2">
-                                <div className="flex items-center justify-between">
-                                    <label className="text-[#111318] dark:text-white text-sm font-semibold leading-normal">{t('password')}</label>
-                                    <a className="text-sm font-medium text-primary hover:underline" href="#">Forgot password?</a>
-                                </div>
-                                <div className="relative">
-                                    <input 
-                                        type="password" 
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                        className="form-input flex w-full rounded-lg border border-[#dbdfe6] dark:border-gray-700 bg-white dark:bg-gray-800 text-[#111318] dark:text-white h-12 px-4 placeholder:text-[#616f89] focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" 
-                                        placeholder="••••••••" 
-                                        required 
-                                    />
-                                </div>
-                            </div>
-                            
-                            {error && <p className="text-red-500 text-sm text-center font-medium">{error}</p>}
-                            
-                            {/* Sign In Button */}
-                            <button 
-                                type="submit" 
-                                disabled={loading}
-                                className="flex w-full cursor-pointer items-center justify-center rounded-lg bg-primary h-12 px-5 text-white text-base font-bold transition-opacity hover:opacity-90 active:scale-[0.98] disabled:opacity-50"
-                            >
-                                {loading ? 'Signing In...' : t('login')}
-                            </button>
-                        </form>
-
-                        <div className="mt-10 pt-8 border-t border-[#f0f2f4] dark:border-gray-800">
-                            <div className="flex flex-col items-center gap-4">
-                                <p className="text-sm text-[#616f89] dark:text-gray-400">New to QROYAL?</p>
-                                <button 
-                                    onClick={handleOpenChat}
-                                    className="group flex w-full items-center justify-center gap-2 rounded-lg border-2 border-primary/20 bg-primary/5 dark:bg-primary/10 h-12 px-5 text-primary text-sm font-bold transition-all hover:bg-primary/10 active:scale-95"
-                                >
-                                    <span className="material-symbols-outlined text-[20px]">chat_bubble</span>
-                                    Contact Support to Join
-                                </button>
-                                <p className="text-[12px] text-center text-[#616f89] dark:text-gray-500 max-w-[300px]">
-                                    Becoming a partner is easy. Our dedicated team will guide you through the setup and onboarding process.
-                                </p>
-                            </div>
-                        </div>
-
-                        {/* Footer Links */}
-                        <div className="mt-12 flex justify-center gap-6 text-[12px] text-[#616f89] dark:text-gray-500">
-                            <a className="hover:underline" href="/">Back to Home</a>
-                            <a className="hover:underline" href="#">Privacy Policy</a>
-                            <a className="hover:underline" href="#">Terms of Service</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {/* Onboarding Chat Trigger (Floating UI) */}
-            <div className="fixed bottom-6 right-6 z-50">
-                <button onClick={handleOpenChat} className="flex size-14 items-center justify-center rounded-full bg-primary text-white shadow-xl hover:scale-105 transition-transform">
-                    <span className="material-symbols-outlined text-[28px]">support_agent</span>
-                </button>
             </div>
         </div>
     );

@@ -15,18 +15,17 @@ import { DeviceGuard } from './components/common';
 const App: React.FC = () => {
   const path = window.location.pathname;
   const searchParams = new URLSearchParams(window.location.search);
+  const isMobile = window.innerWidth < 1024;
 
   const renderPage = () => {
-    // Admin route - Always PC
     if (path === '/admin') {
       return <DeviceGuard target="pc"><AdminPage /></DeviceGuard>;
     }
 
-    // Customer routes (Mobile-focused)
     if (path === '/customer' && searchParams.has('token')) {
       return (
         <DeviceGuard target="mobile">
-          <div className="flex justify-center bg-slate-50 min-h-screen">
+          <div className="flex justify-center bg-mint-white min-h-screen">
             <div className="w-full max-w-md bg-white shadow-2xl min-h-screen relative overflow-hidden">
                <CustomerPage qrToken={searchParams.get('token')!} />
             </div>
@@ -37,7 +36,7 @@ const App: React.FC = () => {
     if (path === '/signup/customer') {
       return (
         <DeviceGuard target="mobile">
-          <div className="flex justify-center bg-slate-50 min-h-screen">
+          <div className="flex justify-center bg-mint-white min-h-screen">
             <div className="w-full max-w-md bg-white shadow-2xl min-h-screen">
               <CustomerSignupPage />
             </div>
@@ -46,9 +45,9 @@ const App: React.FC = () => {
       );
     }
 
-    // Business routes (PC-focused)
     if (path === '/business') {
         const isLoggedIn = sessionStorage.getItem('isBusinessLoggedIn') === 'true';
+        if (isLoggedIn && isMobile) return <BusinessScannerPage />;
         return <DeviceGuard target="pc">{isLoggedIn ? <BusinessPage /> : <BusinessLoginPage />}</DeviceGuard>;
     }
     if (path === '/business/editor') {
@@ -57,24 +56,21 @@ const App: React.FC = () => {
     }
     if (path === '/business/scanner') {
         const isLoggedIn = sessionStorage.getItem('isBusinessLoggedIn') === 'true';
-        // Scanner is an exception - it's a Kiosk, but often used on tablets or dedicated phones. 
-        // We'll allow it on both but keep target="mobile" style for constraints.
-        return <DeviceGuard target="mobile"><BusinessScannerPage /></DeviceGuard>;
+        return <DeviceGuard target="mobile">{isLoggedIn ? <BusinessScannerPage /> : <BusinessLoginPage />}</DeviceGuard>;
     }
     if (path === '/business/login') {
-      return <DeviceGuard target="pc"><BusinessLoginPage /></DeviceGuard>;
+      return <BusinessLoginPage />;
     }
     if (path === '/signup/business') {
         return <DeviceGuard target="pc"><BusinessSignupPage /></DeviceGuard>;
     }
 
-    // Root/Landing - Universal
     return <LandingPage />;
   };
 
   return (
     <LanguageProvider>
-      <div className="antialiased selection:bg-blue-100">
+      <div className="antialiased selection:bg-green-100">
         {renderPage()}
       </div>
     </LanguageProvider>
