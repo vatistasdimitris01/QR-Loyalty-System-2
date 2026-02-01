@@ -15,7 +15,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&family=Noto+Sans:wght@400;500;700;900&family=Outfit:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <!-- Robust Material Icons loading -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
     
@@ -50,13 +49,9 @@
       }
     </script>
     <style>
-      /* Global White Aesthetic */
       body { background-color: #ffffff; color: #163a24; -webkit-tap-highlight-color: transparent; }
-      
       .no-scrollbar::-webkit-scrollbar { display: none; }
       .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-      
-      /* Force Material Icons to render correctly */
       .material-icons-round, .material-symbols-outlined {
         font-family: 'Material Icons Round' !important;
         font-weight: normal;
@@ -72,30 +67,10 @@
         -webkit-font-feature-settings: 'liga';
         -webkit-font-smoothing: antialiased;
       }
-      
-      /* Remove all shadows as requested */
-      *, .shadow-xl, .shadow-2xl, .shadow-lg, .shadow-md, .shadow-sm {
-        box-shadow: none !important;
-      }
-      
+      *, .shadow-xl, .shadow-2xl, .shadow-lg, .shadow-md, .shadow-sm { box-shadow: none !important; }
       .border-subtle { border: 1px solid #f3f4f6; }
-
-      .sidebar-transition {
-        transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      }
-
-      .chart-gradient {
-          background: linear-gradient(180deg, rgba(43, 238, 108, 0.05) 0%, rgba(43, 238, 108, 0) 100%);
-      }
-      
-      @media (max-width: 768px) {
-        #tidio-chat-iframe, .tidio-chat-widget { display: none !important; }
-      }
-      
-      .form-input:focus {
-        border-color: #2bee6c !important;
-        ring-color: #2bee6c !important;
-      }
+      .sidebar-transition { transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+      .form-input:focus { border-color: #2bee6c !important; ring-color: #2bee6c !important; }
     </style>
     
   <script type="importmap">
@@ -113,7 +88,6 @@
   }
 }
 </script>
-<script src="//code.tidio.co/lbmfxqsklq19pkniyajxaxzjguaddmtv.js" async></script>
 </head>
   <body class="font-sans antialiased overflow-x-hidden selection:bg-green-100">
     <div id="root"></div>

@@ -8,31 +8,27 @@ import BusinessSignupPage from './pages/BusinessSignupPage';
 import CustomerSignupPage from './pages/CustomerSignupPage';
 import AdminPage from './pages/AdminPage';
 import BusinessScannerPage from './pages/BusinessScannerPage';
-import { DeviceGuard, PageLoader, SplashScreen } from './components/common';
+import { DeviceGuard, SplashScreen } from './components/common';
 
 const App: React.FC = () => {
   const path = window.location.pathname;
   const searchParams = new URLSearchParams(window.location.search);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
-  const [loading, setLoading] = useState(true);
   const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 1024);
-    window.addEventListener('resize', handleResize);
-    const timer = setTimeout(() => setLoading(false), 500);
-    return () => {
-        window.removeEventListener('resize', handleResize);
-        clearTimeout(timer);
-    };
+    // If the user has seen the splash this session, don't show it again on internal navigations
+    const hasSeenSplash = sessionStorage.getItem('hasSeenSplash');
+    if (hasSeenSplash) {
+      setShowSplash(false);
+    }
   }, []);
 
   const handleSplashComplete = () => {
     setShowSplash(false);
+    sessionStorage.setItem('hasSeenSplash', 'true');
   };
 
   if (showSplash) return <SplashScreen onComplete={handleSplashComplete} />;
-  if (loading) return <PageLoader />;
 
   const renderPage = () => {
     if (path === '/admin') {
@@ -65,6 +61,7 @@ const App: React.FC = () => {
     if (path === '/business') {
         const isLoggedIn = sessionStorage.getItem('isBusinessLoggedIn') === 'true';
         if (isLoggedIn) {
+            const isMobile = window.innerWidth < 1024;
             if (isMobile) return <BusinessScannerPage />;
             return <BusinessPage />;
         }

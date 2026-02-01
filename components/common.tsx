@@ -34,7 +34,7 @@ const LogoDrawingLoader: React.FC<{ size?: number }> = ({ size = 128 }) => {
           </clipPath>
         </defs>
         <rect fill="#2bee6c" width="256" height="256" rx="48" />
-        <g clipPath="url(#logo-mask-loader)">
+        <g style={{ clipPath: 'url(#logo-mask-loader)' }}>
           <path
             ref={pathRef}
             fill="none"
@@ -68,16 +68,14 @@ const LogoDrawingLoader: React.FC<{ size?: number }> = ({ size = 128 }) => {
 };
 
 export const PageLoader: React.FC = () => (
-    <div className="fixed inset-0 z-[999] bg-white flex flex-col items-center justify-center space-y-8">
-        <LogoDrawingLoader size={80} />
-        <div className="text-[10px] font-black uppercase tracking-[0.5em] text-[#163a24] opacity-40">
-            Establishing Link
-        </div>
+    <div className="fixed inset-0 z-[999] bg-white flex flex-col items-center justify-center">
+        <Spinner className="size-10 text-[#2bee6c]" />
     </div>
 );
 
 export const SplashScreen: React.FC<{ onComplete: () => void }> = ({ onComplete }) => {
     useEffect(() => {
+        // Sync with exactly one full cycle (3s)
         const timer = setTimeout(onComplete, 3000);
         return () => clearTimeout(timer);
     }, [onComplete]);

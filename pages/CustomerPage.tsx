@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { getCustomerByQrToken, updateCustomer, joinBusiness, getMembershipsForCustomer } from '../services/api';
 import { Customer, Membership, Business } from '../types';
@@ -44,23 +43,7 @@ const CustomerPage: React.FC<CustomerPageProps> = ({ qrToken }) => {
   useEffect(() => {
     fetchData(true);
     const id = setInterval(() => fetchData(false), 30000);
-
-    // Logic to hide chatbot specifically on mobile
-    const handleChatbot = () => {
-      if ((window as any).tidioChatApi) {
-        (window as any).tidioChatApi.hide();
-      }
-    };
-    handleChatbot();
-    const tidioInterval = setInterval(handleChatbot, 1000);
-
-    return () => {
-        clearInterval(id);
-        clearInterval(tidioInterval);
-        if ((window as any).tidioChatApi) {
-          (window as any).tidioChatApi.show();
-        }
-    };
+    return () => clearInterval(id);
   }, [fetchData]);
 
   useEffect(() => {
@@ -89,7 +72,7 @@ const CustomerPage: React.FC<CustomerPageProps> = ({ qrToken }) => {
     <div className="relative flex h-auto min-h-screen w-full flex-col bg-[#f8fcf9] justify-between overflow-x-hidden font-sans">
         <CustomerSetupModal isOpen={isSetupModalOpen} onSave={handleSetupSave} />
         
-        <main className="animate-in fade-in duration-500 flex-grow">
+        <main className="flex-grow">
             {activeTab === 'home' && <CustomerHomePage customer={customer} memberships={memberships} onViewBusiness={setViewingBusiness} />}
             {activeTab === 'qr' && <CustomerQRPage customer={customer} />}
             {activeTab === 'search' && <CustomerSearchPage customer={customer} onJoinSuccess={() => fetchData(false)} />}

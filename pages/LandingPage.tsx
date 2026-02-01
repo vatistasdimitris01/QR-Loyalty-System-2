@@ -188,7 +188,7 @@ const LandingPage: React.FC = () => {
                         <h2 className="text-4xl md:text-8xl font-bold font-display tracking-tighter text-[#163a24]">Upgrade to <br className="hidden md:block"/>Royal Grade.</h2>
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 md:gap-6 w-full">
                             <a href="/signup/business" className="w-full sm:w-auto bg-[#163a24] text-[#2bee6c] px-14 py-6 rounded-2xl font-black text-xl md:text-2xl active:scale-95 transition-all text-center">Start Free Pilot</a>
-                            <a href="mailto:hq@qroyal.com" className="w-full sm:w-auto text-[#163a24] font-black text-lg md:text-xl hover:underline tracking-tight transition-all text-center">Request Enterprise Demo</a>
+                            <a href="mailto:vatistasdim.dev@icloud.com" className="w-full sm:w-auto text-[#163a24] font-black text-lg md:text-xl hover:underline tracking-tight transition-all text-center">Request Enterprise Demo</a>
                         </div>
                         <p className="text-slate-400 font-medium text-xs md:text-sm italic">Deployed globally in under 5 minutes.</p>
                     </div>
@@ -227,7 +227,7 @@ const LandingPage: React.FC = () => {
                         <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.4em] text-[#163a24]">Support</p>
                         <ul className="space-y-2 md:space-y-3 text-xs md:text-sm font-medium text-slate-400">
                             <li><a href="#" className="hover:text-[#2bee6c]">Status Page</a></li>
-                            <li><a href="#" className="hover:text-[#2bee6c]">Contact Engine</a></li>
+                            <li><a href="mailto:vatistasdim.dev@icloud.com" className="hover:text-[#2bee6c]">Contact Engine</a></li>
                             <li><a href="#" className="hover:text-[#2bee6c]">Documentation</a></li>
                         </ul>
                     </div>

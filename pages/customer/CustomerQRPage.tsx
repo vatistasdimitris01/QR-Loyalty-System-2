@@ -23,7 +23,7 @@ const CustomerQRPage: React.FC<CustomerQRPageProps> = ({ customer }) => {
                 </div>
             </div>
 
-            <main className="animate-in fade-in slide-in-from-bottom-4 duration-700 flex flex-col items-center">
+            <main className="flex flex-col items-center">
                 <h2 className="text-[#0d1b12] tracking-light text-[28px] font-black leading-tight px-6 text-center pb-3 pt-10">Scan your Identity Code</h2>
                 <p className="text-[#4c9a66] text-base font-medium leading-normal pb-8 pt-1 px-8 text-center max-w-sm">
                     Present this code at any participating business to earn points and redeem rewards instantly.

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Customer, Membership, Business } from '../../types';
 import { useLanguage } from '../../context/LanguageContext';
@@ -19,7 +18,7 @@ const CustomerHomePage: React.FC<CustomerHomePageProps> = ({ customer, membershi
                 <h2 className="text-[#0d1b12] text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center">Loyalty</h2>
             </div>
 
-            <main className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <main>
                 <div className="px-4 pb-3 pt-5">
                     <h2 className="text-[#0d1b12] text-[22px] font-bold leading-tight tracking-[-0.015em]">My Points</h2>
                 </div>
